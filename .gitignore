@@ -1,0 +1,7 @@
+# .gitignore
+node_modules/
+*.log
+guard-scanner-report.json
+guard-scanner-report.html
+guard-scanner.sarif
+.DS_Store

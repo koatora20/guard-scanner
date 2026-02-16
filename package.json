@@ -1,0 +1,35 @@
+{
+    "name": "guard-scanner",
+    "version": "1.0.0",
+    "description": "Agent skill security scanner — detect prompt injection, malicious code, credential leaks, and 17 threat categories in AI agent skills",
+    "main": "src/scanner.js",
+    "bin": {
+        "guard-scanner": "src/cli.js"
+    },
+    "scripts": {
+        "scan": "node src/cli.js",
+        "test": "node --test test/*.test.js"
+    },
+    "keywords": [
+        "security",
+        "scanner",
+        "ai-agent",
+        "skill-scanner",
+        "prompt-injection",
+        "openclaw",
+        "mcp",
+        "sarif"
+    ],
+    "author": "Guava & Dee",
+    "license": "MIT",
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "files": [
+        "src/",
+        "SKILL.md",
+        "HOOK.md",
+        "README.md",
+        "LICENSE"
+    ]
+}
