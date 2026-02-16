@@ -25,10 +25,17 @@
     "engines": {
         "node": ">=18.0.0"
     },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/koatora20/guard-scanner.git"
+    },
+    "homepage": "https://github.com/koatora20/guard-scanner",
     "files": [
         "src/",
+        "hooks/",
+        "docs/",
         "SKILL.md",
-        "HOOK.md",
+        "SECURITY.md",
         "README.md",
         "LICENSE"
     ]
