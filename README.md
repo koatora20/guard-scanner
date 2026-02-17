@@ -9,7 +9,7 @@
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
     <img src="https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen" alt="Node.js 18+">
     <img src="https://img.shields.io/badge/dependencies-0-success" alt="Zero Dependencies">
-    <img src="https://img.shields.io/badge/tests-56%2F56-brightgreen" alt="Tests Passing">
+    <img src="https://img.shields.io/badge/tests-91%2F91-brightgreen" alt="Tests Passing">
     <img src="https://img.shields.io/badge/patterns-186-orange" alt="186 Patterns">
     <img src="https://img.shields.io/badge/categories-20-blueviolet" alt="20 Categories">
   </p>
@@ -99,7 +99,7 @@ npx guard-scanner ./skills/
 ### As an OpenClaw Skill
 
 ```bash
-openclaw skill install guard-scanner
+clawhub install guard-scanner
 guard-scanner ~/.openclaw/workspace/skills/ --self-exclude --verbose
 ```
 
@@ -143,7 +143,7 @@ guard-scanner covers **20 threat categories** derived from four sources:
 ### Terminal (Default)
 
 ```
-🛡️  guard-scanner v1.1.1
+🛡️  guard-scanner v2.0.0
 ══════════════════════════════════════════════════════
 📂 Scanning: ./skills/
 📦 Skills found: 22
@@ -536,11 +536,11 @@ console.log(scanner.toHTML());    // HTML string
 ## Test Results
 
 ```
-ℹ tests 56
-ℹ suites 13
-ℹ pass 56
+ℹ tests 91
+ℹ suites 14
+ℹ pass 91
 ℹ fail 0
-ℹ duration_ms 108ms
+ℹ duration_ms 142ms
 ```
 
 | Suite | Tests | Coverage |
@@ -555,9 +555,28 @@ console.log(scanner.toHTML());    // HTML string
 | Shannon Entropy | 2 | Low entropy, high entropy |
 | Ignore Functionality | 1 | Pattern exclusion |
 | Plugin API | 1 | Plugin loading + custom rule injection |
-| **Manifest Validation (v1.1)** | 4 | Dangerous bins, broad files, sensitive env, clean negatives |
-| **Complexity Metrics (v1.1)** | 2 | Deep nesting, clean negatives |
-| **Config Impact (v1.1)** | 4 | openclaw.json write, exec approval, gateway host, clean negatives |
+| Manifest Validation | 4 | Dangerous bins, broad files, sensitive env, clean negatives |
+| Complexity Metrics | 2 | Deep nesting, clean negatives |
+| Config Impact | 4 | openclaw.json write, exec approval, gateway host, clean negatives |
+| **🆕 Plugin Hook Runtime Guard** | **35** | **Blocking in enforce/strict, passthrough in monitor, all 12 threat patterns, blockReason format** |
+
+---
+
+## Fills OpenClaw's Own Security Gaps
+
+OpenClaw's official [`THREAT-MODEL-ATLAS.md`](https://github.com/openclaw/openclaw/blob/main/docs/security/THREAT-MODEL-ATLAS.md) identifies security gaps that guard-scanner directly addresses:
+
+| Gap (from ATLAS / Source Code) | OpenClaw Status | guard-scanner |
+|---|---|---|
+| _"Simple regex easily bypassed"_ — ClawHub moderation | ⚠️ Basic `FLAG_RULES` | ✅ 186+ patterns, 20 categories |
+| _"Does not analyze actual skill code content"_ | ❌ Not implemented | ✅ Full code + doc + data flow analysis |
+| No SOUL.md / IDENTITY.md integrity verification | ❌ Not implemented | ✅ Identity hijacking detection (Cat 17) |
+| `skill:before_install` hook | ❌ Not implemented | 🔜 Proposed ([Issue #18677](https://github.com/openclaw/openclaw/issues/18677)) |
+| `before_tool_call` blocking reference impl | ❌ No official plugin | ✅ First reference implementation (plugin.ts) |
+| SARIF / CI integration for skill security | ❌ Not available | ✅ SARIF 2.1.0 + GitHub Actions |
+| Behavioral analysis beyond VirusTotal | ⏳ In progress | ✅ LLM-specific threat patterns (prompt injection, memory poisoning, MCP attacks) |
+
+> guard-scanner is **complementary** to OpenClaw's built-in security — not a replacement. OpenClaw handles infrastructure security (SSRF blocking, exec approvals, sandbox, auth). guard-scanner handles **AI-specific threats** that traditional scanning misses.
 
 ---
 
@@ -588,9 +607,9 @@ guard-scanner's coverage of the [OWASP Top 10 for LLM Applications (2025)](https
 | LLM09 | Overreliance | 🔜 v1.3 | Planned: unverified output trust patterns |
 | LLM10 | Model Theft | 🔜 v1.3 | Planned: model file exfiltration patterns |
 
-> **Current coverage: 3/10 (partial).** Full OWASP Gen AI coverage is targeted for v1.3. See [ROADMAP.md](ROADMAP.md) for details.
+> **Current coverage: 3/10 (partial).** Full OWASP Gen AI coverage is targeted for v2.1. See [ROADMAP.md](ROADMAP.md) for details.
 >
-> **Known limitation:** Regex-based detection can be evaded by AI-generated code obfuscation. v2.0 will introduce AST analysis and ML-based detection to address this structural gap.
+> **Known limitation:** Regex-based detection can be evaded by AI-generated code obfuscation. v3.0 will introduce AST analysis and ML-based detection to address this structural gap.
 
 ---
 
@@ -600,7 +619,7 @@ guard-scanner's coverage of the [OWASP Top 10 for LLM Applications (2025)](https
 2. Create a feature branch (`git checkout -b feature/new-pattern`)
 3. Add your pattern to `src/patterns.js` with the required fields
 4. Add a test case in `test/fixtures/` and `test/scanner.test.js`
-5. Run `npm test` — all 56+ tests must pass
+5. Run `npm test` — all 91+ tests must pass
 6. Submit a Pull Request
 
 ### Adding a New Detection Pattern
@@ -639,17 +658,15 @@ We built one.
 
 ## 🔒 Need More? — GuavaSuite
 
-guard-scanner catches threats **before** installation. But what happens **after** a skill is running?
-
-[**GuavaSuite**](https://github.com/koatora20) extends guard-scanner with real-time protection for production agent deployments:
+guard-scanner catches threats **before** installation and **blocks** them at runtime. [**GuavaSuite**](https://github.com/koatora20) goes further with defense-in-depth for production:
 
 | | guard-scanner (OSS) | GuavaSuite (Private) |
 |---|---|---|
-| Static scan | ✅ 20 categories | ✅ 20 categories |
-| Runtime blocking | ✅ Plugin Hook v2.0 (`block`/`blockReason`) | ✅ SuiteGate (enhanced ruleset) |
-| SOUL.md integrity | Pattern detection only | ⏳ SHA-256 hash watchdog (W4 E2E) |
+| Static scan | ✅ 20 categories, 186+ patterns | ✅ 20+ categories (extended ruleset) |
+| Runtime blocking | ✅ Plugin Hook v2.0 (`block`/`blockReason`) | ✅ SuiteGate (enhanced, multi-layer) |
+| SOUL.md integrity | ✅ Tampering pattern detection (Cat 17) | ✅ SHA-256 hash watchdog + auto-rollback |
+| Audit trail | ✅ File-based audit log | ✅ Structured audit + dashboard |
 | On-chain verification | — | ⏳ SoulChain (Polygon, Phase 2) |
-| Identity recovery | — | ⏳ Automatic rollback (Phase 2) |
 
 guard-scanner is and always will be **free, open-source, and zero-dependency**. If your agent handles production workloads and you want defense-in-depth, [reach out](https://github.com/koatora20).
 
@@ -660,10 +677,10 @@ guard-scanner is and always will be **free, open-source, and zero-dependency**. 
 | Version | Focus | Key Features |
 |---------|-------|------|
 | v1.1.1 ✅ | Stability | 56 tests, bug fixes |
-| v1.2 | PII + Shadow AI | Credential-in-context, unauthorized LLM API calls, memory poisoning vectors |
-| v1.3 | OWASP Gen AI | Complete LLM02/04/07/08/09/10 coverage |
-| v2.0 | AST + ML | JavaScript AST analysis, taint tracking, ML-based obfuscation detection, SBOM generation |
-| v2.1 | Community | YAML pattern definitions, CONTRIBUTING guide, automated pattern updates |
+| v2.0.0 ✅ | **Plugin Hook Runtime Guard** | `block`/`blockReason` API, 3 modes (monitor/enforce/strict), 91 tests |
+| v2.1 | PII + OWASP Gen AI | Credential-in-context, unauthorized LLM API calls, complete LLM02/04/07/08/09/10 coverage |
+| v2.2 | Community | YAML pattern definitions, CONTRIBUTING guide, automated pattern updates |
+| v3.0 | AST + ML | JavaScript AST analysis, taint tracking, ML-based obfuscation detection, SBOM generation |
 
 See [ROADMAP.md](ROADMAP.md) for full details.
 
