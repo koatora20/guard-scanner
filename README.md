@@ -2,7 +2,8 @@
   <h1 align="center">🛡️ guard-scanner</h1>
   <p align="center">
     <strong>Static security scanner for AI agent skills</strong><br>
-    Detect prompt injection, credential theft, exfiltration, identity hijacking, and 17 more threat categories.
+    Detect prompt injection, credential theft, exfiltration, identity hijacking, and 17 more threat categories.<br>
+    <sub>Runtime Guard hook included — pending <a href="https://github.com/openclaw/openclaw/issues/18677">OpenClaw hook API adoption</a></sub>
   </p>
   <p align="center">
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
@@ -90,6 +91,8 @@ openclaw skill install guard-scanner
 guard-scanner ~/.openclaw/workspace/skills/ --self-exclude --verbose
 ```
 
+> **⚠️ Runtime Guard (handler.ts)** — The real-time `before_tool_call` hook requires OpenClaw's Hook API ([Issue #18677](https://github.com/openclaw/openclaw/issues/18677)). The hook is registered and runs on `agent:before_tool_call` events, but OpenClaw's `InternalHookEvent` does not yet expose a cancel/veto mechanism — so **detections are warned but not blocked**. The static scanner (`npx guard-scanner`) works fully and independently.
+
 ---
 
 ## Threat Categories
@@ -128,7 +131,7 @@ guard-scanner covers **20 threat categories** derived from three taxonomies:
 ### Terminal (Default)
 
 ```
-🛡️  guard-scanner v1.0.0
+🛡️  guard-scanner v1.1.0
 ══════════════════════════════════════════════════════
 📂 Scanning: ./skills/
 📦 Skills found: 22
@@ -391,7 +394,7 @@ guard-scanner/
 │   └── cli.js          # CLI entry point and argument parser
 ├── hooks/
 │   └── guard-scanner/
-│       └── handler.ts  # Runtime Guard — before_tool_call hook
+│       └── handler.ts  # Runtime Guard — before_tool_call hook (experimental, pending OpenClaw API)
 ├── test/
 │   ├── scanner.test.js # 55 tests across 13 sections
 │   └── fixtures/       # Malicious, clean, complex, config-changer samples
@@ -605,7 +608,7 @@ guard-scanner catches threats **before** installation. But what happens **after*
 | | guard-scanner (OSS) | GuavaSuite (Private) |
 |---|---|---|
 | Static scan | ✅ 20 categories | ✅ 20 categories |
-| Runtime blocking | — | ✅ Real-time `before_tool_call` guard |
+| Runtime blocking | ⚠️ Warn only (cancel API pending) | ✅ Real-time `before_tool_call` guard |
 | SOUL.md integrity | Pattern detection only | ✅ SHA-256 hash watchdog |
 | On-chain verification | — | ✅ SoulChain (Polygon) |
 | Identity recovery | — | ✅ Automatic rollback |

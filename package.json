@@ -1,6 +1,6 @@
 {
     "name": "guard-scanner",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "description": "Agent skill security scanner — detect prompt injection, malicious code, credential leaks, and 20 threat categories in AI agent skills",
     "main": "src/scanner.js",
     "bin": {

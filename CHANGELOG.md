@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.1.1] - 2026-02-17
+
+### Fixed
+- **Runtime Guard hook**: Rewritten to use official OpenClaw `InternalHookEvent` / `InternalHookHandler` types (v2026.2.15)
+- **Removed broken import**: Replaced `import type { HookHandler } from "../../src/hooks/hooks.js"` with inline type definitions matching the official API
+- **Blocking behaviour**: `event.cancel` does not exist in `InternalHookEvent` — all detection modes now warn via `event.messages` instead of falsely claiming to block. Blocking logic preserved as comments for when cancel API is added
+- **Documentation accuracy**: README.md and SKILL.md updated to reflect that Runtime Guard currently warns only (cancel API pending)
+- **Version consistency**: Fixed stale v1.0.0 references in README terminal output, handler.ts JSDoc, SKILL.md stats (186+/20/55), `_meta.json`, and CHANGELOG test count (55, not 56)
+
+---
+
 ## [1.1.0] - 2026-02-17
 
 ### 🆕 New Features — Issue #18677 Feedback
@@ -31,7 +42,7 @@
 ### Testing
 - **11 new test cases** across 3 new test sections (Manifest Validation, Complexity, Config Impact)
 - **3 new test fixtures**: `dangerous-manifest/`, `complex-skill/`, `config-changer/`
-- Total: 56 tests across 13 sections
+- Total: 55 tests across 13 sections
 
 ---
 

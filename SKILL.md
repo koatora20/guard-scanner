@@ -29,7 +29,7 @@ metadata:
 # guard-scanner 🛡️
 
 Static + runtime security scanner for AI agent skills.
-**170+ threat patterns** across **17 categories** — zero dependencies.
+**186+ threat patterns** across **20 categories** — zero dependencies.
 
 ## When To Use This Skill
 
@@ -54,7 +54,9 @@ Scan a specific skill:
 node skills/guard-scanner/src/cli.js /path/to/new-skill/ --strict --verbose
 ```
 
-### 2. Runtime Guard (Real-time Protection)
+### 2. Runtime Guard (Real-time Protection) — ⚠️ Experimental
+
+> **Note:** Requires the OpenClaw Hook API ([Issue #18677](https://github.com/openclaw/openclaw/issues/18677)), which has not been officially adopted yet. The handler is included for early testing and will be updated once the API is finalized.
 
 Install the hook to block dangerous tool calls before execution:
 
@@ -83,11 +85,13 @@ openclaw hooks enable guard-scanner
 
 Set in `openclaw.json` → `hooks.internal.entries.guard-scanner.mode`:
 
-| Mode | Behavior |
-|------|----------|
-| `monitor` | Log all, never block |
-| `enforce` (default) | Block CRITICAL threats |
-| `strict` | Block HIGH + CRITICAL |
+| Mode | Intended Behavior | Current Status |
+|------|-------------------|----------------|
+| `monitor` | Log all, never block | ✅ Fully working |
+| `enforce` (default) | Block CRITICAL threats | ⚠️ Warn only (cancel API pending) |
+| `strict` | Block HIGH + CRITICAL | ⚠️ Warn only (cancel API pending) |
+
+> **Note:** OpenClaw's `InternalHookEvent` does not yet expose a `cancel`/`veto` mechanism. All detections are currently logged and warned via `event.messages`, but tool execution cannot be blocked. Blocking will be enabled when the cancel API is added.
 
 ## Threat Categories
 
@@ -110,6 +114,9 @@ Set in `openclaw.json` → `hooks.internal.entries.guard-scanner.mode`:
 | 15 | CVE Patterns | Known agent vulnerabilities |
 | 16 | MCP Security | Tool/schema poisoning, SSRF |
 | 17 | Identity Hijacking | SOUL.md/IDENTITY.md tampering |
+| 18 | Sandbox Validation | Dangerous binaries, broad file scope, sensitive env |
+| 19 | Code Complexity | Excessive file length, deep nesting, eval density |
+| 20 | Config Impact | openclaw.json writes, exec approval bypass |
 
 ## External Endpoints
 
@@ -140,7 +147,7 @@ an AI agent's SOUL.md personality file, and no existing tool could detect it.
 
 - **Open source**: Full source code available at https://github.com/koatora20/guard-scanner
 - **Zero dependencies**: Nothing to audit, no transitive risks
-- **Test suite**: 45 tests across 10 sections, 100% pass rate
+- **Test suite**: 55 tests across 13 sections, 100% pass rate
 - **Taxonomy**: Based on Snyk ToxicSkills (Feb 2026), OWASP MCP Top 10, and original research
 - **Complementary to VirusTotal**: Detects prompt injection and LLM-specific attacks
   that VirusTotal's signature-based scanning cannot catch

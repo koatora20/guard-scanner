@@ -4,7 +4,7 @@
         "name": "Guava & Dee",
         "homepage": "https://github.com/koatora20"
     },
-    "version": "1.0.0",
+    "version": "1.1.1",
     "created": "2026-02-17T00:00:00Z",
     "source": "https://github.com/koatora20/guard-scanner",
     "license": "MIT",
@@ -17,8 +17,8 @@
         "html-report",
         "json-report"
     ],
-    "threat_categories": 17,
-    "pattern_count": "170+",
+    "threat_categories": 20,
+    "pattern_count": "186+",
     "dependencies": 0,
     "tags": [
         "security",

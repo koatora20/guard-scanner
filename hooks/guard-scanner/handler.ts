@@ -1,26 +1,69 @@
-import type { HookHandler } from "../../src/hooks/hooks.js";
+/**
+ * guard-scanner Runtime Guard — Hook Handler
+ *
+ * Intercepts agent tool calls and checks arguments against
+ * runtime threat intelligence patterns. Zero dependencies.
+ *
+ * Registered for event: agent:before_tool_call
+ *
+ * Current limitation:
+ *   The OpenClaw InternalHookEvent interface does not yet expose a
+ *   `cancel` / `veto` mechanism. This handler can WARN via
+ *   event.messages but cannot block tool execution.
+ *   When a cancel API is introduced, this handler will be updated
+ *   to actually block CRITICAL/HIGH threats.
+ *
+ * Modes (for future blocking behaviour):
+ *   monitor  — log only (current effective behaviour for all modes)
+ *   enforce  — will block CRITICAL when cancel API is available
+ *   strict   — will block HIGH+CRITICAL when cancel API is available
+ *
+ * @author Guava 🍈 & Dee
+ * @version 1.1.0
+ * @license MIT
+ */
+
 import { appendFileSync, mkdirSync } from "fs";
 import { join } from "path";
 import { homedir } from "os";
 
-/**
- * guard-scanner Runtime Guard — before_tool_call Hook Handler
- * 
- * Intercepts tool executions in real-time and checks against
- * threat intelligence patterns. Zero dependencies.
- * 
- * Modes:
- *   monitor  — log only
- *   enforce  — block CRITICAL (default)
- *   strict   — block HIGH+CRITICAL, log MEDIUM+
- * 
- * @author Guava 🍈 & Dee
- * @version 1.0.0
- * @license MIT
- */
+// ── OpenClaw Hook Types (from openclaw/src/hooks/internal-hooks.ts) ──
+// Inline types to avoid broken relative-path imports.
+// These match the official InternalHookEvent / InternalHookHandler
+// from OpenClaw v2026.2.15.
+
+type InternalHookEventType = "command" | "session" | "agent" | "gateway";
+
+interface InternalHookEvent {
+    /** The type of event */
+    type: InternalHookEventType;
+    /** The specific action within the type (e.g., "before_tool_call") */
+    action: string;
+    /** The session key this event relates to */
+    sessionKey: string;
+    /** Additional context specific to the event */
+    context: Record<string, unknown>;
+    /** Timestamp when the event occurred */
+    timestamp: Date;
+    /** Messages to send back to the user (hooks can push to this array) */
+    messages: string[];
+}
+
+type InternalHookHandler = (event: InternalHookEvent) => Promise<void> | void;
+
+// Re-export as the public types for compatibility
+type HookHandler = InternalHookHandler;
+type HookEvent = InternalHookEvent;
 
 // ── Runtime threat patterns (12 checks) ──
-const RUNTIME_CHECKS = [
+interface RuntimeCheck {
+    id: string;
+    severity: "CRITICAL" | "HIGH" | "MEDIUM";
+    desc: string;
+    test: (s: string) => boolean;
+}
+
+const RUNTIME_CHECKS: RuntimeCheck[] = [
     {
         id: 'RT_REVSHELL', severity: 'CRITICAL', desc: 'Reverse shell attempt',
         test: (s: string) => /\/dev\/tcp\/|nc\s+-e|ncat\s+-e|bash\s+-i\s+>&|socat\s+TCP/i.test(s)
@@ -78,11 +121,11 @@ const RUNTIME_CHECKS = [
 const AUDIT_DIR = join(homedir(), ".openclaw", "guard-scanner");
 const AUDIT_FILE = join(AUDIT_DIR, "audit.jsonl");
 
-function ensureAuditDir() {
+function ensureAuditDir(): void {
     try { mkdirSync(AUDIT_DIR, { recursive: true }); } catch { }
 }
 
-function logAudit(entry: Record<string, unknown>) {
+function logAudit(entry: Record<string, unknown>): void {
     ensureAuditDir();
     const line = JSON.stringify({ ...entry, ts: new Date().toISOString() }) + '\n';
     try { appendFileSync(AUDIT_FILE, line); } catch { }
@@ -90,16 +133,21 @@ function logAudit(entry: Record<string, unknown>) {
 
 // ── Main Handler ──
 const handler: HookHandler = async (event) => {
-    // Only handle before_tool_call
+    // Only handle agent:before_tool_call events
     if (event.type !== "agent" || event.action !== "before_tool_call") return;
 
-    const { toolName, toolArgs } = (event as any).context || {};
+    const { toolName, toolArgs } = event.context as {
+        toolName?: string;
+        toolArgs?: Record<string, unknown>;
+    };
     if (!toolName || !toolArgs) return;
 
-    // Get mode from config
-    const mode = (event as any).context?.cfg?.hooks?.internal?.entries?.['guard-scanner']?.mode || 'enforce';
+    // Get mode from context config (if available)
+    const cfg = event.context.cfg as Record<string, unknown> | undefined;
+    const hookEntries = (cfg as any)?.hooks?.internal?.entries?.['guard-scanner'] as Record<string, unknown> | undefined;
+    const mode = (hookEntries?.mode as string) || 'enforce';
 
-    // Only check dangerous tools
+    // Only check tools that can cause damage
     const dangerousTools = new Set(['exec', 'write', 'edit', 'browser', 'web_fetch', 'message']);
     if (!dangerousTools.has(toolName)) return;
 
@@ -113,35 +161,39 @@ const handler: HookHandler = async (event) => {
                 severity: check.severity,
                 desc: check.desc,
                 mode,
-                action: 'allowed' as string,
-                session: (event as any).sessionKey,
+                action: 'warned' as string,
+                session: event.sessionKey,
             };
 
-            if (mode === 'strict' && (check.severity === 'CRITICAL' || check.severity === 'HIGH')) {
-                entry.action = 'blocked';
-                logAudit(entry);
-                event.messages.push(`🛡️ guard-scanner BLOCKED: ${check.desc} [${check.id}]`);
-                event.cancel = true;
-                console.warn(`[guard-scanner] 🚨 BLOCKED: ${check.desc} [${check.id}]`);
-                return;
-            }
+            // NOTE: OpenClaw InternalHookEvent does not currently support
+            // a cancel/veto mechanism. When it does, uncomment the blocking
+            // logic below. For now, all detections are warnings only.
+            //
+            // if (mode === 'strict' && (check.severity === 'CRITICAL' || check.severity === 'HIGH')) {
+            //     entry.action = 'blocked';
+            //     logAudit(entry);
+            //     event.messages.push(`🛡️ guard-scanner BLOCKED: ${check.desc} [${check.id}]`);
+            //     event.cancel = true;  // Not yet in the public API
+            //     return;
+            // }
+            //
+            // if (mode === 'enforce' && check.severity === 'CRITICAL') {
+            //     entry.action = 'blocked';
+            //     logAudit(entry);
+            //     event.messages.push(`🛡️ guard-scanner BLOCKED: ${check.desc} [${check.id}]`);
+            //     event.cancel = true;  // Not yet in the public API
+            //     return;
+            // }
 
-            if (mode === 'enforce' && check.severity === 'CRITICAL') {
-                entry.action = 'blocked';
-                logAudit(entry);
-                event.messages.push(`🛡️ guard-scanner BLOCKED: ${check.desc} [${check.id}]`);
-                event.cancel = true;
-                console.warn(`[guard-scanner] 🚨 BLOCKED: ${check.desc} [${check.id}]`);
-                return;
-            }
-
-            // Monitor mode or non-critical: log only
-            entry.action = 'logged';
+            // Current behaviour: warn and log for all modes
             logAudit(entry);
 
             if (check.severity === 'CRITICAL') {
                 event.messages.push(`🛡️ guard-scanner WARNING: ${check.desc} [${check.id}]`);
                 console.warn(`[guard-scanner] ⚠️ WARNING: ${check.desc} [${check.id}]`);
+            } else if (check.severity === 'HIGH') {
+                event.messages.push(`🛡️ guard-scanner NOTICE: ${check.desc} [${check.id}]`);
+                console.warn(`[guard-scanner] ℹ️ NOTICE: ${check.desc} [${check.id}]`);
             }
         }
     }
