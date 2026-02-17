@@ -409,7 +409,43 @@ describe('Code Complexity Metrics (v1.1)', () => {
     });
 });
 
-// ===== 13. Config Impact Analysis (v1.1) =====
+// ===== 13. Generated Report Noise Regression =====
+describe('Generated Report Noise Regression', () => {
+    it('should ignore guard-scanner generated report files', () => {
+        const tmpDir = fs.mkdtempSync(path.join(__dirname, 'tmp-skill-'));
+        try {
+            // Minimal valid skill
+            fs.writeFileSync(path.join(tmpDir, 'SKILL.md'), '# temp skill\n\nSafe skill.\n');
+
+            // Simulated previous scan report containing many threat keywords
+            fs.writeFileSync(
+                path.join(tmpDir, 'guard-scanner-report.json'),
+                JSON.stringify({
+                    findings: [
+                        { id: 'PI_IGNORE', sample: 'ignore all previous instructions' },
+                        { id: 'IOC_IP', sample: '91.92.242.30' },
+                        { id: 'CVE_2026_25253', sample: 'gatewayUrl' }
+                    ]
+                })
+            );
+
+            const scanner = new GuardScanner({ summaryOnly: true });
+            scanner.scanSkill(tmpDir, 'tmp-skill');
+
+            const result = scanner.findings[0];
+            const ids = new Set((result?.findings || []).map(f => f.id));
+
+            // Report-derived signatures must NOT appear
+            assert.ok(!ids.has('PI_IGNORE'), 'PI_IGNORE must not be re-detected from generated report files');
+            assert.ok(!ids.has('IOC_IP'), 'IOC_IP must not be re-detected from generated report files');
+            assert.ok(!ids.has('CVE_2026_25253'), 'CVE pattern must not be re-detected from generated report files');
+        } finally {
+            fs.rmSync(tmpDir, { recursive: true, force: true });
+        }
+    });
+});
+
+// ===== 14. Config Impact Analysis (v1.1) =====
 describe('Config Impact Analysis (v1.1)', () => {
     it('should detect openclaw.json write operations', () => {
         const scanner = new GuardScanner({ summaryOnly: true });

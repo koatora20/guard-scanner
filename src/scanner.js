@@ -42,6 +42,7 @@ const CODE_EXTENSIONS = new Set(['.js', '.ts', '.mjs', '.cjs', '.py', '.sh', '.b
 const DOC_EXTENSIONS = new Set(['.md', '.txt', '.rst', '.adoc']);
 const DATA_EXTENSIONS = new Set(['.json', '.yaml', '.yml', '.toml', '.xml', '.csv']);
 const BINARY_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.ico', '.woff', '.woff2', '.ttf', '.eot', '.wasm', '.wav', '.mp3', '.mp4', '.webm', '.ogg', '.pdf', '.zip', '.tar', '.gz', '.bz2', '.7z', '.exe', '.dll', '.so', '.dylib']);
+const GENERATED_REPORT_FILES = new Set(['guard-scanner-report.json', 'guard-scanner-report.html', 'guard-scanner.sarif']);
 
 // Severity weights for risk scoring
 const SEVERITY_WEIGHTS = { CRITICAL: 40, HIGH: 15, MEDIUM: 5, LOW: 2 };
@@ -886,6 +887,8 @@ class GuardScanner {
                     if (entry.name === '.git' || entry.name === 'node_modules') continue;
                     results.push(...this.getFiles(fullPath));
                 } else {
+                    const baseName = entry.name.toLowerCase();
+                    if (GENERATED_REPORT_FILES.has(baseName)) continue;
                     results.push(fullPath);
                 }
             }

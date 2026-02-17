@@ -2,14 +2,14 @@
   <h1 align="center">🛡️ guard-scanner</h1>
   <p align="center">
     <strong>Static security scanner for AI agent skills</strong><br>
-    Detect prompt injection, credential theft, exfiltration, identity hijacking, and 17 more threat categories.<br>
+    Detect prompt injection, credential theft, exfiltration, identity hijacking, and 16 more threat categories.<br>
     <sub>Runtime Guard hook included — pending <a href="https://github.com/openclaw/openclaw/issues/18677">OpenClaw hook API adoption</a></sub>
   </p>
   <p align="center">
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
     <img src="https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen" alt="Node.js 18+">
     <img src="https://img.shields.io/badge/dependencies-0-success" alt="Zero Dependencies">
-    <img src="https://img.shields.io/badge/tests-55%2F55-brightgreen" alt="Tests Passing">
+    <img src="https://img.shields.io/badge/tests-56%2F56-brightgreen" alt="Tests Passing">
     <img src="https://img.shields.io/badge/patterns-186-orange" alt="186 Patterns">
     <img src="https://img.shields.io/badge/categories-20-blueviolet" alt="20 Categories">
   </p>
@@ -97,7 +97,7 @@ guard-scanner ~/.openclaw/workspace/skills/ --self-exclude --verbose
 
 ## Threat Categories
 
-guard-scanner covers **20 threat categories** derived from three taxonomies:
+guard-scanner covers **20 threat categories** derived from four sources:
 
 | # | Category | Based On | Severity | What It Detects |
 |---|----------|----------|----------|----------------|
@@ -131,7 +131,7 @@ guard-scanner covers **20 threat categories** derived from three taxonomies:
 ### Terminal (Default)
 
 ```
-🛡️  guard-scanner v1.1.0
+🛡️  guard-scanner v1.1.1
 ══════════════════════════════════════════════════════
 📂 Scanning: ./skills/
 📦 Skills found: 22
@@ -396,7 +396,7 @@ guard-scanner/
 │   └── guard-scanner/
 │       └── handler.ts  # Runtime Guard — before_tool_call hook (experimental, pending OpenClaw API)
 ├── test/
-│   ├── scanner.test.js # 55 tests across 13 sections
+│   ├── scanner.test.js # 56 tests across 13 sections
 │   └── fixtures/       # Malicious, clean, complex, config-changer samples
 ├── package.json        # Zero dependencies, node --test
 ├── CHANGELOG.md
@@ -521,11 +521,11 @@ console.log(scanner.toHTML());    // HTML string
 ## Test Results
 
 ```
-ℹ tests 55
+ℹ tests 56
 ℹ suites 13
-ℹ pass 55
+ℹ pass 56
 ℹ fail 0
-ℹ duration_ms 115ms
+ℹ duration_ms 108ms
 ```
 
 | Suite | Tests | Coverage |
@@ -556,13 +556,36 @@ console.log(scanner.toHTML());    // HTML string
 
 ---
 
+## OWASP Gen AI Top 10 Coverage
+
+guard-scanner's coverage of the [OWASP Top 10 for LLM Applications (2025)](https://owasp.org/www-project-top-10-for-large-language-model-applications/):
+
+| # | Risk | Status | Detection Method |
+|---|------|--------|------------------|
+| LLM01 | Prompt Injection | ⚠️ Partial | Regex: Unicode exploits, role override, system tags, base64 instructions |
+| LLM02 | Insecure Output Handling | 🔜 v1.2 | Planned: unvalidated output execution patterns |
+| LLM03 | Training Data Poisoning | ⬜ N/A | Out of scope for static analysis |
+| LLM04 | Model Denial of Service | 🔜 v1.3 | Planned: excessive input / infinite loop patterns |
+| LLM05 | Supply Chain Vulnerabilities | ⚠️ Partial | IoC database, typosquat detection, dependency chain scan |
+| LLM06 | Sensitive Information Disclosure | ⚠️ Partial | Secret detection, PII patterns, credential leaks |
+| LLM07 | Insecure Plugin Design | 🔜 v1.3 | Planned: unvalidated plugin input patterns |
+| LLM08 | Excessive Agency | 🔜 v1.3 | Planned: over-permissioned scope detection |
+| LLM09 | Overreliance | 🔜 v1.3 | Planned: unverified output trust patterns |
+| LLM10 | Model Theft | 🔜 v1.3 | Planned: model file exfiltration patterns |
+
+> **Current coverage: 3/10 (partial).** Full OWASP Gen AI coverage is targeted for v1.3. See [ROADMAP.md](ROADMAP.md) for details.
+>
+> **Known limitation:** Regex-based detection can be evaded by AI-generated code obfuscation. v2.0 will introduce AST analysis and ML-based detection to address this structural gap.
+
+---
+
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/new-pattern`)
 3. Add your pattern to `src/patterns.js` with the required fields
 4. Add a test case in `test/fixtures/` and `test/scanner.test.js`
-5. Run `npm test` — all 55+ tests must pass
+5. Run `npm test` — all 56+ tests must pass
 6. Submit a Pull Request
 
 ### Adding a New Detection Pattern
@@ -608,12 +631,26 @@ guard-scanner catches threats **before** installation. But what happens **after*
 | | guard-scanner (OSS) | GuavaSuite (Private) |
 |---|---|---|
 | Static scan | ✅ 20 categories | ✅ 20 categories |
-| Runtime blocking | ⚠️ Warn only (cancel API pending) | ✅ Real-time `before_tool_call` guard |
-| SOUL.md integrity | Pattern detection only | ✅ SHA-256 hash watchdog |
-| On-chain verification | — | ✅ SoulChain (Polygon) |
-| Identity recovery | — | ✅ Automatic rollback |
+| Runtime blocking | ⚠️ Warn only (cancel API pending) | ⏳ Real-time `before_tool_call` guard (planned) |
+| SOUL.md integrity | Pattern detection only | ⏳ SHA-256 hash watchdog (planned) |
+| On-chain verification | — | ⏳ SoulChain (Polygon, planned) |
+| Identity recovery | — | ⏳ Automatic rollback (planned) |
 
 guard-scanner is and always will be **free, open-source, and zero-dependency**. If your agent handles production workloads and you want defense-in-depth, [reach out](https://github.com/koatora20).
+
+---
+
+## Roadmap
+
+| Version | Focus | Key Features |
+|---------|-------|------|
+| v1.1.1 ✅ | Stability | 56 tests, bug fixes |
+| v1.2 | PII + Shadow AI | Credential-in-context, unauthorized LLM API calls, memory poisoning vectors |
+| v1.3 | OWASP Gen AI | Complete LLM02/04/07/08/09/10 coverage |
+| v2.0 | AST + ML | JavaScript AST analysis, taint tracking, ML-based obfuscation detection, SBOM generation |
+| v2.1 | Community | YAML pattern definitions, CONTRIBUTING guide, automated pattern updates |
+
+See [ROADMAP.md](ROADMAP.md) for full details.
 
 ---
 
