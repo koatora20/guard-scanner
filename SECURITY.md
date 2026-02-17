@@ -5,7 +5,7 @@
 If you discover a security vulnerability in guard-scanner itself, please report it responsibly:
 
 1. **Do NOT open a public issue**
-2. Email: [security contact via GitHub private vulnerability reporting]
+2. Email: socialgreen.jp@gmail.com
 3. Include: affected version, steps to reproduce, potential impact
 
 We will respond within 48 hours and provide a fix within 7 days for critical issues.

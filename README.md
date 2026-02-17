@@ -631,10 +631,10 @@ guard-scanner catches threats **before** installation. But what happens **after*
 | | guard-scanner (OSS) | GuavaSuite (Private) |
 |---|---|---|
 | Static scan | ✅ 20 categories | ✅ 20 categories |
-| Runtime blocking | ⚠️ Warn only (cancel API pending) | ⏳ Real-time `before_tool_call` guard (planned) |
-| SOUL.md integrity | Pattern detection only | ⏳ SHA-256 hash watchdog (planned) |
-| On-chain verification | — | ⏳ SoulChain (Polygon, planned) |
-| Identity recovery | — | ⏳ Automatic rollback (planned) |
+| Runtime blocking | ⚠️ Warn only (cancel API pending) | ✅ SuiteGate implemented (awaiting OpenClaw Hook API) |
+| SOUL.md integrity | Pattern detection only | ⏳ SHA-256 hash watchdog (W4 E2E) |
+| On-chain verification | — | ⏳ SoulChain (Polygon, Phase 2) |
+| Identity recovery | — | ⏳ Automatic rollback (Phase 2) |
 
 guard-scanner is and always will be **free, open-source, and zero-dependency**. If your agent handles production workloads and you want defense-in-depth, [reach out](https://github.com/koatora20).
 
