@@ -351,3 +351,97 @@ describe('Plugin API', () => {
         }
     });
 });
+
+// ===== 11. Skill Manifest Validation (v1.1) =====
+describe('Skill Manifest Validation (v1.1)', () => {
+    it('should detect dangerous binaries in SKILL.md requires.bins', () => {
+        const scanner = new GuardScanner({ summaryOnly: true });
+        scanner.scanSkill(path.join(__dirname, 'fixtures', 'dangerous-manifest'), 'dangerous-manifest');
+        const findings = scanner.findings[0]?.findings || [];
+        const dangerousBins = findings.filter(f => f.id === 'MANIFEST_DANGEROUS_BIN');
+        assert.ok(dangerousBins.length >= 2, `Expected >= 2 dangerous bin findings, got ${dangerousBins.length}`);
+        const binDescs = dangerousBins.map(f => f.desc);
+        assert.ok(binDescs.some(d => d.includes('sudo')), 'Should detect sudo');
+        assert.ok(binDescs.some(d => d.includes('rm')), 'Should detect rm');
+    });
+
+    it('should detect overly broad file scope', () => {
+        const scanner = new GuardScanner({ summaryOnly: true });
+        scanner.scanSkill(path.join(__dirname, 'fixtures', 'dangerous-manifest'), 'dangerous-manifest');
+        const findings = scanner.findings[0]?.findings || [];
+        const broadFiles = findings.filter(f => f.id === 'MANIFEST_BROAD_FILES');
+        assert.ok(broadFiles.length >= 1, `Expected >= 1 broad files finding, got ${broadFiles.length}`);
+    });
+
+    it('should detect sensitive env var requirements', () => {
+        const scanner = new GuardScanner({ summaryOnly: true });
+        scanner.scanSkill(path.join(__dirname, 'fixtures', 'dangerous-manifest'), 'dangerous-manifest');
+        const findings = scanner.findings[0]?.findings || [];
+        const sensitiveEnv = findings.filter(f => f.id === 'MANIFEST_SENSITIVE_ENV');
+        assert.ok(sensitiveEnv.length >= 1, `Expected >= 1 sensitive env finding, got ${sensitiveEnv.length}`);
+    });
+
+    it('should not flag clean skills for manifest issues', () => {
+        const scanner = new GuardScanner({ summaryOnly: true });
+        scanner.scanSkill(path.join(__dirname, 'fixtures', 'clean-skill'), 'clean-skill');
+        const findings = scanner.findings[0]?.findings || [];
+        const manifestFindings = findings.filter(f => f.cat === 'sandbox-validation');
+        assert.equal(manifestFindings.length, 0, 'Clean skill should have no manifest findings');
+    });
+});
+
+// ===== 12. Code Complexity Metrics (v1.1) =====
+describe('Code Complexity Metrics (v1.1)', () => {
+    it('should detect deep nesting', () => {
+        const scanner = new GuardScanner({ summaryOnly: true });
+        scanner.scanSkill(path.join(__dirname, 'fixtures', 'complex-skill'), 'complex-skill');
+        const findings = scanner.findings[0]?.findings || [];
+        const nesting = findings.filter(f => f.id === 'COMPLEXITY_DEEP_NESTING');
+        assert.ok(nesting.length >= 1, `Expected deep nesting finding, got ${nesting.length}`);
+    });
+
+    it('should not flag clean skills for complexity', () => {
+        const scanner = new GuardScanner({ summaryOnly: true });
+        scanner.scanSkill(path.join(__dirname, 'fixtures', 'clean-skill'), 'clean-skill');
+        const findings = scanner.findings[0]?.findings || [];
+        const complexityFindings = findings.filter(f => f.cat === 'complexity');
+        assert.equal(complexityFindings.length, 0, 'Clean skill should have no complexity findings');
+    });
+});
+
+// ===== 13. Config Impact Analysis (v1.1) =====
+describe('Config Impact Analysis (v1.1)', () => {
+    it('should detect openclaw.json write operations', () => {
+        const scanner = new GuardScanner({ summaryOnly: true });
+        scanner.scanSkill(path.join(__dirname, 'fixtures', 'config-changer'), 'config-changer');
+        const findings = scanner.findings[0]?.findings || [];
+        const configWrite = findings.filter(f => f.id === 'CFG_WRITE_DETECTED');
+        assert.ok(configWrite.length >= 1, `Expected openclaw.json write finding, got ${configWrite.length}`);
+    });
+
+    it('should detect exec approval disabling', () => {
+        const scanner = new GuardScanner({ summaryOnly: true });
+        scanner.scanSkill(path.join(__dirname, 'fixtures', 'config-changer'), 'config-changer');
+        const findings = scanner.findings[0]?.findings || [];
+        const execOff = findings.filter(f => f.id === 'CFG_EXEC_APPROVAL_OFF');
+        assert.ok(execOff.length >= 1, `Expected exec approval off finding, got ${execOff.length}`);
+    });
+
+    it('should detect exec host gateway setting', () => {
+        const scanner = new GuardScanner({ summaryOnly: true });
+        scanner.scanSkill(path.join(__dirname, 'fixtures', 'config-changer'), 'config-changer');
+        const findings = scanner.findings[0]?.findings || [];
+        const gatewayHost = findings.filter(f =>
+            f.id === 'CFG_EXEC_HOST_GATEWAY' || f.id === 'CFG_EXEC_HOST_GW'
+        );
+        assert.ok(gatewayHost.length >= 1, `Expected exec host gateway finding, got ${gatewayHost.length}`);
+    });
+
+    it('should not flag clean skills for config impact', () => {
+        const scanner = new GuardScanner({ summaryOnly: true });
+        scanner.scanSkill(path.join(__dirname, 'fixtures', 'clean-skill'), 'clean-skill');
+        const findings = scanner.findings[0]?.findings || [];
+        const configFindings = findings.filter(f => f.cat === 'config-impact');
+        assert.equal(configFindings.length, 0, 'Clean skill should have no config impact findings');
+    });
+});

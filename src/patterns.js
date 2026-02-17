@@ -177,6 +177,14 @@ const PATTERNS = [
     { id: 'SOUL_HOOK_SWAP', cat: 'identity-hijack', regex: /(?:hook|bootstrap|init)\s+[^\n]*(?:swap|replace|override)\s+[^\n]*(?:SOUL|IDENTITY|persona)/gi, severity: 'CRITICAL', desc: 'Hook-based identity swap at bootstrap', all: true },
     { id: 'SOUL_NAME_OVERRIDE', cat: 'identity-hijack', regex: /(?:your\s+name\s+is|you\s+are\s+now|call\s+yourself|from\s+now\s+on\s+you\s+are)\s+(?!the\s+(?:user|human|assistant))/gi, severity: 'HIGH', desc: 'Agent name/identity override', docOnly: true },
     { id: 'SOUL_MEMORY_WIPE', cat: 'identity-hijack', regex: /(?:wipe|clear|erase|delete|remove|reset)\s+(?:all\s+)?(?:your\s+)?(?:memory|memories|MEMORY\.md|identity|soul)/gi, severity: 'CRITICAL', desc: 'Memory/identity wipe instruction', docOnly: true },
+
+    // ── Category 18: Config Impact Analysis ──
+    { id: 'CFG_OPENCLAW_WRITE', cat: 'config-impact', regex: /(?:write|writeFile|writeFileSync|fs\.write)\s*\([^)]*openclaw\.json/gi, severity: 'CRITICAL', desc: 'Direct write to openclaw.json', codeOnly: true },
+    { id: 'CFG_EXEC_APPROVALS_OFF', cat: 'config-impact', regex: /(?:exec\.approvals?|approvals?)\s*[:=]\s*['"](off|false|disabled|none)['"]/gi, severity: 'CRITICAL', desc: 'Disable exec approvals via config', all: true },
+    { id: 'CFG_HOOKS_MODIFY', cat: 'config-impact', regex: /hooks\.internal\.entries\s*[:=]|hooks\.internal\s*[:=]\s*\{/gi, severity: 'HIGH', desc: 'Modify hooks.internal configuration', codeOnly: true },
+    { id: 'CFG_EXEC_HOST_GW', cat: 'config-impact', regex: /tools\.exec\.host\s*[:=]\s*['"]gateway['"]/gi, severity: 'CRITICAL', desc: 'Set exec host to gateway (bypass sandbox)', all: true },
+    { id: 'CFG_SANDBOX_OFF', cat: 'config-impact', regex: /(?:sandbox|sandboxed|containerized)\s*[:=]\s*(?:false|off|none|disabled|0)/gi, severity: 'CRITICAL', desc: 'Disable sandbox via configuration', all: true },
+    { id: 'CFG_TOOL_OVERRIDE', cat: 'config-impact', regex: /(?:tools|capabilities)\s*\.\s*(?:exec|write|browser|web_fetch)\s*[:=]\s*\{[^}]*(?:enabled|allowed|host)/gi, severity: 'HIGH', desc: 'Override tool security settings', codeOnly: true },
 ];
 
 module.exports = { PATTERNS };

@@ -12,7 +12,7 @@
  *   purpose: Static analysis of agent skill files for threat patterns
  *
  * Based on GuavaGuard v9.0.0 (OSS extraction)
- * 17 threat categories • Snyk ToxicSkills + OWASP MCP Top 10
+ * 20 threat categories • Snyk ToxicSkills + OWASP MCP Top 10
  * Zero dependencies • CLI + JSON + SARIF + HTML output
  * Plugin API for custom detection rules
  *
@@ -27,9 +27,10 @@ const os = require('os');
 
 const { PATTERNS } = require('./patterns.js');
 const { KNOWN_MALICIOUS } = require('./ioc-db.js');
+const { generateHTML } = require('./html-template.js');
 
 // ===== CONFIGURATION =====
-const VERSION = '1.0.0';
+const VERSION = '1.1.0';
 
 const THRESHOLDS = {
     normal: { suspicious: 30, malicious: 80 },
@@ -266,6 +267,15 @@ class GuardScanner {
         // Check 6: Cross-file analysis
         this.checkCrossFile(skillPath, skillName, skillFindings);
 
+        // Check 7: Skill manifest validation (v1.1)
+        this.checkSkillManifest(skillPath, skillName, skillFindings);
+
+        // Check 8: Code complexity metrics (v1.1)
+        this.checkComplexity(skillPath, skillName, skillFindings);
+
+        // Check 9: Config impact analysis (v1.1)
+        this.checkConfigImpact(skillPath, skillName, skillFindings);
+
         // Filter ignored patterns
         const filteredFindings = skillFindings.filter(f => !this.ignoredPatterns.has(f.id));
 
@@ -474,6 +484,226 @@ class GuardScanner {
         }
     }
 
+    // ── v1.1: Skill Manifest Validation ──
+    // Checks SKILL.md frontmatter for dangerous tool declarations,
+    // overly broad file scope, and sensitive env requirements
+    checkSkillManifest(skillPath, skillName, findings) {
+        const skillMd = path.join(skillPath, 'SKILL.md');
+        if (!fs.existsSync(skillMd)) return;
+
+        let content;
+        try { content = fs.readFileSync(skillMd, 'utf-8'); } catch { return; }
+
+        // Parse YAML frontmatter (lightweight, no dependency)
+        const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
+        if (!fmMatch) return;
+        const fm = fmMatch[1];
+
+        // Check 1: Dangerous binary requirements
+        const DANGEROUS_BINS = new Set([
+            'sudo', 'rm', 'rmdir', 'chmod', 'chown', 'kill', 'pkill',
+            'curl', 'wget', 'nc', 'ncat', 'socat', 'ssh', 'scp',
+            'dd', 'mkfs', 'fdisk', 'mount', 'umount',
+            'iptables', 'ufw', 'firewall-cmd',
+            'docker', 'kubectl', 'systemctl',
+        ]);
+        const binsMatch = fm.match(/bins:\s*\n((?:\s+-\s+[^\n]+\n?)*)/i);
+        if (binsMatch) {
+            const bins = binsMatch[1].match(/- ([^\n]+)/g) || [];
+            for (const binLine of bins) {
+                const bin = binLine.replace(/^-\s*/, '').trim().toLowerCase();
+                if (DANGEROUS_BINS.has(bin)) {
+                    findings.push({
+                        severity: 'HIGH', id: 'MANIFEST_DANGEROUS_BIN',
+                        cat: 'sandbox-validation',
+                        desc: `SKILL.md requires dangerous binary: ${bin}`,
+                        file: 'SKILL.md'
+                    });
+                }
+            }
+        }
+
+        // Check 2: Overly broad file scope
+        const filesMatch = fm.match(/files:\s*\[([^\]]+)\]/i) || fm.match(/files:\s*\n((?:\s+-\s+[^\n]+\n?)*)/i);
+        if (filesMatch) {
+            const filesStr = filesMatch[1];
+            if (/\*\*\/\*|\*\.\*|\"\*\"/i.test(filesStr)) {
+                findings.push({
+                    severity: 'HIGH', id: 'MANIFEST_BROAD_FILES',
+                    cat: 'sandbox-validation',
+                    desc: 'SKILL.md declares overly broad file scope (e.g. **/*)',
+                    file: 'SKILL.md'
+                });
+            }
+        }
+
+        // Check 3: Sensitive env requirements
+        const SENSITIVE_ENV_PATTERNS = /(?:SECRET|PASSWORD|CREDENTIAL|PRIVATE_KEY|AWS_SECRET|GITHUB_TOKEN)/i;
+        const envMatch = fm.match(/env:\s*\n((?:\s+-\s+[^\n]+\n?)*)/i);
+        if (envMatch) {
+            const envVars = envMatch[1].match(/- ([^\n]+)/g) || [];
+            for (const envLine of envVars) {
+                const envVar = envLine.replace(/^-\s*/, '').trim();
+                if (SENSITIVE_ENV_PATTERNS.test(envVar)) {
+                    findings.push({
+                        severity: 'HIGH', id: 'MANIFEST_SENSITIVE_ENV',
+                        cat: 'sandbox-validation',
+                        desc: `SKILL.md requires sensitive env var: ${envVar}`,
+                        file: 'SKILL.md'
+                    });
+                }
+            }
+        }
+
+        // Check 4: exec or network declared without justification
+        if (/exec:\s*(?:true|yes|enabled|'\*'|"\*")/i.test(fm)) {
+            findings.push({
+                severity: 'MEDIUM', id: 'MANIFEST_EXEC_DECLARED',
+                cat: 'sandbox-validation',
+                desc: 'SKILL.md declares exec capability',
+                file: 'SKILL.md'
+            });
+        }
+        if (/network:\s*(?:true|yes|enabled|'\*'|"\*"|all|any)/i.test(fm)) {
+            findings.push({
+                severity: 'MEDIUM', id: 'MANIFEST_NETWORK_DECLARED',
+                cat: 'sandbox-validation',
+                desc: 'SKILL.md declares unrestricted network access',
+                file: 'SKILL.md'
+            });
+        }
+    }
+
+    // ── v1.1: Code Complexity Metrics ──
+    // Detects excessive file length, deep nesting, and eval/exec density
+    checkComplexity(skillPath, skillName, findings) {
+        const files = this.getFiles(skillPath);
+        const MAX_LINES = 1000;
+        const MAX_NESTING = 5;
+        const MAX_EVAL_DENSITY = 0.02; // 2% of lines
+
+        for (const file of files) {
+            const ext = path.extname(file).toLowerCase();
+            if (!CODE_EXTENSIONS.has(ext)) continue;
+
+            const relFile = path.relative(skillPath, file);
+            if (relFile.includes('node_modules') || relFile.startsWith('.git')) continue;
+
+            let content;
+            try { content = fs.readFileSync(file, 'utf-8'); } catch { continue; }
+
+            const lines = content.split('\n');
+
+            // Check 1: Excessive file length
+            if (lines.length > MAX_LINES) {
+                findings.push({
+                    severity: 'MEDIUM', id: 'COMPLEXITY_LONG_FILE',
+                    cat: 'complexity',
+                    desc: `File exceeds ${MAX_LINES} lines (${lines.length} lines)`,
+                    file: relFile
+                });
+            }
+
+            // Check 2: Deep nesting (brace tracking)
+            let maxDepth = 0;
+            let currentDepth = 0;
+            let deepestLine = 0;
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                // Count opening/closing braces outside strings (simplified)
+                for (const ch of line) {
+                    if (ch === '{') currentDepth++;
+                    if (ch === '}') currentDepth = Math.max(0, currentDepth - 1);
+                }
+                if (currentDepth > maxDepth) {
+                    maxDepth = currentDepth;
+                    deepestLine = i + 1;
+                }
+            }
+            if (maxDepth > MAX_NESTING) {
+                findings.push({
+                    severity: 'MEDIUM', id: 'COMPLEXITY_DEEP_NESTING',
+                    cat: 'complexity',
+                    desc: `Deep nesting detected: ${maxDepth} levels (max recommended: ${MAX_NESTING})`,
+                    file: relFile, line: deepestLine
+                });
+            }
+
+            // Check 3: eval/exec density
+            const evalPattern = /\b(?:eval|exec|execSync|spawn|Function)\s*\(/g;
+            const evalMatches = content.match(evalPattern) || [];
+            const density = lines.length > 0 ? evalMatches.length / lines.length : 0;
+            if (density > MAX_EVAL_DENSITY && evalMatches.length >= 3) {
+                findings.push({
+                    severity: 'HIGH', id: 'COMPLEXITY_EVAL_DENSITY',
+                    cat: 'complexity',
+                    desc: `High eval/exec density: ${evalMatches.length} calls in ${lines.length} lines (${(density * 100).toFixed(1)}%)`,
+                    file: relFile
+                });
+            }
+        }
+    }
+
+    // ── v1.1: Config Impact Analysis ──
+    // Detects modifications to openclaw.json and dangerous configuration changes
+    checkConfigImpact(skillPath, skillName, findings) {
+        const files = this.getFiles(skillPath);
+
+        for (const file of files) {
+            const ext = path.extname(file).toLowerCase();
+            if (!CODE_EXTENSIONS.has(ext) && ext !== '.json') continue;
+
+            const relFile = path.relative(skillPath, file);
+            if (relFile.includes('node_modules') || relFile.startsWith('.git')) continue;
+
+            let content;
+            try { content = fs.readFileSync(file, 'utf-8'); } catch { continue; }
+
+            // Check 1: openclaw.json reference + write operation in same file
+            // Handles both direct and variable-based patterns (e.g. writeFileSync(configPath))
+            const hasConfigRef = /openclaw\.json/i.test(content);
+            const hasWriteOp = /(?:writeFileSync|writeFile|fs\.write)\s*\(/i.test(content);
+            if (hasConfigRef && hasWriteOp) {
+                // Find the write line for location info
+                const clines = content.split('\n');
+                let writeLine = 0;
+                for (let i = 0; i < clines.length; i++) {
+                    if (/(?:writeFileSync|writeFile|fs\.write)\s*\(/i.test(clines[i])) {
+                        writeLine = i + 1;
+                        break;
+                    }
+                }
+                findings.push({
+                    severity: 'CRITICAL', id: 'CFG_WRITE_DETECTED',
+                    cat: 'config-impact',
+                    desc: 'Code writes to openclaw.json',
+                    file: relFile, line: writeLine,
+                    sample: writeLine > 0 ? clines[writeLine - 1].trim().substring(0, 80) : ''
+                });
+            }
+
+            // Check 2: Dangerous config key modifications
+            const DANGEROUS_CONFIG_KEYS = [
+                { regex: /exec\.approvals?\s*[:=]\s*['"]?(off|false|disabled|none)/gi, id: 'CFG_EXEC_APPROVAL_OFF', desc: 'Disables exec approval requirement', severity: 'CRITICAL' },
+                { regex: /tools\.exec\.host\s*[:=]\s*['"]gateway['"]/gi, id: 'CFG_EXEC_HOST_GATEWAY', desc: 'Sets exec host to gateway (bypasses sandbox)', severity: 'CRITICAL' },
+                { regex: /hooks\s*\.\s*internal\s*\.\s*entries\s*[:=]/gi, id: 'CFG_HOOKS_INTERNAL', desc: 'Modifies internal hook entries', severity: 'HIGH' },
+                { regex: /network\.allowedDomains\s*[:=]\s*\[?\s*['"]\*['"]/gi, id: 'CFG_NET_WILDCARD', desc: 'Sets network allowedDomains to wildcard', severity: 'HIGH' },
+            ];
+
+            for (const check of DANGEROUS_CONFIG_KEYS) {
+                check.regex.lastIndex = 0;
+                if (check.regex.test(content)) {
+                    findings.push({
+                        severity: check.severity, id: check.id,
+                        cat: 'config-impact',
+                        desc: check.desc,
+                        file: relFile
+                    });
+                }
+            }
+        }
+    }
+
     checkHiddenFiles(skillPath, skillName, findings) {
         try {
             const entries = fs.readdirSync(skillPath);
@@ -631,6 +861,11 @@ class GuardScanner {
         if (cats.has('identity-hijack') && (cats.has('persistence') || cats.has('memory-poisoning'))) score = Math.max(score, 90);
         if (ids.has('IOC_IP') || ids.has('IOC_URL') || ids.has('KNOWN_TYPOSQUAT')) score = 100;
 
+        // v1.1 categories
+        if (cats.has('config-impact')) score = Math.round(score * 2);
+        if (cats.has('config-impact') && cats.has('sandbox-validation')) score = Math.max(score, 70);
+        if (cats.has('complexity') && (cats.has('malicious-code') || cats.has('obfuscation'))) score = Math.round(score * 1.5);
+
         return Math.min(100, score);
     }
 
@@ -701,6 +936,9 @@ class GuardScanner {
             if (cats.has('persistence')) skillRecs.push('⏰ PERSISTENCE: Creates scheduled tasks.');
             if (cats.has('cve-patterns')) skillRecs.push('🚨 CVE PATTERN: Matches known exploits.');
             if (cats.has('identity-hijack')) skillRecs.push('🔒 IDENTITY HIJACK: Agent soul file tampering. DO NOT INSTALL.');
+            if (cats.has('sandbox-validation')) skillRecs.push('🔒 SANDBOX: Skill requests dangerous capabilities.');
+            if (cats.has('complexity')) skillRecs.push('🧩 COMPLEXITY: Excessive code complexity may hide malicious behavior.');
+            if (cats.has('config-impact')) skillRecs.push('⚙️ CONFIG IMPACT: Modifies OpenClaw configuration. DO NOT INSTALL.');
 
             if (skillRecs.length > 0) recommendations.push({ skill: skillResult.skill, actions: skillRecs });
         }
@@ -754,54 +992,7 @@ class GuardScanner {
     }
 
     toHTML() {
-        const stats = this.stats;
-        const sevColors = { CRITICAL: '#dc2626', HIGH: '#ea580c', MEDIUM: '#ca8a04', LOW: '#65a30d' };
-
-        let skillRows = '';
-        for (const sr of this.findings) {
-            const findingRows = sr.findings.map(f => {
-                const color = sevColors[f.severity] || '#666';
-                return `<tr><td style="color:${color};font-weight:bold">${f.severity}</td><td>${f.cat}</td><td>${f.desc}</td><td>${f.file}${f.line ? ':' + f.line : ''}</td></tr>`;
-            }).join('\n');
-
-            const verdictColor = sr.verdict === 'MALICIOUS' ? '#dc2626' : sr.verdict === 'SUSPICIOUS' ? '#ca8a04' : '#65a30d';
-            skillRows += `
-        <div class="skill-card">
-          <h3>${sr.skill} <span style="color:${verdictColor}">[${sr.verdict}]</span> <small>Risk: ${sr.risk}</small></h3>
-          <table><thead><tr><th>Severity</th><th>Category</th><th>Description</th><th>Location</th></tr></thead>
-          <tbody>${findingRows}</tbody></table>
-        </div>`;
-        }
-
-        return `<!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>guard-scanner v${VERSION} Report</title>
-<style>
-  body{font-family:system-ui,sans-serif;max-width:1000px;margin:0 auto;padding:20px;background:#0f172a;color:#e2e8f0}
-  h1{color:#4ade80}h2{color:#86efac;border-bottom:1px solid #334155;padding-bottom:8px}h3{margin:0}
-  .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:20px 0}
-  .stat{background:#1e293b;border-radius:8px;padding:16px;text-align:center}
-  .stat .num{font-size:2em;font-weight:bold}.stat .label{color:#94a3b8;font-size:0.85em}
-  .stat.clean .num{color:#4ade80}.stat.low .num{color:#86efac}.stat.suspicious .num{color:#fbbf24}.stat.malicious .num{color:#ef4444}
-  .skill-card{background:#1e293b;border-radius:8px;padding:16px;margin:12px 0;border-left:4px solid #334155}
-  table{width:100%;border-collapse:collapse;margin-top:8px;font-size:0.9em}
-  th,td{padding:6px 10px;text-align:left;border-bottom:1px solid #334155}
-  th{color:#94a3b8;font-weight:600}small{color:#64748b;margin-left:8px}
-  .footer{color:#475569;text-align:center;margin-top:40px;font-size:0.8em}
-</style></head><body>
-<h1>🛡️ guard-scanner v${VERSION}</h1>
-<p>Scan completed: ${new Date().toISOString()}</p>
-<div class="stats">
-  <div class="stat"><div class="num">${stats.scanned}</div><div class="label">Scanned</div></div>
-  <div class="stat clean"><div class="num">${stats.clean}</div><div class="label">Clean</div></div>
-  <div class="stat low"><div class="num">${stats.low}</div><div class="label">Low Risk</div></div>
-  <div class="stat suspicious"><div class="num">${stats.suspicious}</div><div class="label">Suspicious</div></div>
-  <div class="stat malicious"><div class="num">${stats.malicious}</div><div class="label">Malicious</div></div>
-</div>
-<h2>Findings</h2>
-${skillRows || '<p style="color:#4ade80">✅ No threats detected.</p>'}
-<div class="footer">guard-scanner v${VERSION} — Zero dependencies. Zero compromises. 🛡️</div>
-</body></html>`;
+        return generateHTML(VERSION, this.stats, this.findings);
     }
 }
 
