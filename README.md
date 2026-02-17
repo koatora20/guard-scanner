@@ -3,7 +3,7 @@
   <p align="center">
     <strong>Static security scanner for AI agent skills</strong><br>
     Detect prompt injection, credential theft, exfiltration, identity hijacking, and 16 more threat categories.<br>
-    <sub>Runtime Guard hook included — pending <a href="https://github.com/openclaw/openclaw/issues/18677">OpenClaw hook API adoption</a></sub>
+    <sub>🆕 Plugin Hook v2.0 — <strong>actual blocking</strong> via <code>block</code>/<code>blockReason</code> API</sub>
   </p>
   <p align="center">
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
@@ -74,6 +74,18 @@ npx guard-scanner ./skills/ --strict
 npx guard-scanner ./skills/ --verbose --check-deps --json --sarif --html
 ```
 
+## OpenClaw Recommended Setup (short)
+
+```bash
+# 1) Pre-install / pre-update static gate
+npx guard-scanner ~/.openclaw/workspace/skills --self-exclude --verbose
+
+# 2) Runtime guard — Plugin Hook version (blocks dangerous calls!)
+cp hooks/guard-scanner/plugin.ts ~/.openclaw/plugins/guard-scanner-runtime.ts
+```
+
+> **🆕 v2.0 Plugin Hook** — Uses OpenClaw's native `block`/`blockReason` API to actually prevent dangerous tool calls. Supports 3 modes: `monitor` (log only), `enforce` (block CRITICAL), `strict` (block HIGH + CRITICAL).
+
 ### Installation (Optional)
 
 ```bash
@@ -91,7 +103,7 @@ openclaw skill install guard-scanner
 guard-scanner ~/.openclaw/workspace/skills/ --self-exclude --verbose
 ```
 
-> **⚠️ Runtime Guard (handler.ts)** — The real-time `before_tool_call` hook requires OpenClaw's Hook API ([Issue #18677](https://github.com/openclaw/openclaw/issues/18677)). The hook is registered and runs on `agent:before_tool_call` events, but OpenClaw's `InternalHookEvent` does not yet expose a cancel/veto mechanism — so **detections are warned but not blocked**. The static scanner (`npx guard-scanner`) works fully and independently.
+> **🆕 Plugin Hook version** (`plugin.ts`) uses the `before_tool_call` Plugin Hook API with `block`/`blockReason` — **detections are actually blocked**. The legacy Internal Hook version (`handler.ts`) is still available for backward compatibility but can only warn.
 
 ---
 
@@ -394,9 +406,12 @@ guard-scanner/
 │   └── cli.js          # CLI entry point and argument parser
 ├── hooks/
 │   └── guard-scanner/
-│       └── handler.ts  # Runtime Guard — before_tool_call hook (experimental, pending OpenClaw API)
+│       ├── plugin.ts   # 🆕 Plugin Hook v2.0 — actual blocking via block/blockReason
+│       ├── handler.ts  # Legacy Internal Hook — warn only (deprecated)
+│       └── HOOK.md     # Internal Hook manifest (legacy)
 ├── test/
-│   ├── scanner.test.js # 56 tests across 13 sections
+│   ├── scanner.test.js # 56 tests — static scanner
+│   ├── plugin.test.js  # 35 tests — Plugin Hook runtime guard
 │   └── fixtures/       # Malicious, clean, complex, config-changer samples
 ├── package.json        # Zero dependencies, node --test
 ├── CHANGELOG.md
@@ -631,7 +646,7 @@ guard-scanner catches threats **before** installation. But what happens **after*
 | | guard-scanner (OSS) | GuavaSuite (Private) |
 |---|---|---|
 | Static scan | ✅ 20 categories | ✅ 20 categories |
-| Runtime blocking | ⚠️ Warn only (cancel API pending) | ✅ SuiteGate implemented (awaiting OpenClaw Hook API) |
+| Runtime blocking | ✅ Plugin Hook v2.0 (`block`/`blockReason`) | ✅ SuiteGate (enhanced ruleset) |
 | SOUL.md integrity | Pattern detection only | ⏳ SHA-256 hash watchdog (W4 E2E) |
 | On-chain verification | — | ⏳ SoulChain (Polygon, Phase 2) |
 | Identity recovery | — | ⏳ Automatic rollback (Phase 2) |

@@ -1,5 +1,10 @@
 /**
- * guard-scanner Runtime Guard — Hook Handler
+ * guard-scanner Runtime Guard — Hook Handler (LEGACY)
+ *
+ * ⚠️ DEPRECATED: Use plugin.ts instead.
+ * This Internal Hook version can only WARN, not block.
+ * The Plugin Hook version (plugin.ts) uses the native
+ * `block` / `blockReason` API to actually prevent execution.
  *
  * Intercepts agent tool calls and checks arguments against
  * runtime threat intelligence patterns. Zero dependencies.

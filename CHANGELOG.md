@@ -1,5 +1,30 @@
 # Changelog
 
+## [2.0.0] - 2026-02-18
+
+### 🆕 Plugin Hook Runtime Guard — Actual Blocking!
+
+The runtime guard has been rewritten as a **Plugin Hook** (`plugin.ts`) using OpenClaw's native `before_tool_call` Plugin Hook API. Unlike the legacy Internal Hook version, this can **actually block** dangerous tool calls.
+
+#### Breaking Changes
+- Runtime guard is now a Plugin Hook (`plugin.ts`) instead of Internal Hook (`handler.ts`)
+- Installation method changed: copy `plugin.ts` to `~/.openclaw/plugins/`
+
+#### New
+- **`plugin.ts`**: Plugin Hook API version with `block`/`blockReason` support
+- **3 enforcement modes**: `monitor` (log only), `enforce` (block CRITICAL), `strict` (block HIGH + CRITICAL)
+- **Config via `openclaw.json`**: Set mode in `plugins.guard-scanner.mode`
+- **35 new tests** (`plugin.test.js`): blocking, mode switching, clean passthrough, all 12 patterns
+
+#### Deprecated
+- **`handler.ts`**: Legacy Internal Hook version — warn only, cannot block. Still available for backward compatibility
+- **`HOOK.md`**: Internal Hook manifest — only needed for legacy handler
+
+#### Documentation
+- README.md updated with Plugin Hook setup instructions
+- Architecture diagram updated to show both plugin.ts and handler.ts
+- GuavaSuite comparison table updated (runtime blocking now ✅)
+
 ## [1.1.1] - 2026-02-17
 
 ### Fixed
