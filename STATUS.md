@@ -22,10 +22,12 @@ AIエージェントのスキル脅威を検出するセキュリティスキャ
 - 21脅威カテゴリ / 129パターン
 - **v2.1 PII Exposure検出**: ハードコードPII / PII出力・ログ / Shadow AI / PII収集指示（OWASP LLM02/06対応）
 - **Plugin Hook Runtime Guard**（`plugin.ts` — `block`/`blockReason` API で実際にブロック可能）
-- 3 enforcement modes: `monitor`（log only） / `enforce`（CRITICAL block） / `strict`（HIGH+CRITICAL block）
+- 2 enforcement modes（無料）: `monitor`（log only） / `enforce`（CRITICAL block）
+- `strict`モード（HIGH+CRITICAL block）は **GuavaSuite専用**（$GUAVAトークンゲート）
 - Legacy Internal Hook（`handler.ts`）も後方互換で保持（warn-only）
 - Plugin API / SARIF・HTML・JSON出力
 - ゼロ依存
+- **⚠️ 非搭載**: Soul Lock / SoulRegistry / Memory Guard（→ GuavaSuite専用機能）
 
 ## テスト
 - スキャナー: 64 PASS（v2.1 PII 8テスト含む）
@@ -45,13 +47,15 @@ AIエージェントのスキル脅威を検出するセキュリティスキャ
 - [x] OpenClaw Issue #19639, #19640 提出（脆弱性レポート+RFC）
 - [x] jheeannyからの質問に全回答済み、HenryLoenwindにも返信済み
 - [x] npm publish v2.0.0 完了
+- [x] **npm + ClawHub publish v2.1.0 完了**（2026-02-18）
+- [x] OpenClaw公式ソース検証: SKILL.md仕様・Gating・ClawHubセキュリティとguard-scannerの整合性確認済み
 - [x] T4/G4実装: SARIF妥当性テスト強化 + `partialFingerprints.primaryLocationLineHash` 追加
 
 ## 次のアクション
-1. **npm/ClawHub publish v2.1.0**
-2. **v2.2 OWASP Gen AI Top 10 全カバー**: LLM02,04,07,08,09,10
-3. **コミュニティ駆動化**: Reddit/HN/X英語ポスト → スター集め → パターン貢献加速
-4. OpenClaw公式メンテナーからの返答待ち
+1. **v2.2 OWASP Gen AI Top 10 全カバー**: LLM02,04,07,08,09,10
+2. **コミュニティ駆動化**: Reddit/HN/X英語ポスト → スター集め → パターン貢献加速
+3. OpenClaw公式メンテナーからの返答待ち
+4. note.com記事: PII検出 + Shadow AI検出の紹介
 
 ## コミュニティ成果
 - [x] OpenClaw Discord向け技術共有ドラフト作成: `output/OPENCLAW_DISCORD_TECHNICAL_SHARE_DRAFT_2026-02-18.md`
