@@ -1,0 +1,1 @@
+{"version":3,"file":"quarantine.d.ts","sourceRoot":"","sources":["../ts-src/quarantine.ts"],"names":[],"mappings":"AAAA;;;GAGG;AAEH,MAAM,WAAW,gBAAgB;IAC7B,KAAK,EAAE,OAAO,CAAC;IACf,cAAc,CAAC,EAAE,MAAM,CAAC;IACxB,aAAa,EAAE,MAAM,CAAC;CACzB;AAED,qBAAa,cAAc;IACvB,QAAQ,CAAC,UAAU,EAAE,OAAO,CAAC;;IAM7B;;OAEG;IACG,QAAQ,CAAC,KAAK,EAAE,MAAM,GAAG,OAAO,CAAC,gBAAgB,CAAC;CA0B3D"}

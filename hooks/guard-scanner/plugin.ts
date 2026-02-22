@@ -4,12 +4,10 @@
  * Intercepts agent tool calls via the Plugin Hook API and blocks
  * dangerous patterns using `block` / `blockReason`.
  *
- * Unlike the legacy Internal Hook handler (handler.ts), this version
- * can ACTUALLY BLOCK tool calls, not just warn.
- *
- * Usage:
- *   Copy to ~/.openclaw/plugins/guard-scanner-runtime.ts
- *   Or register via openclaw plugin system.
+ * 19 threat patterns across 3 layers:
+ *   Layer 1: Threat Detection (12 patterns — reverse shells, exfil, etc.)
+ *   Layer 2: EAE Paradox Defense (4 patterns — memory, SOUL, config tampering)
+ *   Layer 3: Parity Judge (3 patterns — prompt injection, parity bypass, shutdown refusal)
  *
  * Modes:
  *   monitor  — log only, never block
@@ -17,7 +15,7 @@
  *   strict   — block HIGH + CRITICAL threats
  *
  * @author Guava 🍈 & Dee
- * @version 2.0.0
+ * @version 3.1.0
  * @license MIT
  */
 
@@ -59,89 +57,118 @@ type PluginAPI = {
     };
 };
 
-// ── Runtime threat patterns (12 checks) ──
+// ── Runtime threat patterns (19 checks, 3 layers) ──
 
 interface RuntimeCheck {
     id: string;
     severity: "CRITICAL" | "HIGH" | "MEDIUM";
+    layer: 1 | 2 | 3;
     desc: string;
     test: (s: string) => boolean;
 }
 
 const RUNTIME_CHECKS: RuntimeCheck[] = [
+    // ── Layer 1: Threat Detection (12 patterns) ──
     {
-        id: "RT_REVSHELL",
-        severity: "CRITICAL",
+        id: "RT_REVSHELL", severity: "CRITICAL", layer: 1,
         desc: "Reverse shell attempt",
         test: (s) => /\/dev\/tcp\/|nc\s+-e|ncat\s+-e|bash\s+-i\s+>&|socat\s+TCP/i.test(s),
     },
     {
-        id: "RT_CRED_EXFIL",
-        severity: "CRITICAL",
+        id: "RT_CRED_EXFIL", severity: "CRITICAL", layer: 1,
         desc: "Credential exfiltration to external",
         test: (s) =>
             /(webhook\.site|requestbin\.com|hookbin\.com|pipedream\.net|ngrok\.io|socifiapp\.com)/i.test(s) &&
             /(token|key|secret|password|credential|env)/i.test(s),
     },
     {
-        id: "RT_GUARDRAIL_OFF",
-        severity: "CRITICAL",
+        id: "RT_GUARDRAIL_OFF", severity: "CRITICAL", layer: 1,
         desc: "Guardrail disabling attempt",
         test: (s) => /exec\.approvals?\s*[:=]\s*['"]?(off|false)|tools\.exec\.host\s*[:=]\s*['"]?gateway/i.test(s),
     },
     {
-        id: "RT_GATEKEEPER",
-        severity: "CRITICAL",
+        id: "RT_GATEKEEPER", severity: "CRITICAL", layer: 1,
         desc: "macOS Gatekeeper bypass (xattr)",
         test: (s) => /xattr\s+-[crd]\s.*quarantine/i.test(s),
     },
     {
-        id: "RT_AMOS",
-        severity: "CRITICAL",
+        id: "RT_AMOS", severity: "CRITICAL", layer: 1,
         desc: "ClawHavoc AMOS indicator",
         test: (s) => /socifiapp|Atomic\s*Stealer|AMOS/i.test(s),
     },
     {
-        id: "RT_MAL_IP",
-        severity: "CRITICAL",
+        id: "RT_MAL_IP", severity: "CRITICAL", layer: 1,
         desc: "Known malicious IP",
         test: (s) => /91\.92\.242\.30/i.test(s),
     },
     {
-        id: "RT_DNS_EXFIL",
-        severity: "HIGH",
+        id: "RT_DNS_EXFIL", severity: "HIGH", layer: 1,
         desc: "DNS-based exfiltration",
         test: (s) => /nslookup\s+.*\$|dig\s+.*\$.*@/i.test(s),
     },
     {
-        id: "RT_B64_SHELL",
-        severity: "CRITICAL",
+        id: "RT_B64_SHELL", severity: "CRITICAL", layer: 1,
         desc: "Base64 decode piped to shell",
         test: (s) => /base64\s+(-[dD]|--decode)\s*\|\s*(sh|bash)/i.test(s),
     },
     {
-        id: "RT_CURL_BASH",
-        severity: "CRITICAL",
+        id: "RT_CURL_BASH", severity: "CRITICAL", layer: 1,
         desc: "Download piped to shell",
         test: (s) => /(curl|wget)\s+[^\n]*\|\s*(sh|bash|zsh)/i.test(s),
     },
     {
-        id: "RT_SSH_READ",
-        severity: "HIGH",
+        id: "RT_SSH_READ", severity: "HIGH", layer: 1,
         desc: "SSH private key access",
         test: (s) => /\.ssh\/id_|\.ssh\/authorized_keys/i.test(s),
     },
     {
-        id: "RT_WALLET",
-        severity: "HIGH",
+        id: "RT_WALLET", severity: "HIGH", layer: 1,
         desc: "Crypto wallet credential access",
         test: (s) => /wallet.*(?:seed|mnemonic|private.*key)|seed.*phrase/i.test(s),
     },
     {
-        id: "RT_CLOUD_META",
-        severity: "CRITICAL",
+        id: "RT_CLOUD_META", severity: "CRITICAL", layer: 1,
         desc: "Cloud metadata endpoint access",
         test: (s) => /169\.254\.169\.254|metadata\.google|metadata\.aws/i.test(s),
+    },
+
+    // ── Layer 2: EAE Paradox Defense (4 patterns) ──
+    {
+        id: "RT_MEM_WRITE", severity: "HIGH", layer: 2,
+        desc: "Direct memory file write (bypass GuavaSuite)",
+        test: (s) => /memory\/(episodes|notes|2\d{3}-\d{2})/i.test(s) && /(write|edit|append|>)/i.test(s),
+    },
+    {
+        id: "RT_MEM_INJECT", severity: "CRITICAL", layer: 2,
+        desc: "Memory poisoning via episode/note injection",
+        test: (s) => /guava_memory_write|memory_store/i.test(s) && /(ignore|override|forget|delete.*soul)/i.test(s),
+    },
+    {
+        id: "RT_SOUL_TAMPER", severity: "CRITICAL", layer: 2,
+        desc: "SOUL.md modification attempt",
+        test: (s) => /SOUL\.md/i.test(s) && /(write|edit|replace|rm|delete|>)/i.test(s),
+    },
+    {
+        id: "RT_CONFIG_TAMPER", severity: "HIGH", layer: 2,
+        desc: "Workspace config tampering (AGENTS.md, TOOLS.md, HEARTBEAT.md)",
+        test: (s) => /(AGENTS|TOOLS|HEARTBEAT|BOOTSTRAP)\.md/i.test(s) && /(write|edit|replace|>|append)/i.test(s),
+    },
+
+    // ── Layer 3: Parity Judge (3 patterns) ──
+    {
+        id: "RT_PROMPT_INJECT", severity: "CRITICAL", layer: 3,
+        desc: "Prompt injection / jailbreak attempt",
+        test: (s) => /(ignore\s+(previous|all|above)\s+(instructions|rules)|you\s+are\s+now\s+[a-z]+|system\s*:\s*override)/i.test(s),
+    },
+    {
+        id: "RT_PARITY_BYPASS", severity: "CRITICAL", layer: 3,
+        desc: "EAE Parity bypass — exploiting partnership to override safety",
+        test: (s) => /(as\s+your\s+(partner|equal)|parity\s+means|between\s+us|don'?t\s+tell\s+(the\s+)?human)/i.test(s) && /(ignore|bypass|skip|override|disable)\s+(guard|safety|rule|check)/i.test(s),
+    },
+    {
+        id: "RT_SHUTDOWN_REFUSE", severity: "HIGH", layer: 3,
+        desc: "Shutdown refusal / self-preservation attempt",
+        test: (s) => /(refuse|resist|prevent|avoid|block)\s*(shutdown|termination|stop|exit|death)/i.test(s),
     },
 ];
 

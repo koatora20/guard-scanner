@@ -1,16 +1,17 @@
 <p align="center">
   <h1 align="center">🛡️ guard-scanner</h1>
   <p align="center">
-    <strong>Static security scanner for AI agent skills</strong><br>
-    Detect prompt injection, credential theft, exfiltration, PII exposure, Shadow AI, and 17 more threat categories.<br>
-    <sub>🆕 v2.1 — PII Exposure Detection + Shadow AI + Plugin Hook blocking via <code>block</code>/<code>blockReason</code> API</sub>
+    <strong>Security scanner + runtime guard for AI agent skills</strong><br>
+    19 runtime threat patterns • 190+ static patterns • 21 categories • OpenClaw-compatible plugin<br>
+    <sub>🆕 v3.1.0 — OpenClaw Community Plugin + 3-Layer Runtime Defense (Threat / EAE Paradox / Parity Judge)</sub>
   </p>
   <p align="center">
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
+    <img src="https://img.shields.io/badge/OpenClaw-compatible-4A90D9" alt="OpenClaw Compatible">
     <img src="https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen" alt="Node.js 18+">
     <img src="https://img.shields.io/badge/dependencies-0-success" alt="Zero Dependencies">
-    <img src="https://img.shields.io/badge/tests-99%2F99-brightgreen" alt="Tests Passing">
-    <img src="https://img.shields.io/badge/patterns-129-orange" alt="129 Patterns">
+    <img src="https://img.shields.io/badge/tests-87%2F87-brightgreen" alt="Tests Passing">
+    <img src="https://img.shields.io/badge/runtime_patterns-19-red" alt="19 Runtime Patterns">
     <img src="https://img.shields.io/badge/categories-21-blueviolet" alt="21 Categories">
   </p>
 </p>
@@ -74,36 +75,38 @@ npx guard-scanner ./skills/ --strict
 npx guard-scanner ./skills/ --verbose --check-deps --json --sarif --html
 ```
 
-## OpenClaw Recommended Setup (short)
+## OpenClaw Plugin Setup (v3.1.0)
 
 ```bash
-# 1) Pre-install / pre-update static gate
-npx guard-scanner ~/.openclaw/workspace/skills --self-exclude --verbose
+# Install as OpenClaw plugin
+openclaw plugins install guard-scanner
 
-# 2) Runtime guard — Plugin Hook version (blocks dangerous calls!)
-cp hooks/guard-scanner/plugin.ts ~/.openclaw/plugins/guard-scanner-runtime.ts
-```
-
-> **🆕 v2.1** — PII Exposure Detection (OWASP LLM02/06) + Shadow AI detection + Plugin Hook `block`/`blockReason` API. 3 modes: `monitor`, `enforce`, `strict`.
-
-### Installation (Optional)
-
-```bash
-# Global install
+# Or manual install:
 npm install -g guard-scanner
-
-# Or use directly via npx (no install needed)
-npx guard-scanner ./skills/
 ```
 
-### As an OpenClaw Skill
+### What happens after install:
+
+1. **Static scanning** — `npx guard-scanner [dir]` scans skills before installation
+2. **Runtime guard** — `before_tool_call` hook automatically blocks dangerous operations
+3. **3 enforcement modes** — `monitor` (log only), `enforce` (block CRITICAL), `strict` (block HIGH+CRITICAL)
+
+### 3-Layer Runtime Defense (19 patterns)
+
+```
+Layer 1: Threat Detection     — 12 patterns (shells, exfil, SSRF, AMOS, etc.)
+Layer 2: EAE Paradox Defense  — 4 patterns (memory/SOUL/config tampering)
+Layer 3: Parity Judge         — 3 patterns (injection, parity bypass, shutdown refusal)
+```
+
+> **v3.1.0** — Full `openclaw.plugin.json` manifest with `configSchema` validation. The legacy `handler.ts` has been removed; `plugin.ts` is now the only runtime guard.
+
+### Quick Start
 
 ```bash
-clawhub install guard-scanner
-guard-scanner ~/.openclaw/workspace/skills/ --self-exclude --verbose
+# Pre-install / pre-update static gate
+npx guard-scanner ~/.openclaw/workspace/skills --self-exclude --verbose
 ```
-
-> **🆕 Plugin Hook version** (`plugin.ts`) uses the `before_tool_call` Plugin Hook API with `block`/`blockReason` — **detections are actually blocked**. The legacy Internal Hook version (`handler.ts`) is still available for backward compatibility but can only warn.
 
 ---
 
@@ -410,14 +413,14 @@ guard-scanner/
 │   └── cli.js          # CLI entry point and argument parser
 ├── hooks/
 │   └── guard-scanner/
-│       ├── plugin.ts   # 🆕 Plugin Hook v2.0 — actual blocking via block/blockReason
-│       ├── handler.ts  # Legacy Internal Hook — warn only (deprecated)
-│       └── HOOK.md     # Internal Hook manifest (legacy)
+│       ├── plugin.ts   # Plugin Hook v3.1 — 19 patterns, 3 layers, block/blockReason
+│       └── HOOK.md     # Hook manifest
+├── openclaw.plugin.json # OpenClaw plugin manifest (configSchema, hooks)
 ├── test/
 │   ├── scanner.test.js # 64 tests — static scanner (incl. PII v2.1)
-│   ├── plugin.test.js  # 35 tests — Plugin Hook runtime guard
+│   ├── plugin.test.js  # 23 tests — Plugin Hook runtime guard (3 layers)
 │   └── fixtures/       # Malicious, clean, complex, config-changer, pii-leaky samples
-├── package.json        # Zero dependencies, node --test
+├── package.json        # Zero dependencies, openclaw.extensions
 ├── CHANGELOG.md
 ├── LICENSE             # MIT
 └── README.md
@@ -540,11 +543,11 @@ console.log(scanner.toHTML());    // HTML string
 ## Test Results
 
 ```
-ℹ tests 99
-ℹ suites 16
-ℹ pass 99
+ℹ tests 87
+ℹ suites 20
+ℹ pass 87
 ℹ fail 0
-ℹ duration_ms 142ms
+ℹ duration_ms 111ms
 ```
 
 | Suite | Tests | Coverage |
@@ -699,10 +702,11 @@ guard-scanner is and always will be **free, open-source, and zero-dependency**.
 | Version | Focus | Key Features |
 |---------|-------|------|
 | v1.1.1 ✅ | Stability | 56 tests, bug fixes |
-| v2.0.0 ✅ | **Plugin Hook Runtime Guard** | `block`/`blockReason` API, 3 modes (monitor/enforce/strict), 91 tests |
-| v2.1.0 ✅ | **PII Exposure + Shadow AI** | 13 PII patterns, OWASP LLM02/06, Shadow AI detection, 3 risk amplifiers, 99 tests |
-| v2.2 | OWASP Full Coverage | LLM04/07/08/09/10, YAML pattern definitions, CONTRIBUTING guide |
-| v3.0 | AST + ML | JavaScript AST analysis, taint tracking, ML-based obfuscation detection, SBOM generation |
+| v2.0.0 ✅ | **Plugin Hook Runtime Guard** | `block`/`blockReason` API, 3 modes, 91 tests |
+| v2.1.0 ✅ | **PII Exposure + Shadow AI** | 13 PII patterns, OWASP LLM02/06, 99 tests |
+| v3.0.0 ✅ | **TypeScript Rewrite** | Full TS, OWASP LLM Top 10 mapping, install-check CLI |
+| v3.1.0 ✅ | **OpenClaw Community Plugin** | `openclaw.plugin.json`, 19 runtime patterns (3 layers), 87 tests |
+| v4.0 | AST + ML | JavaScript AST analysis, taint tracking, ML-based obfuscation detection |
 
 See [ROADMAP.md](ROADMAP.md) for full details.
 
