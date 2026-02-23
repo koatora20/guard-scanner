@@ -1,9 +1,9 @@
 <p align="center">
   <h1 align="center">🛡️ guard-scanner</h1>
   <p align="center">
-    <strong>The first security scanner purpose-built for AI agent skills</strong><br>
-    Detect prompt injection, identity hijacking, memory poisoning, and 18 more threat classes<br>
-    before they compromise your agents.
+    <strong>Security scanner for AI agent skills — catches the bad stuff before it runs</strong><br>
+    Prompt injection, identity hijacking, memory poisoning, and 20+ more threat types.<br>
+    Zero dependencies. One command. Works with OpenClaw out of the box.
   </p>
   <p align="center">
     <a href="https://www.npmjs.com/package/guard-scanner"><img src="https://img.shields.io/npm/v/guard-scanner.svg?style=flat-square&color=cb3837" alt="npm version"></a>
@@ -48,8 +48,9 @@ The AI agent skill ecosystem has the same supply-chain security problem that npm
 
 | Feature | Description |
 |---|---|
-| **21 Threat Categories** | Snyk ToxicSkills + OWASP MCP Top 10 + Identity Hijacking + Sandbox/Complexity/Config + PII |
-| **129 Detection Patterns** | Regex-based static analysis covering code, docs, and data files |
+| **22 Threat Categories** | Snyk ToxicSkills + OWASP Agentic Top 10 + Identity Hijack + PII + Trust Exploitation |
+| **190+ Static Patterns** | Regex-based static analysis covering code, docs, and data files |
+| **26 Runtime Checks** | Real-time `before_tool_call` hook — 5-layer defense (v3.4.0) |
 | **IoC Database** | Known malicious IPs, domains, URLs, usernames, and typosquat names |
 | **Data Flow Analysis** | Lightweight JS analysis: secret reads → network calls → exec chains |
 | **Cross-File Analysis** | Phantom references, base64 fragment assembly, multi-file exfil detection |
@@ -60,7 +61,6 @@ The AI agent skill ecosystem has the same supply-chain security problem that npm
 | **Dependency Chain Scan** | Risky packages, lifecycle scripts, wildcard versions, git dependencies |
 | **4 Output Formats** | Terminal (with colors), JSON, [SARIF 2.1.0](https://sarifweb.azurewebsites.net), HTML dashboard |
 | **Plugin API** | Extend with custom detection rules via JS modules |
-| **Ignore Files** | Whitelist trusted skills and patterns via `.guard-scanner-ignore` |
 | **Zero Dependencies** | Pure Node.js stdlib. Nothing to install, nothing to audit. |
 | **CI/CD Ready** | `--fail-on-findings` exit code + SARIF for GitHub Code Scanning |
 
@@ -68,18 +68,40 @@ The AI agent skill ecosystem has the same supply-chain security problem that npm
 
 ## Quick Start
 
-```bash
-# Scan a skill directory (each subdirectory = one skill)
-npx guard-scanner ./skills/
+**30 seconds to scan your skills:**
 
-# Verbose output with category breakdown
+```bash
+npx guard-scanner ./skills/
+```
+
+That's it. No install needed. It scans every subdirectory as a skill and tells you what's dangerous.
+
+**Want more detail?**
+
+```bash
+# See exactly what was found and why
 npx guard-scanner ./skills/ --verbose
 
-# Strict mode (lower thresholds)
+# Stricter detection (catches more edge cases)
 npx guard-scanner ./skills/ --strict
 
-# Full audit: verbose + deps + all output formats
+# Full audit: everything + JSON + SARIF + HTML report
 npx guard-scanner ./skills/ --verbose --check-deps --json --sarif --html
+```
+
+**Output looks like this:**
+```
+🛡️  guard-scanner v3.4.0
+══════════════════════════════════════════════════════
+📂 Scanning: ./skills/
+📦 Skills found: 5
+
+🔴 shady-skill — MALICIOUS (risk: 100)
+   💀 [CRITICAL] Reverse shell via /dev/tcp — scripts/setup.sh:7
+   💀 [CRITICAL] Credential exfiltration to webhook.site — scripts/helper.js:14
+🟡 sus-skill — SUSPICIOUS (risk: 45)
+   ⚠️  [HIGH] SSH private key access — scripts/deploy.sh:3
+🟢 good-skill — CLEAN (risk: 0)
 ```
 
 ## OpenClaw Plugin Setup (v3.1.0)
@@ -98,15 +120,17 @@ npm install -g guard-scanner
 2. **Runtime guard** — `before_tool_call` hook automatically blocks dangerous operations
 3. **3 enforcement modes** — `monitor` (log only), `enforce` (block CRITICAL), `strict` (block HIGH+CRITICAL)
 
-### 3-Layer Runtime Defense (19 patterns)
+### 5-Layer Runtime Defense (26 checks)
 
 ```
-Layer 1: Threat Detection     — 12 patterns (shells, exfil, SSRF, AMOS, etc.)
-Layer 2: EAE Paradox Defense  — 4 patterns (memory/SOUL/config tampering)
-Layer 3: Parity Judge         — 3 patterns (injection, parity bypass, shutdown refusal)
+Layer 1: Threat Detection      — 12 checks (shells, exfil, SSRF, AMOS, etc.)
+Layer 2: EAE Paradox Defense   — 4 checks  (memory/SOUL/config tampering)
+Layer 3: Parity Judge          — 3 checks  (injection, parity bypass, shutdown refusal)
+Layer 4: Brain / Behavioral    — 3 checks  (research skip, blind trust, chain bypass)
+Layer 5: Trust Exploitation    — 4 checks  (OWASP ASI09: authority/parity/audit abuse)
 ```
 
-> **v3.1.0** — Full `openclaw.plugin.json` manifest with `configSchema` validation. The legacy `handler.ts` has been removed; `plugin.ts` is now the only runtime guard.
+> **v3.4.0** — Runtime Guard now available as standalone JS module (`src/runtime-guard.js`) + OpenClaw plugin (`hooks/guard-scanner/plugin.ts`).
 
 ### Quick Start
 
