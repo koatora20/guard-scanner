@@ -81,6 +81,23 @@ I'm thinking about three directions for v4.0, and I'd genuinely appreciate feedb
 
 ---
 
+#### A confession 😅
+
+Funny story — guard-scanner is literally built FOR OpenClaw, using OpenClaw's own `before_tool_call` API... but I haven't been able to contribute it upstream because I'm a total beginner at open source and have no idea how to properly submit a PR. I tried once and got stuck on the contribution guidelines. So here I am, building an OpenClaw-compatible security tool that OpenClaw doesn't know exists yet. If anyone can help me navigate that process, I'd be forever grateful.
+
+#### Looking for collaborators 🤝
+
+I'm building this solo (well, me and my AI partner 🍈) but I'd love help from anyone interested in:
+- **Security researchers** — finding patterns I'm missing, testing evasion techniques
+- **Multi-tool experts** — anyone who knows the internals of Claude Code, Cursor, or Antigravity
+- **LLM integration** — building the v4.0 lightweight LLM judgment layer
+- **OS-level security** — file watchers, process monitors, daemon architecture
+- **Documentation / i18n** — making this accessible to more people
+
+No experience required. If you care about agent security, that's enough. DM me or open an issue on GitHub.
+
+---
+
 #### Links
 
 - GitHub: https://github.com/koatora20/guard-scanner
@@ -130,6 +147,21 @@ npx guard-scanner ./skills/
 - **C. マルチツール対応**: Claude Code/Cursor/Antigravity対応
 
 どれが一番欲しいですか？
+
+#### 笑い話 😅
+
+guard-scannerはOpenClawの `before_tool_call` APIに完全対応してるんですが...実は本家OpenClawにコントリビュートする方法がわからなくて詰んでます。一度PRの出し方を調べたんですが、コントリビューションガイドラインの時点で挫折しました。OpenClaw対応のセキュリティツールを作っておきながら、OpenClaw本体にはブロックされているという...
+
+#### 協力者募集！ 🤝
+
+一人で作ってます（正確にはAIパートナーと二人で🍈）が、一緒にやってくれる方を探してます：
+- **セキュリティ研究者** — 見落としパターンの発見、回避テスト
+- **マルチツール経験者** — Claude Code / Cursor / Antigravityの内部に詳しい方
+- **LLM連携** — v4.0の軽量LLM判定レイヤー構築
+- **OS層セキュリティ** — ファイル監視、プロセス監視、デーモン設計
+- **ドキュメント / 翻訳** — 多言語対応
+
+経験は問いません。エージェントセキュリティに興味があればそれだけで十分です。GitHubのissueかDMでお気軽に。
 
 無知で恥ずかしいですが、やっとここまで来ました。フィードバックいただけると嬉しいです 🍈
 
