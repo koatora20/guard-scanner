@@ -15,6 +15,41 @@ guard-scanner's threat taxonomy combines three sources:
 
 ---
 
+## OWASP Agentic Security Top 10 Mapping
+
+> Source: [OWASP Top 10 for Agentic Applications 2026](https://owasp.org/www-project-top-10-for-ai-agents/)
+
+| OWASP ID | Risk Name | guard-scanner Coverage | Categories |
+|----------|-----------|----------------------|------------|
+| **ASI01** | Agent Goal Hijack | ✅ **Full** | Cat 1 (Prompt Injection), Cat 13 (Prompt Worm) |
+| **ASI02** | Tool Misuse & Exploitation | ✅ **Full** | Cat 2 (Malicious Code), Cat 16 (MCP Security) |
+| **ASI03** | Identity & Privilege Abuse | ✅ **Full** | Cat 4 (Credential Handling), Cat 17 (Identity Hijacking) |
+| **ASI04** | Supply Chain Vulnerabilities | ✅ **Full** | Cat 7 (Unverifiable Deps), Cat 3 (Suspicious Downloads), Cat 16 (MCP Shadow Server) |
+| **ASI05** | Unexpected Code Execution | ✅ **Full** | Cat 2 (Malicious Code), Cat 9 (Obfuscation) |
+| **ASI06** | Memory & Context Poisoning | ✅ **Full** | Cat 12 (Memory Poisoning), Cat 17 (Identity Hijacking) |
+| **ASI07** | Insecure Inter-Agent Comms | ✅ **Partial** | Cat 16 (MCP Security — MCP_NO_AUTH, MCP_SHADOW_SERVER) |
+| **ASI08** | Cascading Failures | ⚠️ **Gap** | Not covered — requires runtime multi-agent flow tracing |
+| **ASI09** | Human-Agent Trust Exploitation | ✅ **Full** | Layer 2 (EAE Paradox), Layer 3 (Parity Judge) |
+| **ASI10** | Rogue Agents | ✅ **Full** | Cat 17 (Identity Hijacking), Layer 4 (Brain — behavioral analysis) |
+
+### Coverage Summary
+
+- **Full Coverage**: 8/10 (ASI01-06, ASI09-10)
+- **Partial Coverage**: 1/10 (ASI07)
+- **Gap**: 1/10 (ASI08 — requires runtime multi-agent orchestration monitoring)
+- **Overall**: 90% coverage of OWASP Agentic Security Top 10
+
+### Unique to guard-scanner (not in OWASP Top 10)
+
+| Feature | Description |
+|---------|-------------|
+| **Layer 4: Brain** | Behavioral analysis — detects agents that skip research before executing unknown tools |
+| **ZombieAgent** | URL-encoded data exfiltration via static URLs, char maps, and loop fetch |
+| **Safeguard Bypass** | Reprompt, double-prompt, and retry-based safety circumvention |
+| **Cat 15: CVE Patterns** | Known CVE-specific detection (gateway URLs, sandbox disable, Gatekeeper bypass) |
+
+---
+
 ## Cat 1: Prompt Injection
 
 **Severity: CRITICAL**
