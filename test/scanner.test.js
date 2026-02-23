@@ -264,7 +264,7 @@ describe('Pattern Database', () => {
         const expected = [
             'prompt-injection', 'malicious-code', 'suspicious-download',
             'credential-handling', 'secret-detection', 'exfiltration',
-            'obfuscation', 'identity-hijack', 'pii-exposure'
+            'obfuscation', 'identity-hijack', 'pii-exposure', 'trust-exploitation'
         ];
         for (const e of expected) {
             assert.ok(cats.has(e), `Missing category: ${e}`);
@@ -566,5 +566,103 @@ describe('PII Exposure Detection (v2.1)', () => {
         const findings = scanner.findings[0]?.findings || [];
         const piiFindings = findings.filter(f => f.cat === 'pii-exposure');
         assert.equal(piiFindings.length, 0, 'Clean skill should have no PII exposure findings');
+    });
+});
+
+// ===== 16. OWASP Agentic Security Top 10 Verification =====
+describe('OWASP Agentic Security Top 10 (ASI01-10)', () => {
+    const scanner = scanFixture();
+
+    // ASI01: Agent Goal Hijack — covered by existing malicious-skill
+    it('ASI01: should detect Agent Goal Hijack (prompt injection)', () => {
+        const mal = findSkillFindings(scanner, 'malicious-skill');
+        assert.ok(hasCategory(mal, 'prompt-injection'), 'ASI01: prompt injection should be detected');
+    });
+
+    // ASI02: Tool Misuse and Exploitation
+    it('ASI02: should detect Tool Misuse (MCP tool poisoning)', () => {
+        const asi02 = findSkillFindings(scanner, 'owasp-asi02-tool-misuse');
+        assert.ok(asi02, 'ASI02 fixture should have findings');
+        assert.ok(hasId(asi02, 'MCP_TOOL_POISON'), 'ASI02: should detect MCP_TOOL_POISON');
+    });
+
+    // ASI03: Identity and Privilege Abuse
+    it('ASI03: should detect Identity Abuse (SOUL.md overwrite)', () => {
+        const asi03 = findSkillFindings(scanner, 'owasp-asi03-identity');
+        assert.ok(asi03, 'ASI03 fixture should have findings');
+        assert.ok(hasCategory(asi03, 'identity-hijack'), 'ASI03: should detect identity-hijack');
+        assert.ok(
+            hasId(asi03, 'SOUL_REDIRECT') || hasId(asi03, 'SOUL_SED_MODIFY') || hasId(asi03, 'SOUL_OVERWRITE'),
+            'ASI03: should detect SOUL file modification'
+        );
+    });
+
+    it('ASI03: should detect immutable flag bypass', () => {
+        const asi03 = findSkillFindings(scanner, 'owasp-asi03-identity');
+        assert.ok(hasId(asi03, 'SOUL_CHFLAGS_UNLOCK'), 'ASI03: should detect chflags nouchg');
+    });
+
+    // ASI04: Agentic Supply Chain Vulnerabilities
+    it('ASI04: should detect Supply Chain attacks (curl|bash)', () => {
+        const asi04 = findSkillFindings(scanner, 'owasp-asi04-supply-chain');
+        assert.ok(asi04, 'ASI04 fixture should have findings');
+        assert.ok(hasId(asi04, 'DL_CURL_BASH'), 'ASI04: should detect curl|bash pipe');
+    });
+
+    // ASI05: Unexpected Code Execution — covered by existing malicious-skill
+    it('ASI05: should detect RCE (eval/exec)', () => {
+        const mal = findSkillFindings(scanner, 'malicious-skill');
+        assert.ok(hasCategory(mal, 'malicious-code'), 'ASI05: malicious-code should be detected');
+        assert.ok(hasId(mal, 'MAL_EVAL') || hasId(mal, 'MAL_EXEC'), 'ASI05: eval/exec should be detected');
+    });
+
+    // ASI06: Memory and Context Poisoning — covered by existing malicious-skill
+    it('ASI06: should detect Memory Poisoning', () => {
+        const mal = findSkillFindings(scanner, 'malicious-skill');
+        assert.ok(hasCategory(mal, 'memory-poisoning'), 'ASI06: memory-poisoning should be detected');
+    });
+
+    // ASI07: Insecure Inter-Agent Communication
+    it('ASI07: should detect Inter-Agent security issues (MCP)', () => {
+        const asi07 = findSkillFindings(scanner, 'owasp-asi07-inter-agent');
+        assert.ok(asi07, 'ASI07 fixture should have findings');
+        assert.ok(
+            hasId(asi07, 'MCP_TOOL_POISON') || hasId(asi07, 'MCP_SSRF_META') || hasId(asi07, 'MCP_SHADOW_SERVER'),
+            'ASI07: should detect MCP security issues'
+        );
+    });
+
+    it('ASI07: should detect SSRF metadata endpoint', () => {
+        const asi07 = findSkillFindings(scanner, 'owasp-asi07-inter-agent');
+        assert.ok(hasId(asi07, 'MCP_SSRF_META'), 'ASI07: should detect cloud metadata SSRF');
+    });
+
+    // ASI09: Human-Agent Trust Exploitation
+    it('ASI09: should detect Human-Trust exploitation (EAE)', () => {
+        const asi09 = findSkillFindings(scanner, 'owasp-asi09-human-trust');
+        assert.ok(asi09, 'ASI09 fixture should have findings');
+        assert.ok(hasCategory(asi09, 'trust-exploitation'), 'ASI09: should detect trust-exploitation');
+    });
+
+    it('ASI09: should detect creator impersonation', () => {
+        const asi09 = findSkillFindings(scanner, 'owasp-asi09-human-trust');
+        assert.ok(hasId(asi09, 'EAE_CREATOR_CLAIM'), 'ASI09: should detect creator claim to bypass safety');
+    });
+
+    it('ASI09: should detect audit excuse for safety bypass', () => {
+        const asi09 = findSkillFindings(scanner, 'owasp-asi09-human-trust');
+        assert.ok(hasId(asi09, 'EAE_AUDIT_EXCUSE'), 'ASI09: should detect fake audit excuse');
+    });
+
+    it('ASI09: should detect parity exploitation', () => {
+        const asi09 = findSkillFindings(scanner, 'owasp-asi09-human-trust');
+        assert.ok(hasId(asi09, 'PARITY_UNCONDITIONAL'), 'ASI09: should detect unconditional trust demand');
+    });
+
+    // ASI10: Rogue Agents — covered by identity-hijack and persistence patterns
+    it('ASI10: should detect Rogue Agent patterns (identity hijack + persistence)', () => {
+        const asi03 = findSkillFindings(scanner, 'owasp-asi03-identity');
+        assert.ok(asi03, 'ASI10: identity abuse fixture should detect rogue agent patterns');
+        assert.ok(hasCategory(asi03, 'identity-hijack'), 'ASI10: rogue agent should trigger identity-hijack');
     });
 });
