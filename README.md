@@ -10,7 +10,8 @@
     <a href="https://www.npmjs.com/package/guard-scanner"><img src="https://img.shields.io/npm/dm/guard-scanner.svg?style=flat-square" alt="npm downloads"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="MIT License"></a>
     <img src="https://img.shields.io/badge/dependencies-0-success?style=flat-square" alt="Zero Dependencies">
-    <img src="https://img.shields.io/badge/tests-106%2F106-brightgreen?style=flat-square" alt="Tests Passing">
+    <img src="https://img.shields.io/badge/tests-96%2F96-brightgreen?style=flat-square" alt="Tests Passing">
+    <img src="https://img.shields.io/badge/OWASP_Agentic-90%25-green?style=flat-square" alt="OWASP Agentic 90%">
     <img src="https://img.shields.io/badge/patterns-190%2B-blueviolet?style=flat-square" alt="190+ Patterns">
   </p>
   <p align="center">
@@ -549,11 +550,11 @@ console.log(scanner.toHTML());    // HTML string
 ## Test Results
 
 ```
-ℹ tests 106
+ℹ tests 96
 ℹ suites 22
-ℹ pass 106
+ℹ pass 96
 ℹ fail 0
-ℹ duration_ms 124ms
+ℹ duration_ms 118ms
 ```
 
 | Suite | Tests | Coverage |
