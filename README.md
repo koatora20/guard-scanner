@@ -19,7 +19,8 @@
     <a href="#threat-categories">Threat Categories</a> •
     <a href="#openclaw-plugin-setup-v310">OpenClaw Plugin</a> •
     <a href="#cicd-integration">CI/CD</a> •
-    <a href="#plugin-api">Plugin API</a>
+    <a href="#plugin-api">Plugin API</a> •
+    <a href="README_ja.md">🇯🇵 日本語</a>
   </p>
 </p>
 
