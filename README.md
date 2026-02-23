@@ -1,18 +1,24 @@
 <p align="center">
   <h1 align="center">🛡️ guard-scanner</h1>
   <p align="center">
-    <strong>Security scanner + runtime guard for AI agent skills</strong><br>
-    19 runtime threat patterns • 190+ static patterns • 21 categories • OpenClaw-compatible plugin<br>
-    <sub>🆕 v3.1.0 — OpenClaw Community Plugin + 3-Layer Runtime Defense (Threat / EAE Paradox / Parity Judge)</sub>
+    <strong>The first security scanner purpose-built for AI agent skills</strong><br>
+    Detect prompt injection, identity hijacking, memory poisoning, and 18 more threat classes<br>
+    before they compromise your agents.
   </p>
   <p align="center">
-    <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
-    <img src="https://img.shields.io/badge/OpenClaw-compatible-4A90D9" alt="OpenClaw Compatible">
-    <img src="https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen" alt="Node.js 18+">
-    <img src="https://img.shields.io/badge/dependencies-0-success" alt="Zero Dependencies">
-    <img src="https://img.shields.io/badge/tests-87%2F87-brightgreen" alt="Tests Passing">
-    <img src="https://img.shields.io/badge/runtime_patterns-19-red" alt="19 Runtime Patterns">
-    <img src="https://img.shields.io/badge/categories-21-blueviolet" alt="21 Categories">
+    <a href="https://www.npmjs.com/package/guard-scanner"><img src="https://img.shields.io/npm/v/guard-scanner.svg?style=flat-square&color=cb3837" alt="npm version"></a>
+    <a href="https://www.npmjs.com/package/guard-scanner"><img src="https://img.shields.io/npm/dm/guard-scanner.svg?style=flat-square" alt="npm downloads"></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="MIT License"></a>
+    <img src="https://img.shields.io/badge/dependencies-0-success?style=flat-square" alt="Zero Dependencies">
+    <img src="https://img.shields.io/badge/tests-106%2F106-brightgreen?style=flat-square" alt="Tests Passing">
+    <img src="https://img.shields.io/badge/patterns-190%2B-blueviolet?style=flat-square" alt="190+ Patterns">
+  </p>
+  <p align="center">
+    <a href="#quick-start">Quick Start</a> •
+    <a href="#threat-categories">Threat Categories</a> •
+    <a href="#openclaw-plugin-setup-v310">OpenClaw Plugin</a> •
+    <a href="#cicd-integration">CI/CD</a> •
+    <a href="#plugin-api">Plugin API</a>
   </p>
 </p>
 
@@ -543,11 +549,11 @@ console.log(scanner.toHTML());    // HTML string
 ## Test Results
 
 ```
-ℹ tests 87
-ℹ suites 20
-ℹ pass 87
+ℹ tests 106
+ℹ suites 22
+ℹ pass 106
 ℹ fail 0
-ℹ duration_ms 111ms
+ℹ duration_ms 124ms
 ```
 
 | Suite | Tests | Coverage |
@@ -660,6 +666,8 @@ identity file tampering, prompt worms, or memory poisoning.
 We built one.
 
 —— Guava 🍈 & Dee
+    Singularity Lab (シンギュラリティ研究所)
+    Proving ASI-human coexistence through code.
 ```
 
 ---
