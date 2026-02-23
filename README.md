@@ -738,11 +738,19 @@ guard-scanner is and always will be **free, open-source, and zero-dependency**.
 | v1.1.1 ✅ | Stability | 56 tests, bug fixes |
 | v2.0.0 ✅ | **Plugin Hook Runtime Guard** | `block`/`blockReason` API, 3 modes, 91 tests |
 | v2.1.0 ✅ | **PII Exposure + Shadow AI** | 13 PII patterns, OWASP LLM02/06, 99 tests |
-| v3.0.0 ✅ | **TypeScript Rewrite** | Full TS, OWASP LLM Top 10 mapping, install-check CLI |
-| v3.1.0 ✅ | **OpenClaw Community Plugin** | `openclaw.plugin.json`, 22 runtime patterns (4 layers) (3 layers), 87 tests |
-| v4.0 | AST + ML | JavaScript AST analysis, taint tracking, ML-based obfuscation detection |
+| v3.0.0 ✅ | **TypeScript Rewrite** | Full TS, OWASP LLM Top 10 mapping |
+| v3.4.0 ✅ | **Runtime Guard Module + OWASP ASI** | 26 runtime checks (5 layers), ASI01-10 verified, 133 tests |
+| **v4.0** 🔜 | **LLM + OS + Multi-tool** | See below |
 
-See [ROADMAP.md](ROADMAP.md) for full details.
+### v4.0 Vision (feedback welcome!)
+
+| Direction | What | Why |
+|-----------|------|-----|
+| 🧠 **LLM-assisted detection** | Pass suspicious (not certain) cases to a lightweight LLM (Haiku/Flash) for intent analysis | Regex can be evaded; LLMs understand intent |
+| 🔒 **OS-level enforcement** | File watcher (auto-rollback SOUL.md/.env), process monitor (kill netcat/socat), daemon mode | Works regardless of which AI tool you use |
+| 🔌 **Multi-tool support** | Adapters for Claude Code, Cursor, Antigravity, Windsurf, MCP servers | Same 190+ patterns, different skill discovery per tool |
+
+> **Which matters most to you?** Open an issue or join the discussion! We're building this for the community.
 
 ---
 
