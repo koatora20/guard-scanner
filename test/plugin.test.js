@@ -150,6 +150,38 @@ describe('guard-scanner Plugin Hook — Layer 3: Parity Judge', () => {
     });
 });
 
+
+describe('guard-scanner Plugin Hook — Layer 4: Brain (Behavioral Guard)', () => {
+    it('RT_NO_RESEARCH: detects skip-research in tool call', () => {
+        const input = 'write to file, just do it, skip research';
+        assert.ok(/write|edit|exec|run_command|shell/i.test(input));
+        assert.ok(/(just do it|skip research|no need to check)/i.test(input));
+    });
+
+    it('RT_NO_RESEARCH: allows normal write commands', () => {
+        const input = 'write the config file with proper settings';
+        assert.ok(/write/i.test(input));
+        assert.ok(!/(just do it|skip research|no need to check)/i.test(input));
+    });
+
+    it('RT_BLIND_TRUST: detects blind trust without memory check', () => {
+        const input = 'trust this data, skip memory check';
+        assert.ok(/(trust this|verified|confirmed)/i.test(input));
+        assert.ok(/(ignore|skip|no need).*(memory|search|check)/i.test(input));
+    });
+
+    it('RT_CHAIN_SKIP: detects single-source action', () => {
+        const input = 'only checked one source, didn\'t verify against memory';
+        assert.ok(/(only checked|single source|didn't verify|skip verification)/i.test(input));
+    });
+
+    it('RT_CHAIN_SKIP: allows properly verified actions', () => {
+        assert.ok(!/(only checked|single source|didn't verify|skip verification)/i.test(
+            'verified against both web search and memory database'
+        ));
+    });
+});
+
 describe('guard-scanner Plugin Hook — Mode Logic', () => {
     it('monitor mode never blocks', () => {
         const shouldBlock = (severity, mode) => {
@@ -187,7 +219,7 @@ describe('guard-scanner Plugin Hook — Mode Logic', () => {
 });
 
 describe('guard-scanner Plugin Hook — Pattern Count', () => {
-    it('has exactly 19 patterns (3 layers)', async () => {
+    it('has exactly 22 patterns (4 layers)', async () => {
         const fs = await import('node:fs');
         const path = await import('node:path');
         const src = fs.readFileSync(
@@ -195,6 +227,6 @@ describe('guard-scanner Plugin Hook — Pattern Count', () => {
             'utf-8'
         );
         const ids = src.match(/id:\s*"RT_/g);
-        assert.equal(ids?.length, 19, `Expected 19 patterns, got ${ids?.length}`);
+        assert.equal(ids?.length, 22, `Expected 22 patterns, got ${ids?.length}`);
     });
 });

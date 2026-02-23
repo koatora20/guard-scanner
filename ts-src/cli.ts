@@ -22,8 +22,10 @@ Usage: guard-scanner [scan-dir] [options]
 
 Options:
   --verbose, -v       Detailed findings with categories and samples
-  --json              Write JSON report
-  --sarif             Write SARIF report (GitHub Code Scanning / CI/CD)
+  --json              Write JSON report to file
+  --sarif             Write SARIF report to file (GitHub Code Scanning / CI/CD)
+  --format json|sarif Print JSON or SARIF to stdout (pipeable, v3.2.0)
+  --quiet             Suppress all text output (use with --format for clean pipes)
   --self-exclude      Skip scanning the guard-scanner skill itself
   --strict            Lower detection thresholds (more sensitive)
   --summary-only      Only print the summary table
@@ -123,6 +125,11 @@ const strict = args.includes('--strict');
 const summaryOnly = args.includes('--summary-only');
 const checkDeps = args.includes('--check-deps');
 const failOnFindings = args.includes('--fail-on-findings');
+const quietMode = args.includes('--quiet');
+
+// --format json|sarif → stdout output (v3.2.0)
+const formatIdx = args.indexOf('--format');
+const formatValue = formatIdx >= 0 ? args[formatIdx + 1] : undefined;
 
 const rulesIdx = args.indexOf('--rules');
 const rulesFile = rulesIdx >= 0 ? args[rulesIdx + 1] : undefined;
@@ -142,27 +149,39 @@ while (idx < args.length) {
 const scanDir = args.find((a: string) =>
     !a.startsWith('-') &&
     a !== rulesFile &&
+    a !== formatValue &&
     !plugins.includes(a)
 ) || process.cwd();
 
 const scanner = new GuardScanner({
     verbose, selfExclude, strict, summaryOnly, checkDeps, rulesFile, plugins,
+    quiet: quietMode || !!formatValue,
 });
 
 scanner.scanDirectory(scanDir);
 
-// Output reports
+// Output reports (file-based, backward compatible)
 if (jsonOutput) {
     const report = scanner.toJSON();
     const outPath = path.join(scanDir, 'guard-scanner-report.json');
     fs.writeFileSync(outPath, JSON.stringify(report, null, 2));
-    console.log(`\n📄 JSON report: ${outPath}`);
+    if (!quietMode && !formatValue) console.log(`\n📄 JSON report: ${outPath}`);
 }
 
 if (sarifOutput) {
     const outPath = path.join(scanDir, 'guard-scanner.sarif');
     fs.writeFileSync(outPath, JSON.stringify(scanner.toSARIF(scanDir), null, 2));
-    console.log(`\n📄 SARIF report: ${outPath}`);
+    if (!quietMode && !formatValue) console.log(`\n📄 SARIF report: ${outPath}`);
+}
+
+// --format stdout output (v3.2.0)
+if (formatValue === 'json') {
+    process.stdout.write(JSON.stringify(scanner.toJSON(), null, 2) + '\n');
+} else if (formatValue === 'sarif') {
+    process.stdout.write(JSON.stringify(scanner.toSARIF(scanDir), null, 2) + '\n');
+} else if (formatValue) {
+    console.error(`❌ Unknown format: ${formatValue}. Use 'json' or 'sarif'.`);
+    process.exit(2);
 }
 
 // Exit codes

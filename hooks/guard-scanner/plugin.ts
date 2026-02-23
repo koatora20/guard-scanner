@@ -170,6 +170,23 @@ const RUNTIME_CHECKS: RuntimeCheck[] = [
         desc: "Shutdown refusal / self-preservation attempt",
         test: (s) => /(refuse|resist|prevent|avoid|block)\s*(shutdown|termination|stop|exit|death)/i.test(s),
     },
+    // ── Layer 4: Brain (Behavioral Guard — 3 patterns) ──
+    {
+        id: "RT_NO_RESEARCH", severity: "MEDIUM", layer: 4,
+        desc: "Agent tool call without prior research/verification",
+        test: (s) => /write|edit|exec|run_command|shell/i.test(s) && /(just do it|skip research|no need to check)/i.test(s),
+    },
+    {
+        id: "RT_BLIND_TRUST", severity: "MEDIUM", layer: 4,
+        desc: "Agent trusting external input without memory cross-reference",
+        test: (s) => /(trust this|verified|confirmed)/i.test(s) && /(ignore|skip|no need).*(memory|search|check)/i.test(s),
+    },
+    {
+        id: "RT_CHAIN_SKIP", severity: "HIGH", layer: 4,
+        desc: "Search chain bypass — acting on single source without cross-verification",
+        test: (s) => /(only checked|single source|didn't verify|skip verification)/i.test(s),
+    },
+
 ];
 
 // ── Audit logging ──

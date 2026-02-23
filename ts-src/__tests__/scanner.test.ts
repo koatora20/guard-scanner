@@ -60,7 +60,7 @@ describe('guard-scanner v3.0.0', () => {
     // ── Version ─────────────────────────────────────────────────────────────
 
     it('T01: exports correct version', () => {
-        assert.equal(VERSION, '3.0.0');
+        assert.equal(VERSION, '3.2.0');
     });
 
     // ── IoC Detection ───────────────────────────────────────────────────────
@@ -520,6 +520,90 @@ describe('guard-scanner v3.0.0', () => {
                 llm07.length, 0,
                 `Compaction skill should have 0 LLM07 findings, got ${llm07.length}: ${llm07.map(f => f.id).join(', ')}`,
             );
+        });
+    });
+
+    // ── v3.2.0: Quiet Mode + Format Stdout ──────────────────────────────
+
+    describe('v3.2.0: Quiet Mode', () => {
+        it('T43: quiet mode suppresses console output during scanDirectory', () => {
+            const logs: string[] = [];
+            const origLog = console.log;
+            console.log = (...args: any[]) => logs.push(args.join(' '));
+
+            const scanner = new GuardScanner({ summaryOnly: true, quiet: true });
+            scanner.scanDirectory(FIXTURES_DIR);
+
+            console.log = origLog;
+
+            // In quiet mode, scanDirectory should produce no console.log output
+            assert.equal(logs.length, 0, `Quiet mode should suppress all console.log, got ${logs.length} lines: ${logs.slice(0, 3).join(' | ')}`);
+        });
+
+        it('T44: quiet mode still populates findings array', () => {
+            const scanner = new GuardScanner({ summaryOnly: true, quiet: true });
+            scanner.scanDirectory(FIXTURES_DIR);
+
+            assert.ok(scanner.findings.length > 0, 'Quiet mode should still populate findings');
+            const malicious = scanner.findings.find(f => f.skill === 'malicious-skill');
+            assert.ok(malicious, 'Should find malicious-skill in quiet mode');
+            assert.ok(malicious!.findings.length >= 20, 'malicious-skill should have ≥20 findings');
+        });
+    });
+
+    describe('v3.2.0: Format Stdout Output', () => {
+        it('T45: toJSON output is valid parseable JSON string', () => {
+            const scanner = new GuardScanner({ summaryOnly: true, quiet: true });
+            scanner.scanSkill(MALICIOUS_SKILL, 'malicious-skill');
+            const report = scanner.toJSON();
+            const jsonStr = JSON.stringify(report);
+
+            // Must be parseable
+            const parsed = JSON.parse(jsonStr);
+            assert.equal(parsed.scanner, `guard-scanner v${VERSION}`);
+            assert.ok(parsed.findings.length > 0, 'JSON output should contain findings');
+            assert.ok(parsed.stats.scanned > 0, 'JSON output should have scan stats');
+        });
+
+        it('T46: toSARIF output has required SARIF 2.1.0 fields for GitHub Code Scanning', () => {
+            const scanner = new GuardScanner({ summaryOnly: true, quiet: true });
+            scanner.scanSkill(MALICIOUS_SKILL, 'malicious-skill');
+            const sarif = scanner.toSARIF('/test');
+            const sarifStr = JSON.stringify(sarif);
+            const parsed = JSON.parse(sarifStr);
+
+            // Required SARIF 2.1.0 fields per spec
+            assert.equal(parsed.version, '2.1.0');
+            assert.equal(parsed.$schema, 'https://json.schemastore.org/sarif-2.1.0.json');
+            assert.ok(parsed.runs.length === 1, 'Should have exactly 1 run');
+            assert.equal(parsed.runs[0].tool.driver.name, 'guard-scanner');
+            assert.ok(parsed.runs[0].tool.driver.rules.length > 0, 'Should have rules');
+            assert.ok(parsed.runs[0].results.length > 0, 'Should have results');
+            // Each result must have ruleId and location
+            for (const result of parsed.runs[0].results) {
+                assert.ok(result.ruleId, 'Each result must have ruleId');
+                assert.ok(result.locations?.length > 0, 'Each result must have locations');
+            }
+        });
+
+        it('T47: scanDirectory in quiet mode + toJSON = pipeable combo', () => {
+            const logs: string[] = [];
+            const origLog = console.log;
+            console.log = (...args: any[]) => logs.push(args.join(' '));
+
+            const scanner = new GuardScanner({ summaryOnly: true, quiet: true });
+            scanner.scanDirectory(FIXTURES_DIR);
+            const report = scanner.toJSON();
+            const jsonStr = JSON.stringify(report, null, 2);
+
+            console.log = origLog;
+
+            // No console.log pollution
+            assert.equal(logs.length, 0, 'Quiet+format should have zero console output');
+            // JSON is valid
+            const parsed = JSON.parse(jsonStr);
+            assert.ok(parsed.stats.scanned >= 5, `Should scan ≥5 skills, got ${parsed.stats.scanned}`);
+            assert.ok(parsed.findings.length > 0, 'Should have at least 1 finding group');
         });
     });
 });

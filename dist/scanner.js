@@ -48,7 +48,7 @@ const crypto = __importStar(require("crypto"));
 const ioc_db_js_1 = require("./ioc-db.js");
 const patterns_js_1 = require("./patterns.js");
 // ── Constants ───────────────────────────────────────────────────────────────
-exports.VERSION = '3.0.0';
+exports.VERSION = '3.2.0';
 const THRESHOLDS_MAP = {
     normal: { suspicious: 30, malicious: 80 },
     strict: { suspicious: 20, malicious: 60 },
@@ -76,6 +76,8 @@ class GuardScanner {
     selfExclude;
     strict;
     summaryOnly;
+    /** Suppress all console.log output (v3.2.0: for --format stdout piping) */
+    quiet;
     checkDeps;
     thresholds;
     findings = [];
@@ -89,6 +91,7 @@ class GuardScanner {
         this.selfExclude = options.selfExclude ?? false;
         this.strict = options.strict ?? false;
         this.summaryOnly = options.summaryOnly ?? false;
+        this.quiet = options.quiet ?? false;
         this.checkDeps = options.checkDeps ?? false;
         this.scannerDir = path.resolve(__dirname);
         this.thresholds = this.strict ? THRESHOLDS_MAP.strict : THRESHOLDS_MAP.normal;
@@ -197,28 +200,31 @@ class GuardScanner {
             const p = path.join(dir, f);
             return fs.statSync(p).isDirectory();
         });
-        console.log(`\n🛡️  guard-scanner v${exports.VERSION}`);
-        console.log(`${'═'.repeat(54)}`);
-        console.log(`📂 Scanning: ${dir}`);
-        console.log(`📦 Skills found: ${skills.length}`);
-        if (this.strict)
-            console.log('⚡ Strict mode enabled');
-        console.log();
+        if (!this.quiet) {
+            console.log(`\n🛡️  guard-scanner v${exports.VERSION}`);
+            console.log(`${'═'.repeat(54)}`);
+            console.log(`📂 Scanning: ${dir}`);
+            console.log(`📦 Skills found: ${skills.length}`);
+            if (this.strict)
+                console.log('⚡ Strict mode enabled');
+            console.log();
+        }
         for (const skill of skills) {
             const skillPath = path.join(dir, skill);
             if (this.selfExclude && path.resolve(skillPath) === this.scannerDir) {
-                if (!this.summaryOnly)
+                if (!this.summaryOnly && !this.quiet)
                     console.log(`⏭️  ${skill} — SELF (excluded)`);
                 continue;
             }
             if (this.ignoredSkills.has(skill)) {
-                if (!this.summaryOnly)
+                if (!this.summaryOnly && !this.quiet)
                     console.log(`⏭️  ${skill} — IGNORED`);
                 continue;
             }
             this.scanSkill(skillPath, skill);
         }
-        this.printSummary();
+        if (!this.quiet)
+            this.printSummary();
         return this.findings;
     }
     // ── Skill Scanner ─────────────────────────────────────────────────────
@@ -285,7 +291,7 @@ class GuardScanner {
         const risk = this.calculateRisk(filtered);
         const verdict = this.getVerdict(risk);
         this.stats[verdict.stat]++;
-        if (!this.summaryOnly) {
+        if (!this.summaryOnly && !this.quiet) {
             console.log(`${verdict.icon} ${skillName} — ${verdict.label} (risk: ${risk})`);
             if (this.verbose && filtered.length > 0) {
                 const byCat = {};

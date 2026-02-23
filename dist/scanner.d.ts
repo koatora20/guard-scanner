@@ -7,12 +7,14 @@
  * Zero dependencies. MIT License.
  */
 import type { SkillResult, ScannerOptions, ScanStats, Thresholds, JSONReport, SARIFReport } from './types.js';
-export declare const VERSION = "3.0.0";
+export declare const VERSION = "3.2.0";
 export declare class GuardScanner {
     readonly verbose: boolean;
     readonly selfExclude: boolean;
     readonly strict: boolean;
     readonly summaryOnly: boolean;
+    /** Suppress all console.log output (v3.2.0: for --format stdout piping) */
+    readonly quiet: boolean;
     readonly checkDeps: boolean;
     readonly thresholds: Thresholds;
     findings: SkillResult[];

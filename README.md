@@ -705,7 +705,7 @@ guard-scanner is and always will be **free, open-source, and zero-dependency**.
 | v2.0.0 ✅ | **Plugin Hook Runtime Guard** | `block`/`blockReason` API, 3 modes, 91 tests |
 | v2.1.0 ✅ | **PII Exposure + Shadow AI** | 13 PII patterns, OWASP LLM02/06, 99 tests |
 | v3.0.0 ✅ | **TypeScript Rewrite** | Full TS, OWASP LLM Top 10 mapping, install-check CLI |
-| v3.1.0 ✅ | **OpenClaw Community Plugin** | `openclaw.plugin.json`, 19 runtime patterns (3 layers), 87 tests |
+| v3.1.0 ✅ | **OpenClaw Community Plugin** | `openclaw.plugin.json`, 22 runtime patterns (4 layers) (3 layers), 87 tests |
 | v4.0 | AST + ML | JavaScript AST analysis, taint tracking, ML-based obfuscation detection |
 
 See [ROADMAP.md](ROADMAP.md) for full details.

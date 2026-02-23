@@ -76,6 +76,8 @@ export interface ScannerOptions {
     selfExclude?: boolean;
     strict?: boolean;
     summaryOnly?: boolean;
+    /** Suppress all console.log output (v3.2.0: for --format stdout piping) */
+    quiet?: boolean;
     checkDeps?: boolean;
     rulesFile?: string;
     plugins?: string[];

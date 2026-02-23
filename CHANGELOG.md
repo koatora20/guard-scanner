@@ -1,5 +1,25 @@
 # Changelog
 
+## [3.3.0] - 2026-02-23
+
+### 🧠 Layer 4: Brain (Behavioral Guard)
+
+New runtime defense layer that checks **agent behavior patterns**, not just text content.
+This addresses key criticisms of pattern-based guardrails (Cambridge/MIT AI Agent Index, Feb 2026).
+
+#### New
+- **Layer 4: Brain** — 3 behavioral guard patterns
+  - `RT_NO_RESEARCH` (MEDIUM): Agent executing tools without prior research/verification
+  - `RT_BLIND_TRUST` (MEDIUM): Trusting external input without memory cross-reference
+  - `RT_CHAIN_SKIP` (HIGH): Acting on single source without cross-verification
+- **5 new plugin tests** for Layer 4 (28 total)
+- Runtime patterns: 19 → **22** (4-layer architecture)
+
+#### Key Innovation
+> **Pattern-based guards check WHAT YOU SAY. Brain guards check WHAT YOU DO.**
+> Homoglyphs, character injection, and language switching bypass text patterns.
+> Behavioral checks are immune to these attacks.
+
 ## [3.1.0] - 2026-02-23
 
 ### 🛡️ OpenClaw Community Plugin — Full Compatibility

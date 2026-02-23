@@ -5,7 +5,7 @@ description: >
   from ClawHub or external sources. Detects prompt injection, credential theft,
   exfiltration, identity hijacking, sandbox violations, code complexity, config impact,
   and 17 more threat categories.
-  Includes a Runtime Guard hook that blocks dangerous tool calls in real-time.
+  Includes a Runtime Guard hook (22 patterns, 4 layers) that blocks dangerous tool calls in real-time.
 homepage: https://github.com/koatora20/guard-scanner
 metadata:
   clawdbot:
@@ -29,7 +29,7 @@ metadata:
 # guard-scanner 🛡️
 
 Static + runtime security scanner for AI agent skills.
-**186+ threat patterns** across **20 categories** — zero dependencies.
+**186+ threat patterns (static) + 22 runtime patterns (4 layers)** across **20 categories** — zero dependencies.
 
 ## When To Use This Skill
 
