@@ -31,7 +31,7 @@ const { KNOWN_MALICIOUS } = require('./ioc-db.js');
 const { generateHTML } = require('./html-template.js');
 
 // ===== CONFIGURATION =====
-const VERSION = '3.2.0';
+const VERSION = '3.4.0';
 
 const THRESHOLDS = {
     normal: { suspicious: 30, malicious: 80 },
@@ -1019,4 +1019,6 @@ class GuardScanner {
     }
 }
 
-module.exports = { GuardScanner, VERSION, THRESHOLDS, SEVERITY_WEIGHTS };
+const { scanToolCall, RUNTIME_CHECKS, getCheckStats, LAYER_NAMES } = require('./runtime-guard.js');
+
+module.exports = { GuardScanner, VERSION, THRESHOLDS, SEVERITY_WEIGHTS, scanToolCall, RUNTIME_CHECKS, getCheckStats, LAYER_NAMES };

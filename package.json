@@ -1,7 +1,7 @@
 {
     "name": "guard-scanner",
-    "version": "3.3.0",
-    "description": "Agent security scanner + runtime guard — 19 threat patterns, before_tool_call hook, CLI scanner, SARIF. OpenClaw-compatible plugin.",
+    "version": "3.4.0",
+    "description": "Agent security scanner + runtime guard — 190+ static patterns, 26 runtime checks (5 layers), before_tool_call hook, CLI, SARIF. OpenClaw-compatible plugin.",
     "openclaw.extensions": "./openclaw.plugin.json",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -42,6 +42,7 @@
     "homepage": "https://github.com/koatora20/guard-scanner",
     "files": [
         "dist/",
+        "src/",
         "hooks/",
         "ts-src/",
         "docs/",
