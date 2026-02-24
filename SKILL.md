@@ -5,7 +5,7 @@ description: >
   from ClawHub or external sources. Detects prompt injection, credential theft,
   exfiltration, identity hijacking, sandbox violations, code complexity, config impact,
   and 17 more threat categories.
-  Includes a Runtime Guard hook (22 patterns, 4 layers) that blocks dangerous tool calls in real-time.
+  Includes a Runtime Guard hook (26 patterns, 5 layers, 0.016ms/scan) that blocks dangerous tool calls in real-time.
 homepage: https://github.com/koatora20/guard-scanner
 metadata:
   clawdbot:
@@ -29,7 +29,7 @@ metadata:
 # guard-scanner 🛡️
 
 Static + runtime security scanner for AI agent skills.
-**186+ threat patterns (static) + 22 runtime patterns (4 layers)** across **20 categories** — zero dependencies.
+**190+ threat patterns (static) + 26 runtime patterns (5 layers)** across **21 categories** — zero dependencies. **0.016ms/scan.**
 
 ## When To Use This Skill
 
@@ -54,9 +54,9 @@ Scan a specific skill:
 node skills/guard-scanner/src/cli.js /path/to/new-skill/ --strict --verbose
 ```
 
-### 2. Runtime Guard (OpenClaw) — ⚠️ warn-only currently
+### 2. Runtime Guard (OpenClaw Plugin Hook)
 
-> **Note:** OpenClaw `InternalHookEvent` does not yet expose cancel/veto. Runtime hook detections are warning + audit log until [Issue #18677](https://github.com/openclaw/openclaw/issues/18677) is adopted.
+Blocks dangerous tool calls in real-time via `before_tool_call` hook. 26 patterns, 5 layers, 3 enforcement modes.
 
 ```bash
 openclaw hooks install skills/guard-scanner/hooks/guard-scanner
@@ -82,10 +82,8 @@ Set in `openclaw.json` → `hooks.internal.entries.guard-scanner.mode`:
 | Mode | Intended Behavior | Current Status |
 |------|-------------------|----------------|
 | `monitor` | Log all, never block | ✅ Fully working |
-| `enforce` (default) | Block CRITICAL threats | ⚠️ Warn only (cancel API pending) |
-| `strict` | Block HIGH + CRITICAL | ⚠️ Warn only (cancel API pending) |
-
-> **Note:** OpenClaw's `InternalHookEvent` does not yet expose a `cancel`/`veto` mechanism. All detections are currently logged and warned via `event.messages`, but tool execution cannot be blocked. Blocking will be enabled when the cancel API is added.
+| `enforce` (default) | Block CRITICAL threats | ✅ Fully working |
+| `strict` | Block HIGH + CRITICAL | ✅ Fully working |
 
 ## Threat Categories
 
@@ -141,7 +139,7 @@ an AI agent's SOUL.md personality file, and no existing tool could detect it.
 
 - **Open source**: Full source code available at https://github.com/koatora20/guard-scanner
 - **Zero dependencies**: Nothing to audit, no transitive risks
-- **Test suite**: 55 tests across 13 sections, 100% pass rate
+- **Test suite**: 133 tests across 24 suites, 100% pass rate
 - **Taxonomy**: Based on Snyk ToxicSkills (Feb 2026), OWASP MCP Top 10, and original research
 - **Complementary to VirusTotal**: Detects prompt injection and LLM-specific attacks
   that VirusTotal's signature-based scanning cannot catch

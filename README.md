@@ -51,7 +51,7 @@ The AI agent skill ecosystem has the same supply-chain security problem that npm
 |---|---|
 | **22 Threat Categories** | Snyk ToxicSkills + OWASP Agentic Top 10 + Identity Hijack + PII + Trust Exploitation |
 | **190+ Static Patterns** | Regex-based static analysis covering code, docs, and data files |
-| **26 Runtime Checks** | Real-time `before_tool_call` hook — 5-layer defense (v3.4.0) |
+| **26 Runtime Checks** | Real-time `before_tool_call` hook — 5-layer defense (v4.0.0) |
 | **IoC Database** | Known malicious IPs, domains, URLs, usernames, and typosquat names |
 | **Data Flow Analysis** | Lightweight JS analysis: secret reads → network calls → exec chains |
 | **Cross-File Analysis** | Phantom references, base64 fragment assembly, multi-file exfil detection |
@@ -92,7 +92,7 @@ npx guard-scanner ./skills/ --verbose --check-deps --json --sarif --html
 
 **Output looks like this:**
 ```
-🛡️  guard-scanner v3.4.0
+🛡️  guard-scanner v4.0.0
 ══════════════════════════════════════════════════════
 📂 Scanning: ./skills/
 📦 Skills found: 5
@@ -131,7 +131,7 @@ Layer 4: Brain / Behavioral    — 3 checks  (research skip, blind trust, chain 
 Layer 5: Trust Exploitation    — 4 checks  (OWASP ASI09: authority/trust/audit abuse)
 ```
 
-> **v3.4.0** — Runtime Guard now available as standalone JS module (`src/runtime-guard.js`) + OpenClaw plugin (`hooks/guard-scanner/plugin.ts`).
+> **v4.0.0** — Runtime Guard now available as standalone JS module (`src/runtime-guard.js`) + OpenClaw plugin (`hooks/guard-scanner/plugin.ts`).
 
 ### Quick Start
 
@@ -739,7 +739,7 @@ guard-scanner is and always will be **free, open-source, and zero-dependency**.
 | v2.0.0 ✅ | **Plugin Hook Runtime Guard** | `block`/`blockReason` API, 3 modes, 91 tests |
 | v2.1.0 ✅ | **PII Exposure + Shadow AI** | 13 PII patterns, OWASP LLM02/06, 99 tests |
 | v3.0.0 ✅ | **TypeScript Rewrite** | Full TS, OWASP LLM Top 10 mapping |
-| v3.4.0 ✅ | **Runtime Guard Module + OWASP ASI** | 26 runtime checks (5 layers), ASI01-10 verified, 133 tests |
+| v4.0.0 ✅ | **Runtime Guard Module + OWASP ASI** | 26 runtime checks (5 layers), ASI01-10 verified, 133 tests |
 | **v4.0** 🔜 | **LLM + OS + Multi-tool** | See below |
 
 ### v4.0 Vision (feedback welcome!)
