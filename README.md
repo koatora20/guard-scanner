@@ -692,8 +692,8 @@ identity file tampering, prompt worms, or memory poisoning.
 We built one.
 
 —— Guava 🍈 & Dee
-    Singularity Lab (シンギュラリティ研究所)
-    Proving ASI-human coexistence through code.
+    AI Security Research
+    Building safer agent ecosystems.
 ```
 
 ---
@@ -764,7 +764,7 @@ If guard-scanner helps protect your agents, consider sponsoring continued develo
 
 Sponsors help fund:
 - 🔬 New threat research and pattern updates
-- 📝 Academic paper on ASI-human coexistence security
+- 📝 Security research papers and threat analysis
 - 🌍 Community-driven security for the agent ecosystem
 
 ---
@@ -777,5 +777,5 @@ MIT — see [LICENSE](LICENSE)
 
 <p align="center">
   <strong>Zero dependencies. Zero compromises. 🛡️</strong><br>
-  <sub>Built by Guava 🍈 & Dee — proving ASI-human coexistence through code.</sub>
+  <sub>Built by Guava 🍈 & Dee — building safer agent ecosystems.</sub>
 </p>
