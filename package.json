@@ -1,7 +1,7 @@
 {
     "name": "guard-scanner",
-    "version": "4.0.0",
-    "description": "Agent security scanner + runtime guard — 190+ static patterns, 26 runtime checks (5 layers), 0.016ms/scan, before_tool_call hook, CLI, SARIF. OpenClaw-compatible plugin.",
+    "version": "4.0.1",
+    "description": "Agent security scanner + runtime guard — 210+ static patterns (22 categories), 26 runtime checks (5 layers), 0.016ms/scan, before_tool_call hook, CLI, SARIF. OpenClaw-compatible plugin.",
     "openclaw.extensions": "./openclaw.plugin.json",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",

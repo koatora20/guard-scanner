@@ -12,7 +12,7 @@
     <img src="https://img.shields.io/badge/dependencies-0-success?style=flat-square" alt="Zero Dependencies">
     <img src="https://img.shields.io/badge/tests-133%2F133-brightgreen?style=flat-square" alt="Tests Passing">
     <img src="https://img.shields.io/badge/OWASP_Agentic-90%25-green?style=flat-square" alt="OWASP Agentic 90%">
-    <img src="https://img.shields.io/badge/patterns-190%2B-blueviolet?style=flat-square" alt="190+ Patterns">
+    <img src="https://img.shields.io/badge/patterns-210%2B-blueviolet?style=flat-square" alt="210+ Patterns">
   </p>
   <p align="center">
     <a href="#quick-start">Quick Start</a> •
@@ -50,7 +50,7 @@ The AI agent skill ecosystem has the same supply-chain security problem that npm
 | Feature | Description |
 |---|---|
 | **22 Threat Categories** | Snyk ToxicSkills + OWASP Agentic Top 10 + Identity Hijack + PII + Trust Exploitation |
-| **190+ Static Patterns** | Regex-based static analysis covering code, docs, and data files |
+| **210+ Static Patterns** | Regex-based static analysis covering code, docs, and data files |
 | **26 Runtime Checks** | Real-time `before_tool_call` hook — 5-layer defense (v4.0.0) |
 | **IoC Database** | Known malicious IPs, domains, URLs, usernames, and typosquat names |
 | **Data Flow Analysis** | Lightweight JS analysis: secret reads → network calls → exec chains |
@@ -608,7 +608,7 @@ OpenClaw's official [`THREAT-MODEL-ATLAS.md`](https://github.com/openclaw/opencl
 
 | Gap (from ATLAS / Source Code) | OpenClaw Status | guard-scanner |
 |---|---|---|
-| _"Simple regex easily bypassed"_ — ClawHub moderation | ⚠️ Basic `FLAG_RULES` | ✅ 129 patterns, 21 categories |
+| _"Simple regex easily bypassed"_ — ClawHub moderation | ⚠️ Basic `FLAG_RULES` | ✅ 129 patterns, 22 categories |
 | _"Does not analyze actual skill code content"_ | ❌ Not implemented | ✅ Full code + doc + data flow analysis |
 | No SOUL.md / IDENTITY.md integrity verification | ❌ Not implemented | ✅ Identity hijacking detection (Cat 17) |
 | `skill:before_install` hook | ❌ Not implemented | 🔜 Proposed ([Issue #18677](https://github.com/openclaw/openclaw/issues/18677)) |
@@ -719,7 +719,7 @@ clawhub install guava-suite
 
 | | guard-scanner (Free) | GuavaSuite ($GUAVA) |
 |---|---|---|
-| Static scan (129 patterns, 21 categories) | ✅ | ✅ |
+| Static scan (129 patterns, 22 categories) | ✅ | ✅ |
 | Runtime Guard — `enforce` (block CRITICAL) | ✅ | ✅ |
 | **Runtime Guard — `strict` (block HIGH + CRITICAL)** | ❌ | ✅ |
 | **Soul Lock** (SOUL.md integrity + auto-rollback) | ❌ | ✅ |
@@ -748,7 +748,7 @@ guard-scanner is and always will be **free, open-source, and zero-dependency**.
 |-----------|------|-----|
 | 🧠 **LLM-assisted detection** | Pass suspicious (not certain) cases to a lightweight LLM (Haiku/Flash) for intent analysis | Regex can be evaded; LLMs understand intent |
 | 🔒 **OS-level enforcement** | File watcher (auto-rollback SOUL.md/.env), process monitor (kill netcat/socat), daemon mode | Works regardless of which AI tool you use |
-| 🔌 **Multi-tool support** | Adapters for Claude Code, Cursor, Antigravity, Windsurf, MCP servers | Same 190+ patterns, different skill discovery per tool |
+| 🔌 **Multi-tool support** | Adapters for Claude Code, Cursor, Antigravity, Windsurf, MCP servers | Same 210+ patterns, different skill discovery per tool |
 
 > **Which matters most to you?** Open an issue or join the discussion! We're building this for the community.
 

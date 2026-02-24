@@ -29,7 +29,7 @@ metadata:
 # guard-scanner 🛡️
 
 Static + runtime security scanner for AI agent skills.
-**190+ threat patterns (static) + 26 runtime patterns (5 layers)** across **21 categories** — zero dependencies. **0.016ms/scan.**
+**210+ threat patterns (static) + 26 runtime patterns (5 layers)** across **22 categories** — zero dependencies. **0.016ms/scan.**
 
 ## When To Use This Skill
 

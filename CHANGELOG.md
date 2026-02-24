@@ -33,7 +33,7 @@ Layer 5: Trust Exploitation    —  4 patterns (OWASP ASI09)
 
 #### Stats
 - Runtime patterns: 22 → **26** (5-layer architecture)
-- Static patterns: **135** (21 categories)
+- Static patterns: **135** (22 categories)
 - Total tests: **133+** across 31 suites
 
 ---
@@ -130,7 +130,7 @@ Full TypeScript rewrite with type safety, OWASP LLM Top 10 2025 mapping, and new
 
 #### Enhanced
 - **Risk scoring**: Enhanced multipliers for compaction-persistence category
-- **Pattern count**: 186 → 190+ (5 new LLM07 patterns)
+- **Pattern count**: 186 → 210+ (5 new LLM07 patterns)
 - **Categories**: 20 → 21 (system-prompt-leakage)
 
 #### Testing (T-Wada)
@@ -145,7 +145,7 @@ Full TypeScript rewrite with type safety, OWASP LLM Top 10 2025 mapping, and new
 
 #### Architecture
 - `ts-src/scanner.ts` — Core scanner (1007 lines, typed)
-- `ts-src/patterns.ts` — 190+ patterns with OWASP mapping
+- `ts-src/patterns.ts` — 210+ patterns with OWASP mapping
 - `ts-src/ioc-db.ts` — IoC database + 7 threat signatures
 - `ts-src/types.ts` — Full TypeScript interfaces
 - `ts-src/cli.ts` — CLI with install-check subcommand

@@ -243,8 +243,8 @@ describe('Output Formats', () => {
 
 // ===== 6. Pattern Database Integrity =====
 describe('Pattern Database', () => {
-    it('should have 125+ patterns', () => {
-        assert.ok(PATTERNS.length >= 125, `Expected 125+ patterns, got ${PATTERNS.length}`);
+    it('should have 135+ patterns', () => {
+        assert.ok(PATTERNS.length >= 135, `Expected 135+ patterns, got ${PATTERNS.length}`);
     });
 
     it('all patterns should have required fields', () => {
@@ -259,13 +259,18 @@ describe('Pattern Database', () => {
         }
     });
 
-    it('should cover all 17 categories', () => {
+    it('should cover all 22 categories', () => {
         const cats = new Set(PATTERNS.map(p => p.cat));
         const expected = [
             'prompt-injection', 'malicious-code', 'suspicious-download',
             'credential-handling', 'secret-detection', 'exfiltration',
-            'obfuscation', 'identity-hijack', 'pii-exposure', 'trust-exploitation'
+            'unverifiable-deps', 'financial-access', 'obfuscation',
+            'leaky-skills', 'memory-poisoning', 'prompt-worm',
+            'persistence', 'cve-patterns', 'mcp-security', 'trust-boundary',
+            'advanced-exfil', 'safeguard-bypass', 'identity-hijack',
+            'config-impact', 'pii-exposure', 'trust-exploitation'
         ];
+        assert.equal(cats.size, 22, `Expected 22 categories, got ${cats.size}: ${[...cats].join(', ')}`);
         for (const e of expected) {
             assert.ok(cats.has(e), `Missing category: ${e}`);
         }
