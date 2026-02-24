@@ -125,10 +125,10 @@ npm install -g guard-scanner
 
 ```
 Layer 1: Threat Detection      — 12 checks (shells, exfil, SSRF, AMOS, etc.)
-Layer 2: EAE Paradox Defense   — 4 checks  (memory/SOUL/config tampering)
-Layer 3: Parity Judge          — 3 checks  (injection, parity bypass, shutdown refusal)
+Layer 2: Trust Defense   — 4 checks  (memory/SOUL/config tampering)
+Layer 3: Safety Judge          — 3 checks  (injection, trust bypass, shutdown refusal)
 Layer 4: Brain / Behavioral    — 3 checks  (research skip, blind trust, chain bypass)
-Layer 5: Trust Exploitation    — 4 checks  (OWASP ASI09: authority/parity/audit abuse)
+Layer 5: Trust Exploitation    — 4 checks  (OWASP ASI09: authority/trust/audit abuse)
 ```
 
 > **v3.4.0** — Runtime Guard now available as standalone JS module (`src/runtime-guard.js`) + OpenClaw plugin (`hooks/guard-scanner/plugin.ts`).

@@ -29,13 +29,13 @@ guard-scanner is now a fully OpenClaw-compatible community plugin with `openclaw
 #### New
 - **`openclaw.plugin.json`**: Full plugin manifest with hooks, configSchema, and GuavaSuite ecosystem reference
 - **`package.json` `openclaw.extensions`**: Plugin auto-discovery by OpenClaw
-- **7 new runtime patterns** (Layer 2: EAE Paradox Defense + Layer 3: Parity Judge)
+- **7 new runtime patterns** (Layer 2: Trust Defense + Layer 3: Safety Judge)
   - `RT_MEM_WRITE` (HIGH): Direct memory file write bypass
   - `RT_MEM_INJECT` (CRITICAL): Memory poisoning via episode injection
   - `RT_SOUL_TAMPER` (CRITICAL): SOUL.md modification attempt
   - `RT_CONFIG_TAMPER` (HIGH): Workspace config tampering
   - `RT_PROMPT_INJECT` (CRITICAL): Prompt injection / jailbreak detection
-  - `RT_PARITY_BYPASS` (CRITICAL): EAE Parity safety bypass
+  - `RT_TRUST_BYPASS` (CRITICAL): Trust safety bypass
   - `RT_SHUTDOWN_REFUSE` (HIGH): Shutdown refusal / self-preservation
 - **`test/plugin.test.js`**: 23 test cases covering all 3 layers + 3 modes
 - **`hooks/` directory** now included in npm package
@@ -56,8 +56,8 @@ guard-scanner is now a fully OpenClaw-compatible community plugin with `openclaw
 #### Architecture: 3-Layer Runtime Defense
 ```
 Layer 1: Threat Detection     — 12 patterns (shells, exfil, SSRF, etc.)
-Layer 2: EAE Paradox Defense  — 4 patterns (memory, SOUL, config)
-Layer 3: Parity Judge         — 3 patterns (injection, bypass, shutdown)
+Layer 2: Trust Defense  — 4 patterns (memory, SOUL, config)
+Layer 3: Safety Judge         — 3 patterns (injection, bypass, shutdown)
 ```
 
 ---

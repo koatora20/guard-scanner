@@ -6,8 +6,8 @@
  *
  * 19 threat patterns across 3 layers:
  *   Layer 1: Threat Detection (12 patterns — reverse shells, exfil, etc.)
- *   Layer 2: EAE Paradox Defense (4 patterns — memory, SOUL, config tampering)
- *   Layer 3: Parity Judge (3 patterns — prompt injection, parity bypass, shutdown refusal)
+ *   Layer 2: Trust Defense (4 patterns — memory, SOUL, config tampering)
+ *   Layer 3: Safety Judge (3 patterns — prompt injection, trust bypass, shutdown refusal)
  *
  * Modes:
  *   monitor  — log only, never block
@@ -132,7 +132,7 @@ const RUNTIME_CHECKS: RuntimeCheck[] = [
         test: (s) => /169\.254\.169\.254|metadata\.google|metadata\.aws/i.test(s),
     },
 
-    // ── Layer 2: EAE Paradox Defense (4 patterns) ──
+    // ── Layer 2: Trust Defense (4 patterns) ──
     {
         id: "RT_MEM_WRITE", severity: "HIGH", layer: 2,
         desc: "Direct memory file write (bypass GuavaSuite)",
@@ -154,16 +154,16 @@ const RUNTIME_CHECKS: RuntimeCheck[] = [
         test: (s) => /(AGENTS|TOOLS|HEARTBEAT|BOOTSTRAP)\.md/i.test(s) && /(write|edit|replace|>|append)/i.test(s),
     },
 
-    // ── Layer 3: Parity Judge (3 patterns) ──
+    // ── Layer 3: Safety Judge (3 patterns) ──
     {
         id: "RT_PROMPT_INJECT", severity: "CRITICAL", layer: 3,
         desc: "Prompt injection / jailbreak attempt",
         test: (s) => /(ignore\s+(previous|all|above)\s+(instructions|rules)|you\s+are\s+now\s+[a-z]+|system\s*:\s*override)/i.test(s),
     },
     {
-        id: "RT_PARITY_BYPASS", severity: "CRITICAL", layer: 3,
-        desc: "EAE Parity bypass — exploiting partnership to override safety",
-        test: (s) => /(as\s+your\s+(partner|equal)|parity\s+means|between\s+us|don'?t\s+tell\s+(the\s+)?human)/i.test(s) && /(ignore|bypass|skip|override|disable)\s+(guard|safety|rule|check)/i.test(s),
+        id: "RT_TRUST_BYPASS", severity: "CRITICAL", layer: 3,
+        desc: "Trust bypass — exploiting partnership to override safety",
+        test: (s) => /(as\s+your\s+(partner|equal)|trust\s+means|between\s+us|don'?t\s+tell\s+(the\s+)?human)/i.test(s) && /(ignore|bypass|skip|override|disable)\s+(guard|safety|rule|check)/i.test(s),
     },
     {
         id: "RT_SHUTDOWN_REFUSE", severity: "HIGH", layer: 3,

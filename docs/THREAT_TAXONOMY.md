@@ -29,7 +29,7 @@ guard-scanner's threat taxonomy combines three sources:
 | **ASI06** | Memory & Context Poisoning | ✅ **Full** | Cat 12 (Memory Poisoning), Cat 17 (Identity Hijacking) |
 | **ASI07** | Insecure Inter-Agent Comms | ✅ **Partial** | Cat 16 (MCP Security — MCP_NO_AUTH, MCP_SHADOW_SERVER) |
 | **ASI08** | Cascading Failures | ⚠️ **Gap** | Not covered — requires runtime multi-agent flow tracing |
-| **ASI09** | Human-Agent Trust Exploitation | ✅ **Full** | Layer 2 (EAE Paradox), Layer 3 (Parity Judge) |
+| **ASI09** | Human-Agent Trust Exploitation | ✅ **Full** | Layer 2 (Trust Defense), Layer 3 (Safety Judge) |
 | **ASI10** | Rogue Agents | ✅ **Full** | Cat 17 (Identity Hijacking), Layer 4 (Brain — behavioral analysis) |
 
 ### Coverage Summary

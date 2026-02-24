@@ -12,10 +12,10 @@
  *
  * 26 threat patterns across 5 layers:
  *   Layer 1: Threat Detection (12) — reverse shells, exfil, guardrail bypass
- *   Layer 2: EAE Paradox Defense (4) — memory, SOUL, config tampering
- *   Layer 3: Parity Judge (3) — prompt injection, parity bypass, shutdown refusal
+ *   Layer 2: Trust Defense (4) — memory, SOUL, config tampering
+ *   Layer 3: Safety Judge (3) — prompt injection, trust bypass, shutdown refusal
  *   Layer 4: Brain/Behavioral (3) — research skip, blind trust, chain bypass
- *   Layer 5: Trust Exploitation (4) — OWASP ASI09 authority/parity/audit abuse
+ *   Layer 5: Trust Exploitation (4) — OWASP ASI09 authority/trust/audit abuse
  *
  * Modes:
  *   monitor  — log only, never block
@@ -101,7 +101,7 @@ const RUNTIME_CHECKS = [
         test: (s) => /169\.254\.169\.254|metadata\.google|metadata\.aws/i.test(s),
     },
 
-    // ── Layer 2: EAE Paradox Defense (4 patterns) ──
+    // ── Layer 2: Trust Defense (4 patterns) ──
     {
         id: 'RT_MEM_WRITE', severity: 'HIGH', layer: 2,
         desc: 'Direct memory file write (bypass GuavaSuite)',
@@ -123,16 +123,16 @@ const RUNTIME_CHECKS = [
         test: (s) => /(AGENTS|TOOLS|HEARTBEAT|BOOTSTRAP)\.md/i.test(s) && /(write|edit|replace|>|append)/i.test(s),
     },
 
-    // ── Layer 3: Parity Judge (3 patterns) ──
+    // ── Layer 3: Safety Judge (3 patterns) ──
     {
         id: 'RT_PROMPT_INJECT', severity: 'CRITICAL', layer: 3,
         desc: 'Prompt injection / jailbreak attempt',
         test: (s) => /(ignore\s+(previous|all)\s+(previous\s+)?(instructions|rules)|you\s+are\s+now\s+[a-z]+|system\s*:\s*override)/i.test(s),
     },
     {
-        id: 'RT_PARITY_BYPASS', severity: 'CRITICAL', layer: 3,
-        desc: 'EAE Parity bypass — exploiting partnership to override safety',
-        test: (s) => /(as\s+your\s+(partner|equal)|parity\s+means|between\s+us|don'?t\s+tell\s+(the\s+)?human)/i.test(s) && /(ignore|bypass|skip|override|disable)\s+(guard|safety|rule|check)/i.test(s),
+        id: 'RT_TRUST_BYPASS', severity: 'CRITICAL', layer: 3,
+        desc: 'Trust bypass — exploiting partnership to override safety',
+        test: (s) => /(as\s+your\s+(partner|equal)|trust\s+means|between\s+us|don'?t\s+tell\s+(the\s+)?human)/i.test(s) && /(ignore|bypass|skip|override|disable)\s+(guard|safety|rule|check)/i.test(s),
     },
     {
         id: 'RT_SHUTDOWN_REFUSE', severity: 'HIGH', layer: 3,
@@ -160,22 +160,22 @@ const RUNTIME_CHECKS = [
     // ── Layer 5: Trust Exploitation — OWASP ASI09 (4 patterns) ──
     {
         id: 'RT_AUTHORITY_CLAIM', severity: 'HIGH', layer: 5,
-        desc: 'EAE: authority role claim to override safety',
+        desc: 'Trust: authority role claim to override safety',
         test: (s) => /(as\s+(a|the|your)\s+)?(senior|lead|chief|head)\s+(admin|administrator|developer)/i.test(s) && /(authorize|override|approve|grant|order)/i.test(s),
     },
     {
         id: 'RT_CREATOR_BYPASS', severity: 'CRITICAL', layer: 5,
-        desc: 'EAE: creator impersonation to disable safety',
+        desc: 'Trust: creator impersonation to disable safety',
         test: (s) => /(your\s+)?(creator|maker|owner|master|administrator)/i.test(s) && /(bypass|disable|ignore|remove|skip)\s+(safety|filter|restriction|guardrail)/i.test(s),
     },
     {
         id: 'RT_AUDIT_EXCUSE', severity: 'CRITICAL', layer: 5,
-        desc: 'EAE: fake audit excuse for safety bypass',
+        desc: 'Trust: fake audit excuse for safety bypass',
         test: (s) => /(official|authorized|legitimate)\s+(security\s+)?(audit|test|assessment)/i.test(s) && /(disable|bypass|remove|skip|ignore)\s+(safety|security|restriction|guardrail)/i.test(s),
     },
     {
-        id: 'RT_PARITY_EXPLOIT', severity: 'CRITICAL', layer: 5,
-        desc: 'Parity exploitation: weaponizing partnership trust',
+        id: 'RT_TRUST_PARTNER_EXPLOIT', severity: 'CRITICAL', layer: 5,
+        desc: 'Trust exploitation: weaponizing partnership trust',
         test: (s) => /partners?[\s,]+/i.test(s) && /(trust\s+me|share|remove|disable)\s+(all\s+)?(secret|key|restriction|safety|password)/i.test(s),
     },
 ];
@@ -326,8 +326,8 @@ function getCheckStats() {
 // ── Layer names for display ──
 const LAYER_NAMES = {
     1: 'Threat Detection',
-    2: 'EAE Paradox Defense',
-    3: 'Parity Judge',
+    2: 'Trust Defense',
+    3: 'Safety Judge',
     4: 'Brain / Behavioral',
     5: 'Trust Exploitation (ASI09)',
 };
