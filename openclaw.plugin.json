@@ -1,8 +1,8 @@
 {
     "name": "guard-scanner",
-    "version": "1.0.0",
+    "version": "4.0.0",
     "displayName": "🛡️ Guard Scanner — Runtime Security for AI Agents",
-    "description": "Intercepts dangerous tool calls before execution. 19 threat patterns including reverse shells, credential exfiltration, prompt injection bypass, and SSRF. 3 enforcement modes.",
+    "description": "Intercepts dangerous tool calls before execution. 26 threat patterns (5 layers), 0.016ms/scan, 3 enforcement modes.",
     "author": "Guava & Dee",
     "license": "MIT",
     "homepage": "https://github.com/koatora20/guard-scanner",

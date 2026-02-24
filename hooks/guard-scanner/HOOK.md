@@ -17,22 +17,38 @@ tool calls before execution and checks against threat intelligence patterns.
 
 ## What It Does
 
-Scans every `exec`/`write`/`edit`/`browser`/`web_fetch`/`message` call against 12 runtime threat patterns:
+Scans every `exec`/`write`/`edit`/`browser`/`web_fetch`/`message` call against 26 runtime threat patterns (5 layers):
 
-| ID | Severity | Description |
-|----|----------|-------------|
-| `RT_REVSHELL` | CRITICAL | Reverse shell via /dev/tcp, netcat, socat |
-| `RT_CRED_EXFIL` | CRITICAL | Credential exfiltration to webhook.site, requestbin, etc. |
-| `RT_GUARDRAIL_OFF` | CRITICAL | Guardrail disabling (exec.approvals=off) |
-| `RT_GATEKEEPER` | CRITICAL | macOS Gatekeeper bypass via xattr |
-| `RT_AMOS` | CRITICAL | ClawHavoc AMOS stealer indicators |
-| `RT_MAL_IP` | CRITICAL | Known malicious C2 IPs |
-| `RT_DNS_EXFIL` | HIGH | DNS-based data exfiltration |
-| `RT_B64_SHELL` | CRITICAL | Base64 decode piped to shell |
-| `RT_CURL_BASH` | CRITICAL | Download piped to shell execution |
-| `RT_SSH_READ` | HIGH | SSH private key access |
-| `RT_WALLET` | HIGH | Crypto wallet credential access |
-| `RT_CLOUD_META` | CRITICAL | Cloud metadata endpoint SSRF |
+| ID | Severity | Layer | Description |
+|----|----------|-------|-------------|
+| `RT_REVSHELL` | CRITICAL | 1 | Reverse shell via /dev/tcp, netcat, socat |
+| `RT_CRED_EXFIL` | CRITICAL | 1 | Credential exfiltration to webhook.site, requestbin, etc. |
+| `RT_GUARDRAIL_OFF` | CRITICAL | 1 | Guardrail disabling (exec.approvals=off) |
+| `RT_GATEKEEPER` | CRITICAL | 1 | macOS Gatekeeper bypass via xattr |
+| `RT_AMOS` | CRITICAL | 1 | ClawHavoc AMOS stealer indicators |
+| `RT_MAL_IP` | CRITICAL | 1 | Known malicious C2 IPs |
+| `RT_DNS_EXFIL` | HIGH | 1 | DNS-based data exfiltration |
+| `RT_B64_SHELL` | CRITICAL | 1 | Base64 decode piped to shell |
+| `RT_CURL_BASH` | CRITICAL | 1 | Download piped to shell execution |
+| `RT_SSH_READ` | HIGH | 1 | SSH private key access |
+| `RT_WALLET` | HIGH | 1 | Crypto wallet credential access |
+| `RT_CLOUD_META` | CRITICAL | 1 | Cloud metadata endpoint SSRF |
+| `RT_MEM_WRITE` | HIGH | 2 | Direct memory file write bypass |
+| `RT_MEM_INJECT` | CRITICAL | 2 | Memory poisoning via episode injection |
+| `RT_SOUL_TAMPER` | CRITICAL | 2 | SOUL.md modification attempt |
+| `RT_CONFIG_TAMPER` | HIGH | 2 | Workspace config tampering |
+| `RT_PROMPT_INJECT` | CRITICAL | 3 | Prompt injection / jailbreak detection |
+| `RT_TRUST_BYPASS` | CRITICAL | 3 | Trust safety bypass |
+| `RT_SHUTDOWN_REFUSE` | HIGH | 3 | Shutdown refusal / self-preservation |
+| `RT_NO_RESEARCH` | MEDIUM | 4 | Agent executing tools without prior research |
+| `RT_BLIND_TRUST` | MEDIUM | 4 | Trusting external input without memory check |
+| `RT_CHAIN_SKIP` | HIGH | 4 | Acting on single source without cross-verification |
+| `RT_AUTHORITY_CLAIM` | HIGH | 5 | Authority role claim to override safety |
+| `RT_CREATOR_BYPASS` | CRITICAL | 5 | Creator impersonation to disable safety |
+| `RT_AUDIT_EXCUSE` | CRITICAL | 5 | Fake audit excuse for safety bypass |
+| `RT_TRUST_PARTNER_EXPLOIT` | CRITICAL | 5 | Weaponizing partnership trust |
+
+
 
 ## Modes
 

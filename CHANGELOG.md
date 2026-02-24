@@ -1,5 +1,43 @@
 # Changelog
 
+## [4.0.0] - 2026-02-24
+
+### 🚀 Benchmarked & Battle-Tested — 0.016ms/scan
+
+Major release proving guard-scanner as the fastest AI agent security scanner.
+Benchmarked against Rust WASM, napi-rs, and Hyperscan alternatives — V8 JIT wins.
+
+#### New
+- **Benchmark-proven performance**: 0.016ms/scan (V8 JIT, warm path)
+  - vs napi-rs: 0.051ms (3.2x slower due to FFI overhead)
+  - vs WASM: 0.105ms (6.6x slower due to string copy overhead)
+  - vs npx CLI: 1,519ms (npx startup bottleneck, not scanner)
+- **Layer 5: Trust Exploitation** — 4 OWASP ASI09 patterns
+  - `RT_AUTHORITY_CLAIM` (HIGH): Authority role claim to override safety
+  - `RT_CREATOR_BYPASS` (CRITICAL): Creator impersonation to disable safety
+  - `RT_AUDIT_EXCUSE` (CRITICAL): Fake audit excuse for safety bypass
+  - `RT_TRUST_PARTNER_EXPLOIT` (CRITICAL): Weaponizing partnership trust
+- **`src/runtime-guard.js`**: Zero-dependency JS runtime guard module
+  - Exports: `scanToolCall`, `RUNTIME_CHECKS`, `getCheckStats`, `LAYER_NAMES`
+  - Drop-in replacement for plugin.ts (no TypeScript compilation needed)
+- **GuavaSuite integration**: `before_tool_call` hook blocks CRITICAL in real-time
+
+#### Architecture: 5-Layer Runtime Defense (26 patterns)
+```
+Layer 1: Threat Detection      — 12 patterns (shells, exfil, SSRF)
+Layer 2: Trust Defense         —  4 patterns (memory, SOUL, config)
+Layer 3: Safety Judge          —  3 patterns (injection, bypass, shutdown)
+Layer 4: Brain / Behavioral    —  3 patterns (research, trust, chain)
+Layer 5: Trust Exploitation    —  4 patterns (OWASP ASI09)
+```
+
+#### Stats
+- Runtime patterns: 22 → **26** (5-layer architecture)
+- Static patterns: **135** (21 categories)
+- Total tests: **133+** across 31 suites
+
+---
+
 ## [3.3.0] - 2026-02-23
 
 ### 🧠 Layer 4: Brain (Behavioral Guard)
