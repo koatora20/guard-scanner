@@ -11,7 +11,7 @@
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-0-success?style=flat-square)]()
 [![Tests Passing](https://img.shields.io/badge/tests-133%2F133-brightgreen?style=flat-square)]()
 [![OWASP Agentic](https://img.shields.io/badge/OWASP_Agentic-90%25-green?style=flat-square)]()
-[![Patterns](https://img.shields.io/badge/patterns-210%2B-blueviolet?style=flat-square)]()
+[![Patterns](https://img.shields.io/badge/patterns-144%2B-blueviolet?style=flat-square)]()
 
 [English](README.md) •
 [クイックスタート](#クイックスタート) •
@@ -39,7 +39,7 @@ AIスキルのエコシステムは、npmやPyPIの初期と同じサプライ�
 | 機能 | 説明 |
 |------|------|
 | **22脅威カテゴリ** | Snyk ToxicSkills + OWASP Agentic Top 10 + アイデンティティ乗っ取り + PII + 信頼悪用 |
-| **210+静的パターン** | 正規表現ベースの静的解析（コード、ドキュメント、データファイル対応） |
+| **144+静的パターン** | 正規表現ベースの静的解析（コード、ドキュメント、データファイル対応） |
 | **26ランタイムチェック** | リアルタイム `before_tool_call` フック — 5層防御 |
 | **IoCデータベース** | 既知の悪意あるIP、ドメイン、URL、ユーザー名、タイポスクワット |
 | **データフロー解析** | JS解析: シークレット読取 → ネットワーク通信 → 実行チェーン |
@@ -211,7 +211,7 @@ npx guard-scanner ./skills/ --strict --fail-on-findings --summary-only
 | リスクスコア計算 | 5 | 空・単体・複合アンプ・IoC上書き |
 | 判定閾値テスト | 5 | 全判定 + strictモード |
 | 出力形式テスト | 4 | JSON + SARIF 2.1.0 + HTML構造 |
-| パターンDB | 4 | 210+カウント、必須フィールド、カテゴリカバレッジ |
+| パターンDB | 4 | 144+カウント、必須フィールド、カテゴリカバレッジ |
 | IoCデータベース | 5 | 構造・ClawHavoc C2・webhook.site |
 | シャノンエントロピー | 2 | 低エントロピー・高エントロピー |
 | 無視機能 | 1 | パターン除外 |

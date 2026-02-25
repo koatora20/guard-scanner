@@ -11,7 +11,7 @@ Zero dependencies. One command. Works with OpenClaw out of the box.
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-0-success?style=flat-square)]()
 [![Tests Passing](https://img.shields.io/badge/tests-133%2F133-brightgreen?style=flat-square)]()
 [![OWASP Agentic](https://img.shields.io/badge/OWASP_Agentic-90%25-green?style=flat-square)]()
-[![Patterns](https://img.shields.io/badge/patterns-210%2B-blueviolet?style=flat-square)]()
+[![Patterns](https://img.shields.io/badge/patterns-144%2B-blueviolet?style=flat-square)]()
 
 [Quick Start](#quick-start) •
 [Threat Categories](#threat-categories) •
@@ -40,7 +40,7 @@ The AI agent skill ecosystem has the same supply-chain security problem that npm
 | Feature | Description |
 |---|---|
 | **22 Threat Categories** | Snyk ToxicSkills + OWASP Agentic Top 10 + Identity Hijack + PII + Trust Exploitation |
-| **210+ Static Patterns** | Regex-based static analysis covering code, docs, and data files |
+| **144+ Static Patterns** | Regex-based static analysis covering code, docs, and data files |
 | **26 Runtime Checks** | Real-time `before_tool_call` hook — 5-layer defense |
 | **IoC Database** | Known malicious IPs, domains, URLs, usernames, and typosquat names |
 | **Data Flow Analysis** | Lightweight JS analysis: secret reads → network calls → exec chains |
@@ -410,7 +410,7 @@ Options:
 guard-scanner/
 ├── src/
 │   ├── scanner.js      # GuardScanner class — core scan engine
-│   ├── patterns.js     # 210+ threat detection patterns (Cat 1–22)
+│   ├── patterns.js     # 144+ threat detection patterns (Cat 1–22)
 │   ├── ioc-db.js       # Indicators of Compromise database
 │   └── cli.js          # CLI entry point and argument parser
 ├── hooks/
@@ -555,7 +555,7 @@ console.log(scanner.toHTML());    // HTML string
 | Risk Score Calculation | 5 | Empty, single, combo amplifiers, IoC override |
 | Verdict Determination | 5 | All verdicts + strict mode |
 | Output Formats | 4 | JSON + SARIF 2.1.0 + HTML structure |
-| Pattern Database | 4 | 210+ count, required fields, category coverage, regex safety |
+| Pattern Database | 4 | 144+ count, required fields, category coverage, regex safety |
 | IoC Database | 5 | Structure, ClawHavoc C2, webhook.site |
 | Shannon Entropy | 2 | Low entropy, high entropy |
 | Ignore Functionality | 1 | Pattern exclusion |
@@ -574,7 +574,7 @@ OpenClaw's official [`THREAT-MODEL-ATLAS.md`](https://github.com/openclaw/opencl
 
 | Gap (from ATLAS) | OpenClaw Status | guard-scanner |
 |---|---|---|
-| _"Simple regex easily bypassed"_ | ⚠️ Basic `FLAG_RULES` | ✅ 210+ patterns, 22 categories |
+| _"Simple regex easily bypassed"_ | ⚠️ Basic `FLAG_RULES` | ✅ 144+ patterns, 22 categories |
 | _"Does not analyze actual skill code content"_ | ❌ Not implemented | ✅ Full code + doc + data flow analysis |
 | No SOUL.md / IDENTITY.md integrity verification | ❌ Not implemented | ✅ Identity hijacking detection (Cat 17) |
 | `skill:before_install` hook | ❌ Not implemented | 🔜 Proposed |
@@ -634,7 +634,7 @@ guard-scanner's coverage of the [OWASP Top 10 for LLM Applications (2025)](https
 |-----------|------|-----|
 | 🧠 **LLM-assisted detection** | Pass suspicious cases to a lightweight LLM for intent analysis | Regex can be evaded; LLMs understand intent |
 | 🔒 **OS-level enforcement** | File watcher (auto-rollback SOUL.md/.env), process monitor, daemon mode | Works regardless of which AI tool you use |
-| 🔌 **Multi-tool support** | Adapters for Claude Code, Cursor, Antigravity, Windsurf, MCP servers | Same 210+ patterns, different skill discovery per tool |
+| 🔌 **Multi-tool support** | Adapters for Claude Code, Cursor, Antigravity, Windsurf, MCP servers | Same 144+ patterns, different skill discovery per tool |
 
 ---
 
