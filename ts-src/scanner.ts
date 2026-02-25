@@ -23,7 +23,7 @@ import { PATTERNS } from './patterns.js';
 
 // ── Constants ───────────────────────────────────────────────────────────────
 
-export const VERSION = '3.2.0';
+export const VERSION = '4.0.1';
 
 const THRESHOLDS_MAP: Record<string, Thresholds> = {
     normal: { suspicious: 30, malicious: 80 },
@@ -1007,5 +1007,74 @@ export class GuardScanner {
                 invocations: [{ executionSuccessful: true, endTimeUtc: new Date().toISOString() }],
             }],
         };
+    }
+    toHTML(): string {
+        const report = this.toJSON();
+        const ts = new Date().toISOString().replace('T', ' ').slice(0, 19) + ' UTC';
+        const severityColor: Record<string, string> = {
+            CRITICAL: '#ff4444', HIGH: '#ff8800', MEDIUM: '#ffcc00', LOW: '#aaaaaa',
+        };
+        const verdictColor: Record<string, string> = {
+            MALICIOUS: '#ff4444', SUSPICIOUS: '#ffcc00', 'LOW RISK': '#44cc88', CLEAN: '#44cc88',
+        };
+
+        const rows = report.findings.map(sr => {
+            const color = verdictColor[sr.verdict] || '#aaaaaa';
+            const findingRows = sr.findings.map(f => {
+                const c = severityColor[f.severity] || '#aaaaaa';
+                const loc = f.file ? `${f.file}${f.line ? ':' + f.line : ''}` : '—';
+                const sample = f.sample ? `<code>${f.sample.replace(/</g, '&lt;')}</code>` : '—';
+                return `<tr><td style="color:${c};font-weight:bold">${f.severity}</td><td>${f.id}</td><td>${f.desc}</td><td>${loc}</td><td>${sample}</td></tr>`;
+            }).join('');
+            const badge = `<span style="background:${color};color:#000;padding:2px 8px;border-radius:4px;font-weight:bold;font-size:0.85em">${sr.verdict}</span>`;
+            return `<tr><td colspan="5" style="background:#1a1a2e;padding:8px 12px;font-weight:bold">
+                🛡️ ${sr.skill} — ${badge} (risk: ${sr.risk})</td></tr>${findingRows}`;
+        }).join('');
+
+        const total = report.stats.scanned;
+        const safe = report.stats.clean + report.stats.low;
+        const safeRate = total ? Math.round(safe / total * 100) : 0;
+
+        return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>guard-scanner v${VERSION} Report</title>
+<style>
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0d0d1a; color: #e0e0e0; margin: 0; padding: 24px; }
+  h1 { color: #7ec8e3; margin: 0 0 4px; }
+  .meta { color: #888; font-size: 0.85em; margin-bottom: 24px; }
+  .stats { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+  .stat { background: #1a1a2e; border: 1px solid #333; border-radius: 8px; padding: 12px 20px; text-align: center; min-width: 80px; }
+  .stat-label { font-size: 0.75em; color: #888; margin-bottom: 4px; }
+  .stat-val { font-size: 1.8em; font-weight: bold; }
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  th { background: #1a1a2e; padding: 8px 12px; text-align: left; font-size: 0.85em; color: #888; border-bottom: 1px solid #333; }
+  td { padding: 6px 12px; border-bottom: 1px solid #222; font-size: 0.85em; vertical-align: top; }
+  tr:hover td { background: #13132a; }
+  code { background: #1e1e3a; padding: 1px 4px; border-radius: 3px; font-family: monospace; font-size: 0.9em; word-break: break-all; }
+  .clean { color: #44cc88; font-weight: bold; }
+  .footer { margin-top: 32px; color: #555; font-size: 0.8em; }
+</style>
+</head>
+<body>
+<h1>🛡️ guard-scanner v${VERSION}</h1>
+<div class="meta">Generated: ${ts} | Mode: ${report.mode} | Thresholds: suspicious≥${report.thresholds.suspicious}, malicious≥${report.thresholds.malicious}</div>
+<div class="stats">
+  <div class="stat"><div class="stat-label">Scanned</div><div class="stat-val">${report.stats.scanned}</div></div>
+  <div class="stat"><div class="stat-label">Clean</div><div class="stat-val" style="color:#44cc88">${report.stats.clean}</div></div>
+  <div class="stat"><div class="stat-label">Low Risk</div><div class="stat-val" style="color:#44cc88">${report.stats.low}</div></div>
+  <div class="stat"><div class="stat-label">Suspicious</div><div class="stat-val" style="color:#ffcc00">${report.stats.suspicious}</div></div>
+  <div class="stat"><div class="stat-label">Malicious</div><div class="stat-val" style="color:#ff4444">${report.stats.malicious}</div></div>
+  <div class="stat"><div class="stat-label">Safety Rate</div><div class="stat-val" style="color:${safeRate >= 80 ? '#44cc88' : '#ff8800'}">${safeRate}%</div></div>
+</div>
+${report.findings.length === 0 ? '<p class="clean">✅ All clear — no threats detected.</p>' : `
+<table>
+<thead><tr><th>Severity</th><th>Pattern ID</th><th>Description</th><th>Location</th><th>Sample</th></tr></thead>
+<tbody>${rows}</tbody>
+</table>`}
+<div class="footer">guard-scanner v${VERSION} | IoC DB: ${report.iocVersion} | Signatures: ${report.signaturesVersion} | <a href="https://github.com/koatora20/guard-scanner" style="color:#7ec8e3">GitHub</a></div>
+</body></html>`;
     }
 }

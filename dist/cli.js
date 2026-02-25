@@ -48,36 +48,48 @@ const patterns_js_1 = require("./patterns.js");
 const args = process.argv.slice(2);
 if (args.includes('--help') || args.includes('-h')) {
     console.log(`
-🛡️  guard-scanner v${scanner_js_1.VERSION} — Agent Skill Security Scanner (TypeScript)
+🛡️  guard-scanner v${scanner_js_1.VERSION} — Agent Skill Security Scanner
 
 Usage: guard-scanner [scan-dir] [options]
+       guard-scanner install-check <skill-path> [--strict] [--json] [--verbose]
 
 Options:
   --verbose, -v       Detailed findings with categories and samples
-  --json              Write JSON report to file
-  --sarif             Write SARIF report to file (GitHub Code Scanning / CI/CD)
-  --format json|sarif Print JSON or SARIF to stdout (pipeable, v3.2.0)
+  --json              Write JSON report to guard-scanner-report.json
+  --sarif             Write SARIF 2.1.0 report to guard-scanner.sarif
+  --html              Write HTML dashboard to guard-scanner-report.html
+  --format json|sarif Print JSON or SARIF to stdout (pipeable)
   --quiet             Suppress all text output (use with --format for clean pipes)
   --self-exclude      Skip scanning the guard-scanner skill itself
-  --strict            Lower detection thresholds (more sensitive)
+  --strict            Lower detection thresholds (suspicious: 20, malicious: 60)
   --summary-only      Only print the summary table
   --check-deps        Scan package.json for dependency chain risks
   --rules <file>      Load custom rules from JSON file
-  --plugin <file>     Load plugin module
+  --plugin <file>     Load plugin module (repeatable)
   --fail-on-findings  Exit code 1 if any findings (CI/CD)
   --help, -h          Show this help
 
-New in v3.0.0:
-  • TypeScript rewrite with full type safety
-  • Compaction Layer Persistence detection (Feb 20 2026 attack vector)
-  • Threat signature hash matching (hbg-scan compatible)
-  • 7 built-in threat signatures (SIG-001 to SIG-007)
-  • Enhanced risk scoring for compaction-persistence category
+Exit codes:
+  0   No malicious skills
+  1   Malicious skill(s) detected, or --fail-on-findings with any findings
+  2   Invalid scan directory
+
+New in v4.0.0:
+  • Runtime Guard module (src/runtime-guard.js) + OpenClaw plugin (hooks/guard-scanner/plugin.ts)
+  • OWASP Agentic Security Initiative ASI01-10 verified (90% coverage)
+  • 5-layer defense: Threat / Trust / Safety Judge / Brain / Trust Exploitation
+  • 26 runtime checks (before_tool_call hook)
+
+New in v3.2.0:
+  • --format json|sarif (stdout, CI/CD pipeable)
+  • --quiet (suppress terminal output)
 
 Examples:
   guard-scanner ./skills/ --verbose --self-exclude
-  guard-scanner ./skills/ --strict --json --sarif --check-deps
+  guard-scanner ./skills/ --strict --json --sarif --html --check-deps
+  guard-scanner ./skills/ --format json --quiet | jq '.stats'
   guard-scanner ./skills/ --fail-on-findings
+  guard-scanner install-check ./my-skill/ --strict --verbose
 `);
     process.exit(0);
 }
@@ -150,6 +162,7 @@ const summaryOnly = args.includes('--summary-only');
 const checkDeps = args.includes('--check-deps');
 const failOnFindings = args.includes('--fail-on-findings');
 const quietMode = args.includes('--quiet');
+const htmlOutput = args.includes('--html');
 // --format json|sarif → stdout output (v3.2.0)
 const formatIdx = args.indexOf('--format');
 const formatValue = formatIdx >= 0 ? args[formatIdx + 1] : undefined;
@@ -183,6 +196,13 @@ if (jsonOutput) {
     fs.writeFileSync(outPath, JSON.stringify(report, null, 2));
     if (!quietMode && !formatValue)
         console.log(`\n📄 JSON report: ${outPath}`);
+}
+if (htmlOutput) {
+    const html = scanner.toHTML();
+    const outPath = path.join(scanDir, 'guard-scanner-report.html');
+    fs.writeFileSync(outPath, html);
+    if (!quietMode && !formatValue)
+        console.log(`\n📄 HTML report: ${outPath}`);
 }
 if (sarifOutput) {
     const outPath = path.join(scanDir, 'guard-scanner.sarif');
