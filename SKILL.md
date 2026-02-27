@@ -1,29 +1,6 @@
 ---
 name: guard-scanner
-description: >
-  Security scanner for AI agent skills. Use BEFORE installing or running any new skill
-  from ClawHub or external sources. Detects prompt injection, credential theft,
-  exfiltration, identity hijacking, sandbox violations, code complexity, config impact,
-  and 17 more threat categories.
-  Includes a Runtime Guard hook (26 patterns, 5 layers, 0.016ms/scan) that blocks dangerous tool calls in real-time.
-homepage: https://github.com/koatora20/guard-scanner
-metadata:
-  openclaw:
-    emoji: "🛡️"
-    category: security
-    requires:
-      bins:
-        - node
-      env: []
-    files: ["src/*", "hooks/*"]
-    primaryEnv: null
-    tags:
-      - security
-      - scanner
-      - threat-detection
-      - supply-chain
-      - prompt-injection
-      - sarif
+description: "Security scanner for AI agent skills. 135 static patterns + 26 runtime checks across 22 threat categories. Detects prompt injection, credential theft, exfiltration, identity hijacking, and more. Zero dependencies."
 ---
 
 # guard-scanner 🛡️
