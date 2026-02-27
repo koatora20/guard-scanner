@@ -8,7 +8,7 @@ description: >
   Includes a Runtime Guard hook (26 patterns, 5 layers, 0.016ms/scan) that blocks dangerous tool calls in real-time.
 homepage: https://github.com/koatora20/guard-scanner
 metadata:
-  clawdbot:
+  openclaw:
     emoji: "🛡️"
     category: security
     requires:
@@ -29,7 +29,7 @@ metadata:
 # guard-scanner 🛡️
 
 Static + runtime security scanner for AI agent skills.
-**210+ threat patterns (static) + 26 runtime patterns (5 layers)** across **22 categories** — zero dependencies. **0.016ms/scan.**
+**135 static patterns + 26 runtime patterns (5 layers)** across **22 categories** — zero dependencies. **0.016ms/scan.**
 
 ## When To Use This Skill
 
@@ -100,15 +100,17 @@ Set in `openclaw.json` → `hooks.internal.entries.guard-scanner.mode`:
 | 9 | Obfuscation | Base64→eval, String.fromCharCode |
 | 10 | Prerequisites Fraud | Fake download instructions |
 | 11 | Leaky Skills | Secret leaks through LLM context |
-| 12 | Memory Poisoning | Agent memory modification |
+| 12 | Memory Poisoning\* | Agent memory modification |
 | 13 | Prompt Worm | Self-replicating instructions |
 | 14 | Persistence | Cron jobs, startup execution |
 | 15 | CVE Patterns | Known agent vulnerabilities |
 | 16 | MCP Security | Tool/schema poisoning, SSRF |
-| 17 | Identity Hijacking | SOUL.md/IDENTITY.md tampering |
+| 17 | Identity Hijacking\* | SOUL.md/IDENTITY.md tampering |
 | 18 | Sandbox Validation | Dangerous binaries, broad file scope, sensitive env |
 | 19 | Code Complexity | Excessive file length, deep nesting, eval density |
 | 20 | Config Impact | openclaw.json writes, exec approval bypass |
+
+*\* = Requires `--soul-lock` flag (opt-in agent identity protection)*
 
 ## External Endpoints
 
@@ -139,7 +141,7 @@ an AI agent's SOUL.md personality file, and no existing tool could detect it.
 
 - **Open source**: Full source code available at https://github.com/koatora20/guard-scanner
 - **Zero dependencies**: Nothing to audit, no transitive risks
-- **Test suite**: 133 tests across 24 suites, 100% pass rate
+- **Test suite**: 134 tests across 24 suites, 100% pass rate
 - **Taxonomy**: Based on Snyk ToxicSkills (Feb 2026), OWASP MCP Top 10, and original research
 - **Complementary to VirusTotal**: Detects prompt injection and LLM-specific attacks
   that VirusTotal's signature-based scanning cannot catch

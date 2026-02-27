@@ -51,6 +51,7 @@ Options:
   --strict            Lower detection thresholds (more sensitive)
   --summary-only      Only print the summary table
   --check-deps        Scan package.json for dependency chain risks
+  --soul-lock         Enable Soul Lock patterns (agent identity protection)
   --rules <file>      Load custom rules from JSON file
   --plugin <file>     Load plugin module (JS file exporting { name, patterns })
   --fail-on-findings  Exit code 1 if any findings (CI/CD)
@@ -96,6 +97,7 @@ const selfExclude = args.includes('--self-exclude');
 const strict = args.includes('--strict');
 const summaryOnly = args.includes('--summary-only');
 const checkDeps = args.includes('--check-deps');
+const soulLock = args.includes('--soul-lock');
 const failOnFindings = args.includes('--fail-on-findings');
 const quietMode = args.includes('--quiet');
 
@@ -126,7 +128,7 @@ const scanDir = args.find(a =>
 ) || process.cwd();
 
 const scanner = new GuardScanner({
-  verbose, selfExclude, strict, summaryOnly, checkDeps, rulesFile, plugins,
+  verbose, selfExclude, strict, summaryOnly, checkDeps, soulLock, rulesFile, plugins,
   quiet: quietMode || !!formatValue,
 });
 

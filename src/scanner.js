@@ -56,6 +56,7 @@ class GuardScanner {
         this.summaryOnly = options.summaryOnly || false;
         this.quiet = options.quiet || false;
         this.checkDeps = options.checkDeps || false;
+        this.soulLock = options.soulLock || false;
         this.scannerDir = path.resolve(__dirname);
         this.thresholds = this.strict ? THRESHOLDS.strict : THRESHOLDS.normal;
         this.findings = [];
@@ -361,6 +362,8 @@ class GuardScanner {
 
     checkPatterns(content, relFile, fileType, findings, patterns = PATTERNS) {
         for (const pattern of patterns) {
+            // Soul Lock: skip identity-hijack/memory-poisoning patterns unless --soul-lock is enabled
+            if (pattern.soulLock && !this.soulLock) continue;
             if (pattern.codeOnly && fileType !== 'code') continue;
             if (pattern.docOnly && fileType !== 'doc' && fileType !== 'skill-doc') continue;
             if (!pattern.all && !pattern.codeOnly && !pattern.docOnly) continue;
