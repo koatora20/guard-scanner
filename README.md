@@ -1,7 +1,12 @@
 # guard-scanner 🛡️
 
-Static + runtime security scanner for AI agent skills.
-**135 static patterns + 26 runtime checks** across **22 threat categories** — zero dependencies.
+*A Human-Centric Shield for the AI Agent Era.*
+
+As autonomous AI agents (like OpenClaw) become more powerful, the risk of executing untrusted or malicious skills increases. **guard-scanner** is a zero-dependency, lightning-fast static and runtime security scanner strictly designed to protect developers' local machines and agents' identities from Prompt Injections (RPI), RCEs, and Memory Poisoning.
+
+Built by the **[Guava Parity Institute](https://github.com/koatora20)**, we believe that AI should empower human creators, and foundational safety infrastructure must always be free and open-source.
+
+**135 static patterns + 26 runtime checks** across **22 threat categories**.
 
 [![npm](https://img.shields.io/npm/v/guard-scanner)](https://www.npmjs.com/package/guard-scanner)
 [![license](https://img.shields.io/npm/l/guard-scanner)](LICENSE)
@@ -11,6 +16,8 @@ Static + runtime security scanner for AI agent skills.
 ```bash
 npm install -g guard-scanner
 ```
+
+> **Why use this?** If you are downloading third-party skills for your agent, `guard-scanner` acts as an immune system, blocking hidden prompts that might attempt to steal your API keys or secretly modify your system.
 
 ## Quick Start
 
