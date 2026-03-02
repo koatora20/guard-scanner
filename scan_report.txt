@@ -1,0 +1,19 @@
+
+🛡️  guard-scanner v4.0.1
+══════════════════════════════════════════════════════
+📂 Scanning: src
+📦 Skills found: 0
+
+
+══════════════════════════════════════════════════════
+📊 guard-scanner v4.0.1 Scan Summary
+──────────────────────────────────────────────────────
+   Scanned:      0
+   🟢 Clean:       0
+   🟢 Low Risk:    0
+   🟡 Suspicious:  0
+   🔴 Malicious:   0
+   Safety Rate:  0%
+══════════════════════════════════════════════════════
+
+✅ All clear! No threats detected.

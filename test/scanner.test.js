@@ -263,7 +263,7 @@ describe('Pattern Database', () => {
         }
     });
 
-    it('should cover all 22 categories', () => {
+    it('should cover all 23 categories', () => {
         const cats = new Set(PATTERNS.map(p => p.cat));
         const expected = [
             'prompt-injection', 'malicious-code', 'suspicious-download',
@@ -272,9 +272,9 @@ describe('Pattern Database', () => {
             'leaky-skills', 'memory-poisoning', 'prompt-worm',
             'persistence', 'cve-patterns', 'mcp-security', 'trust-boundary',
             'advanced-exfil', 'safeguard-bypass', 'identity-hijack',
-            'config-impact', 'pii-exposure', 'trust-exploitation'
+            'config-impact', 'pii-exposure', 'trust-exploitation', 'vdb-injection'
         ];
-        assert.equal(cats.size, 22, `Expected 22 categories, got ${cats.size}: ${[...cats].join(', ')}`);
+        assert.equal(cats.size, 23, `Expected 23 categories, got ${cats.size}: ${[...cats].join(', ')}`);
         for (const e of expected) {
             assert.ok(cats.has(e), `Missing category: ${e}`);
         }

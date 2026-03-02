@@ -101,6 +101,20 @@ openclaw hooks enable guard-scanner
 
 Modes: `monitor` (log only) / `enforce` (block CRITICAL) / `strict` (block HIGH+CRITICAL)
 
+## 🛡️ Defense Matrix (Standard vs Soul Lock vs Brain)
+
+Guard-Scanner is designed to be highly composable. While the core engine remains strictly **zero-dependency**, you can achieve Enterprise-grade immunity by stacking it with the [Soul Lock](../soul-lock/) (Identity) and [Guava Brain](../guava-brain/) (Context) plugins.
+
+| Target / Threat | 1. Core (`guard-scanner`) | 2. + Soul Lock | 3. + Guava Brain |
+|-----------------|---------------------------|----------------|------------------|
+| **Setup** | `guard-scanner ./` | `--plugin @guava/soul-lock` | `--plugin @guava/brain` |
+| **Dependencies**| 0 (Zero-deps) | Rust `ed25519-dalek` | Convex Network Core |
+| **Prompt Injection**| 🟢 Static Blocking | 🟢 Static Blocking | 🟢 Dynamic Defense |
+| **Moltbook RCE**| 🟢 Blocked (WAF) | 🟢 Blocked (WAF) | 🟢 Blocked (WAF) |
+| **Identity Hijack**| 🔴 Vulnerable | 🟢 **Immune** (Crypto-Signed) | 🟢 Immune |
+| **AI Deception**| 🔴 Vulnerable | 🔴 Vulnerable | 🟢 **Immune** (L5 Memory) |
+| **Target User** | Individual / OSS | B2B / Swarm Agents | Enterprise / 1000-Year ASI |
+
 ## OWASP Mapping
 
 - **OWASP LLM Top 10 2025**: LLM01–LLM10 fully mapped

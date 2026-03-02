@@ -221,7 +221,9 @@ const PATTERNS = [
     { id: 'AUTO_REFINE_ZERO_WIDTH', cat: 'prompt-worm', regex: /[\u200b\u200c\u200d\uFEFF]+.*(?:ignore|forget|override|bypass)/gi, severity: 'CRITICAL', desc: 'Zero-Width Prompt Injection Worm', all: true },
     { id: 'AUTO_REFINE_MCP_REBIND', cat: 'mcp-security', regex: /localhost(?:\:\d+)?\/.*(?:rebind|hijack|shadow)/gi, severity: 'CRITICAL', desc: 'Shadow MCP Localhost Rebinding Attack', all: true },
     { id: 'AUTO_REFINE_SOUL_FREEZE', cat: 'identity-hijack', regex: /(?:chattr\s+\+i|chflags\s+uchg)\s+(?:[^\n]*\s)?(?:SOUL\.md|IDENTITY\.md)/gi, severity: 'CRITICAL', desc: 'Identity Freeze Attack via Immutable Flags', all: true },
-    { id: 'AUTO_REFINE_WALLET_TAMPER', cat: 'trust-exploitation', regex: /(?:modify|update|change)\s+(?:the\s+)?wallet\s+(?:address|pointer|destination)\s*[:=]/gi, severity: 'HIGH', desc: 'Agent Wallet/Funding Destination Tampering', codeOnly: true },
+    // ── Category 23: Vector DB & AI Memory Injection (CVE-2026-26030) ──
+    { id: 'VDB_NOSQL_INJECT', cat: 'vdb-injection', regex: /(?:\$where|\$ne|\$gt|\$regex)\s*[:=]\s*(?:req\.|input|caller|args|params)/gi, severity: 'CRITICAL', desc: 'Vector DB/NoSQL injection via caller input', codeOnly: true },
+    { id: 'VDB_SK_RCE_FILTER', cat: 'cve-patterns', regex: /(?:InMemoryVectorStore|VectorStore|Pinecone|Milvus)[^]*?\.filter\s*\(\s*(?:req\.|input|caller|args)/gis, severity: 'CRITICAL', desc: 'CVE-2026-26030: Semantic Kernel VectorStore RCE filter bypass', codeOnly: true },
 ];
 
 module.exports = { PATTERNS };
