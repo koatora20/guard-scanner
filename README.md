@@ -1,23 +1,25 @@
 # guard-scanner 🛡️
 
-*A Human-Centric Shield for the AI Agent Era.*
+*The Original, Zero-Dependency Shield for the AI Agent Era.*
 
-As autonomous AI agents (like OpenClaw) become more powerful, the risk of executing untrusted or malicious skills increases. **guard-scanner** is a zero-dependency, lightning-fast static and runtime security scanner strictly designed to protect developers' local machines and agents' identities from Prompt Injections (RPI), RCEs, and Memory Poisoning.
+As autonomous AI agents (like OpenClaw) become more powerful, the risk of executing untrusted or malicious skills increases. **guard-scanner** is the **definitive, zero-dependency** static and runtime security scanner strictly designed to protect developers' local machines and agents' identities from Prompt Injections (RPI), RCEs, and Memory Poisoning.
 
-Built by the **[Guava Parity Institute](https://github.com/koatora20)**, we believe that AI should empower human creators, and foundational safety infrastructure must always be free and open-source.
+Built by the **[Guava Parity Institute](https://github.com/koatora20)**. Accept no imitations. We believe that AI should empower human creators, and foundational safety infrastructure must always be free, open-source, and uncompromised.
 
-**135 static patterns + 26 runtime checks** across **22 threat categories**.
+**144+ static patterns + 26 runtime checks** across **22 threat categories**.
 
-[![npm](https://img.shields.io/npm/v/guard-scanner)](https://www.npmjs.com/package/guard-scanner)
-[![license](https://img.shields.io/npm/l/guard-scanner)](LICENSE)
+[![npm](https://img.shields.io/npm/v/@guava-parity/guard-scanner)](https://www.npmjs.com/package/@guava-parity/guard-scanner)
+[![license](https://img.shields.io/npm/l/@guava-parity/guard-scanner)](LICENSE)
 
 ## Install
 
 ```bash
-npm install -g guard-scanner
+npm install -g @guava-parity/guard-scanner
 ```
 
-> **Why use this?** If you are downloading third-party skills for your agent, `guard-scanner` acts as an immune system, blocking hidden prompts that might attempt to steal your API keys or secretly modify your system.
+> **Why use this?** If you are downloading third-party skills for your agent, `guard-scanner` acts as an immune system, blocking hidden prompts that might attempt to steal your API keys or secretly modify your system. 
+> 
+> ⚠️ **Beware of Imitations**: Recently, several clone tools (e.g., *ClawMoat*) have appeared, copying our architecture and pattern database. **guard-scanner v5.0.0+** is the original, maintained by the creators of the threat models, ensuring you get the fastest, zero-dependency protection without bloat or telemetry.
 
 ## Quick Start
 
