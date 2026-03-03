@@ -1,8 +1,19 @@
 # .gitignore
 node_modules/
+dist/
+*.tsbuildinfo
 *.log
 guard-scanner-report.json
 guard-scanner-report.html
 guard-scanner.sarif
+scan_report.txt
 .DS_Store
 .npmrc
+
+# Internal files (not for OSS)
+_meta.json
+bench.js
+STATUS.md
+ROADMAP.md
+ROADMAP-RESEARCH.md
+.clawhubignore
