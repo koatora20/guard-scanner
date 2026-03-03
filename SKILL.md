@@ -1,6 +1,11 @@
 ---
 name: guard-scanner
 description: "Security scanner for AI agent skills. 135 static patterns + 26 runtime checks across 22 threat categories. Detects prompt injection, credential theft, exfiltration, identity hijacking, and more. Zero dependencies."
+metadata:
+  clawdbot:
+    homepage: "https://github.com/koatora20/guard-scanner"
+requires:
+  env: {}
 ---
 
 # guard-scanner 🛡️
@@ -86,8 +91,6 @@ Set in `openclaw.json` → `hooks.internal.entries.guard-scanner.mode`:
 | 18 | Sandbox Validation | Dangerous binaries, broad file scope, sensitive env |
 | 19 | Code Complexity | Excessive file length, deep nesting, eval density |
 | 20 | Config Impact | openclaw.json writes, exec approval bypass |
-
-*\* = Requires `--soul-lock` flag (opt-in agent identity protection)*
 
 ## External Endpoints
 

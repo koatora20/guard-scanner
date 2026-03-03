@@ -51,10 +51,5 @@
         "runtimeGuard": true,
         "sarif": true,
         "cicd": true
-    },
-    "ecosystem": {
-        "name": "GuavaSuite",
-        "description": "guard-scanner is the security layer of GuavaSuite — 7-layer memory system + Knowledge Graph + Parity attestation for AI agents",
-        "url": "https://www.npmjs.com/package/guavasuite"
     }
 }

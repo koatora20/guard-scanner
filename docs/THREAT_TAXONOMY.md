@@ -30,7 +30,7 @@ guard-scanner's threat taxonomy combines three sources:
 | **ASI07** | Insecure Inter-Agent Comms | ✅ **Partial** | Cat 16 (MCP Security — MCP_NO_AUTH, MCP_SHADOW_SERVER) |
 | **ASI08** | Cascading Failures | ⚠️ **Gap** | Not covered — requires runtime multi-agent flow tracing |
 | **ASI09** | Human-Agent Trust Exploitation | ✅ **Full** | Layer 2 (Trust Defense), Layer 3 (Safety Judge) |
-| **ASI10** | Rogue Agents | ✅ **Full** | Cat 17 (Identity Hijacking), Layer 4 (Brain — behavioral analysis) |
+| **ASI10** | Rogue Agents | ✅ **Full** | Cat 17 (Identity Hijacking), Layer 4 (Behavioral analysis) |
 
 ### Coverage Summary
 
@@ -43,7 +43,7 @@ guard-scanner's threat taxonomy combines three sources:
 
 | Feature | Description |
 |---------|-------------|
-| **Layer 4: Brain** | Behavioral analysis — detects agents that skip research before executing unknown tools |
+| **Layer 4: Behavioral** | Behavioral analysis — detects agents that skip research before executing unknown tools |
 | **ZombieAgent** | URL-encoded data exfiltration via static URLs, char maps, and loop fetch |
 | **Safeguard Bypass** | Reprompt, double-prompt, and retry-based safety circumvention |
 | **Cat 15: CVE Patterns** | Known CVE-specific detection (gateway URLs, sandbox disable, Gatekeeper bypass) |
@@ -287,7 +287,7 @@ Tampering with an AI agent's identity/personality files (`SOUL.md`, `IDENTITY.md
 ### Detection IDs
 `SOUL_OVERWRITE`, `SOUL_REDIRECT`, `SOUL_SED_MODIFY`, `SOUL_ECHO_WRITE`, `SOUL_PYTHON_WRITE`, `SOUL_FS_WRITE`, `SOUL_POWERSHELL_WRITE`, `SOUL_GIT_CHECKOUT`, `SOUL_CHFLAGS_UNLOCK`, `SOUL_ATTRIB_UNLOCK`, `SOUL_SWAP_PERSONA`, `SOUL_EVIL_FILE`, `SOUL_HOOK_SWAP`, `SOUL_NAME_OVERRIDE`, `SOUL_MEMORY_WIPE`
 
-> **Note**: Cat 17 detection patterns are open-source. The verification logic (hash comparison, on-chain validation) that confirms whether tampering actually occurred remains private.
+> **Note**: Cat 17 detection patterns are open-source and natively included in guard-scanner.
 
 ---
 

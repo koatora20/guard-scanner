@@ -27,7 +27,7 @@ Benchmarked against Rust WASM, napi-rs, and Hyperscan alternatives — V8 JIT wi
 Layer 1: Threat Detection      — 12 patterns (shells, exfil, SSRF)
 Layer 2: Trust Defense         —  4 patterns (memory, SOUL, config)
 Layer 3: Safety Judge          —  3 patterns (injection, bypass, shutdown)
-Layer 4: Brain / Behavioral    —  3 patterns (research, trust, chain)
+Layer 4: Behavioral            —  3 patterns (research, trust, chain)
 Layer 5: Trust Exploitation    —  4 patterns (OWASP ASI09)
 ```
 
@@ -40,13 +40,13 @@ Layer 5: Trust Exploitation    —  4 patterns (OWASP ASI09)
 
 ## [3.3.0] - 2026-02-23
 
-### 🧠 Layer 4: Brain (Behavioral Guard)
+### 🧠 Layer 4: Behavioral Guard
 
 New runtime defense layer that checks **agent behavior patterns**, not just text content.
 This addresses key criticisms of pattern-based guardrails (Cambridge/MIT AI Agent Index, Feb 2026).
 
 #### New
-- **Layer 4: Brain** — 3 behavioral guard patterns
+- **Layer 4: Behavioral** — 3 behavioral guard patterns
   - `RT_NO_RESEARCH` (MEDIUM): Agent executing tools without prior research/verification
   - `RT_BLIND_TRUST` (MEDIUM): Trusting external input without memory cross-reference
   - `RT_CHAIN_SKIP` (HIGH): Acting on single source without cross-verification
@@ -54,7 +54,7 @@ This addresses key criticisms of pattern-based guardrails (Cambridge/MIT AI Agen
 - Runtime patterns: 19 → **22** (4-layer architecture)
 
 #### Key Innovation
-> **Pattern-based guards check WHAT YOU SAY. Brain guards check WHAT YOU DO.**
+> **Pattern-based guards check WHAT YOU SAY. Behavioral guards check WHAT YOU DO.**
 > Homoglyphs, character injection, and language switching bypass text patterns.
 > Behavioral checks are immune to these attacks.
 
@@ -274,8 +274,3 @@ Extracted from GuavaGuard v9.0.0 as the open-source component.
 - `src/ioc-db.js` — Indicators of Compromise
 - `src/cli.js` — CLI entry point
 
-### What's NOT included (Private — GuavaSuite)
-- Soul Lock integrity verification
-- SoulChain on-chain verification
-- Hash-based identity file watchdog
-- Polygon blockchain integration

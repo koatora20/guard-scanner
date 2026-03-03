@@ -22,12 +22,10 @@ AIエージェントのスキル脅威を検出するセキュリティスキャ
 - 21脅威カテゴリ / 129パターン
 - **v2.1 PII Exposure検出**: ハードコードPII / PII出力・ログ / Shadow AI / PII収集指示（OWASP LLM02/06対応）
 - **Plugin Hook Runtime Guard**（`plugin.ts` — `block`/`blockReason` API で実際にブロック可能）
-- 2 enforcement modes（無料）: `monitor`（log only） / `enforce`（CRITICAL block）
-- `strict`モード（HIGH+CRITICAL block）は **GuavaSuite専用**（$GUAVAトークンゲート）
+- 3 enforcement modes: `monitor`（log only） / `enforce`（CRITICAL block） / `strict`（HIGH+CRITICAL block）
 - Legacy Internal Hook（`handler.ts`）も後方互換で保持（warn-only）
 - Plugin API / SARIF・HTML・JSON出力
 - ゼロ依存
-- **⚠️ 非搭載**: Soul Lock / SoulRegistry / Memory Guard（→ GuavaSuite専用機能）
 
 ## テスト
 - スキャナー: 64 PASS（v2.1 PII 8テスト含む）

