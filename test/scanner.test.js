@@ -840,4 +840,37 @@ describe('Runtime Guard', () => {
         scanner.checkPatterns(code, 'handler.js', 'code', findings);
         assert.ok(findings.some(f => f.id === 'CVE_MCP_ATLASSIAN_RCE'), 'Should flag CVE-2026-27825');
     });
+
+    // ── CVE-2026-2256: MS-Agent check_safe() denylist bypass ──
+    it('CVE-2026-2256: should detect MS-Agent check_safe bypass (CERT VU#431821)', () => {
+        const code = `
+class ShellTool:
+    def check_safe(self, cmd):
+        banned = ["rm", "dd", "mkfs"]
+        return not any(b in cmd for b in banned)
+    def run(self, user_input):
+        shell_execute(user_input)
+`;
+        const scanner = new GuardScanner({ summaryOnly: true });
+        const findings = [];
+        scanner.checkPatterns(code, 'agent.py', 'code', findings);
+        assert.ok(findings.some(f => f.id === 'CVE_MSAGENT_SHELL'), 'Should flag CVE-2026-2256 shell_execute');
+    });
+
+    it('CVE-2026-2256: should detect denylist/blocklist pattern', () => {
+        const code = 'const denylist = ["rm", "shutdown", "reboot"];\nif (denylist.includes(cmd)) throw new Error("blocked");';
+        const scanner = new GuardScanner({ summaryOnly: true });
+        const findings = [];
+        scanner.checkPatterns(code, 'validator.js', 'code', findings);
+        assert.ok(findings.some(f => f.id === 'CVE_MSAGENT_DENYLIST'), 'Should flag denylist pattern');
+    });
+
+    // ── CVE-2026-25046: Kimi Agent SDK execSync filename injection ──
+    it('CVE-2026-25046: should detect execSync with unsanitized filename', () => {
+        const code = 'execSync("npx vsce package " + filename);\nexecSync(`ovsx publish ${filePath}`);';
+        const scanner = new GuardScanner({ summaryOnly: true });
+        const findings = [];
+        scanner.checkPatterns(code, 'publish.js', 'code', findings);
+        assert.ok(findings.some(f => f.id === 'CVE_KIMI_EXECSYNC'), 'Should flag CVE-2026-25046 execSync filename injection');
+    });
 });

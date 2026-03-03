@@ -239,4 +239,11 @@ const PATTERNS = [
     { id: 'CVE_MCP_ATLASSIAN_RCE', cat: 'cve-patterns', regex: /(?:confluence|jira|atlassian)[^]*?(?:\.\.\/|path\.join\s*\([^)]*(?:req\.|input|params|args))/gis, severity: 'CRITICAL', desc: 'CVE-2026-27825: mcp-atlassian unauthenticated RCE+SSRF via path traversal', codeOnly: true },
 ];
 
+// ── Category 27: Agent Framework Shell Injection (2026-03) ──
+PATTERNS.push(
+    { id: 'CVE_MSAGENT_SHELL', cat: 'cve-patterns', regex: /check_safe\s*\(|(?:shell_tool|ShellTool|shell_execute)\s*\([^)]*(?:user|input|prompt|query|message|args|content)/gis, severity: 'CRITICAL', desc: 'CVE-2026-2256: MS-Agent check_safe() denylist bypass — unsanitized shell execution (CERT VU#431821)', codeOnly: true },
+    { id: 'CVE_MSAGENT_DENYLIST', cat: 'cve-patterns', regex: /(?:denylist|blocklist|blacklist|banned_commands)\s*[:=]\s*\[/gi, severity: 'HIGH', desc: 'CVE-2026-2256: Regex denylist pattern (bypassable)', codeOnly: true },
+    { id: 'CVE_KIMI_EXECSYNC', cat: 'cve-patterns', regex: /execSync\s*\(\s*(?:`[^`]*\$\{|['"][^'"]*\+\s*(?:filename|filePath|file_name|path|slug))/gi, severity: 'CRITICAL', desc: 'CVE-2026-25046: execSync with unsanitized filename (shell metachar injection)', codeOnly: true },
+);
+
 module.exports = { PATTERNS };
