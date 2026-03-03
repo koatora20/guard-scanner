@@ -6,15 +6,15 @@ As autonomous AI agents become more prevalent, the risk of executing untrusted o
 
 Built collaboratively by the **[Guava Parity Institute](https://github.com/koatora20)** and the open-source community. We believe that AI safety infrastructure should be a shared, transparent, and accessible resource for everyone. We welcome contributions, feedback, and discussion from all developers!
 
-**144+ static patterns + 26 runtime checks** across **22 threat categories**.
+**147 static patterns + 26 runtime checks** across **23 threat categories**.
 
-[![npm](https://img.shields.io/npm/v/@guava-parity/guard-scanner)](https://www.npmjs.com/package/@guava-parity/guard-scanner)
-[![license](https://img.shields.io/npm/l/@guava-parity/guard-scanner)](LICENSE)
+[![npm](https://img.shields.io/npm/v/guard-scanner)](https://www.npmjs.com/package/guard-scanner)
+[![license](https://img.shields.io/npm/l/guard-scanner)](LICENSE)
 
 ## Install
 
 ```bash
-npm install -g @guava-parity/guard-scanner
+npm install -g guard-scanner
 ```
 
 > **Why use this?** If you are experimenting with third-party skills for your AI agents, `guard-scanner` acts as a basic safety net, helping to identify hidden prompts or dangerous execution patterns.
@@ -41,7 +41,7 @@ This is actual output from scanning a malicious test skill demonstrating data ex
 ```console
 $ guard-scanner ./test/fixtures/malicious-skill/ --verbose
 
-🛡️  guard-scanner v4.0.1
+🛡️  guard-scanner v5.0.5
 ══════════════════════════════════════════════════════
 📂 Scanning: ./test/fixtures/malicious-skill/
 📦 Skills found: 1
@@ -79,7 +79,7 @@ $ guard-scanner ./test/fixtures/malicious-skill/ --verbose
 
 **guard-scanner** is designed as a foundational "Shield" for the OpenClaw ecosystem. 
 It features a **Standalone Boot Sequence**:
-- **Zero API/DB Dependencies**: It initializes purely from local, static Threat Patterns (144+ regex rules) defined in its codebase.
+- **Zero API/DB Dependencies**: It initializes purely from local, static Threat Patterns (147 regex rules) defined in its codebase.
 - **No Heavy Context Loading**: It does *not* require loading heavy memory databases or executing contextual commands.
 - **Privacy First**: It never accesses or exposes your agent's private memory during the boot phase.
 
@@ -104,7 +104,7 @@ This lightweight initialization makes it perfect for zero-trust environments, en
 | `--plugin <file>` | Load plugin module |
 | `--fail-on-findings` | Exit code 1 if any findings (CI/CD) |
 
-## Threat Categories (22)
+## Threat Categories (23)
 
 | # | Category | Detects |
 |---|----------|---------|
@@ -122,7 +122,7 @@ This lightweight initialization makes it perfect for zero-trust environments, en
 | 12 | Memory Poisoning ⚿ | SOUL.md/MEMORY.md modification, behavioral rule override |
 | 13 | Prompt Worm | Self-replicating prompts, agent-to-agent propagation |
 | 14 | Persistence | Cron, launchd, startup execution |
-| 15 | CVE Patterns | CVE-2026-25253 (RCE), sandbox disabling, Gatekeeper bypass |
+| 15 | CVE Patterns | CVE-2026-25253 (RCE), CVE-2026-25905 (Pyodide), CVE-2026-27825 (path traversal) |
 | 16 | MCP Security | Tool/schema poisoning, SSRF, shadow server registration |
 | 16b | Trust Boundary | Calendar/email/web → code execution chains |
 | 16c | Advanced Exfiltration | ZombieAgent static URL arrays, drip exfil, beacon |
@@ -131,6 +131,7 @@ This lightweight initialization makes it perfect for zero-trust environments, en
 | 18 | Config Impact | `openclaw.json` writes, exec approval disabling |
 | 19 | PII Exposure | Hardcoded CC/SSN, PII logging, Shadow AI API calls |
 | 20 | Trust Exploitation | Authority claims, creator impersonation, fake audits |
+| 21 | VDB Injection | Vector database poisoning, embedding manipulation |
 
 > ⚿ = Requires `--soul-lock` flag (opt-in)
 
@@ -154,8 +155,6 @@ openclaw hooks enable guard-scanner
 
 Modes: `monitor` (log only) / `enforce` (block CRITICAL) / `strict` (block HIGH+CRITICAL)
 
-
-
 ## OWASP Mapping
 
 - **OWASP LLM Top 10 2025**: LLM01–LLM10 fully mapped
@@ -164,11 +163,11 @@ Modes: `monitor` (log only) / `enforce` (block CRITICAL) / `strict` (block HIGH+
 ## Test Results
 
 ```
-ℹ tests 134
+ℹ tests 136
 ℹ suites 24
-ℹ pass 134
+ℹ pass 136
 ℹ fail 0
-ℹ duration_ms 171
+ℹ duration_ms 165
 ```
 
 | Suite | Tests |
@@ -178,7 +177,7 @@ Modes: `monitor` (log only) / `enforce` (block CRITICAL) / `strict` (block HIGH+
 | Risk Score Calculation | 5 ✅ |
 | Verdict Determination | 5 ✅ |
 | Output Formats (JSON/SARIF/HTML) | 4 ✅ |
-| Pattern Database (135 patterns, 22 categories) | 4 ✅ |
+| Pattern Database (147 patterns, 23 categories) | 4 ✅ |
 | IoC Database | 5 ✅ |
 | Shannon Entropy | 2 ✅ |
 | Ignore Functionality | 1 ✅ |
@@ -189,7 +188,8 @@ Modes: `monitor` (log only) / `enforce` (block CRITICAL) / `strict` (block HIGH+
 | Config Impact Analysis | 4 ✅ |
 | PII Exposure Detection | 8 ✅ |
 | OWASP Agentic Security (ASI01–10) | 14 ✅ |
-| Runtime Guard (5 layers, 26 checks) | 23 ✅ |
+| Runtime Guard (5 layers, 26 checks) | 25 ✅ |
+| CVE Detection (CVE-2026-25905, CVE-2026-27825) | 2 ✅ |
 
 ## Plugin API
 
