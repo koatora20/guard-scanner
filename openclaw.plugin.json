@@ -1,8 +1,8 @@
 {
     "name": "guard-scanner",
-    "version": "4.0.0",
+    "version": "5.0.5",
     "displayName": "🛡️ Guard Scanner — Runtime Security for AI Agents",
-    "description": "Intercepts dangerous tool calls before execution. 26 threat patterns (5 layers), 0.016ms/scan, 3 enforcement modes.",
+    "description": "147 static patterns (23 categories) + 26 runtime checks (5 layers). 0.016ms/scan, zero dependencies, SARIF output.",
     "author": "Guava & Dee",
     "license": "MIT",
     "homepage": "https://github.com/koatora20/guard-scanner",
@@ -16,7 +16,7 @@
     "hooks": {
         "before_tool_call": {
             "handler": "./hooks/guard-scanner/plugin.ts",
-            "description": "Scans tool call arguments against 19 runtime threat patterns and blocks dangerous operations",
+            "description": "Scans tool call arguments against 26 runtime threat patterns (5 layers) and blocks dangerous operations",
             "priority": 100
         }
     },

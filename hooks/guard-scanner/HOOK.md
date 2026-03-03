@@ -85,9 +85,9 @@ Set mode in `openclaw.json`:
 }
 ```
 
-## Part of guard-scanner v1.0.0
+## Part of guard-scanner v5.0.5
 
-- **Static scanner**: `npx guard-scanner [dir]` — 17 threat categories, 170+ patterns
-- **Runtime Guard: This hook** — 12 real-time patterns, 3 modes
+- **Static scanner**: `npx guard-scanner [dir]` — 23 threat categories, 147 patterns
+- **Runtime Guard: This hook** — 26 real-time checks (5 layers), 3 modes
 - **Plugin API** — Custom detection rules
-- **CI/CD** — SARIF output for GitHub Code Scanning
+- **CI/CD** — SARIF 2.1.0 output for GitHub Code Scanning

@@ -1,5 +1,39 @@
 # Changelog
 
+## [5.0.5] - 2026-03-04
+
+### 🛡️ OSS Refinement + CVE Extensions
+
+Complete OSS cleanup and fact-checked documentation for the open-source community.
+
+#### New
+- **CVE-2026-25905**: Pyodide sandbox escape in mcp-run-python detection
+- **CVE-2026-27825**: mcp-atlassian path traversal detection
+- **Category 23: VDB Injection**: Vector database poisoning and embedding manipulation
+- **QuarantineNode**: Dual-Brain Architecture for zero-click prompt injection defense
+
+#### Changed
+- Removed all proprietary dependencies ($GUAVA tokens, JWT gating) for clean OSS
+- Package name finalized: `guard-scanner` (npm published)
+- Removed stale TypeScript source (`ts-src/`) from repository
+- Internal docs moved to `.gitignore` (ROADMAP, STATUS, etc.)
+- `scanner.js VERSION` synced with `package.json`
+
+#### Documentation
+- README.md fact-checked: all numbers verified against actual codebase
+- README_ja.md fully updated (23 categories, 147 patterns, 136 tests)
+- HOOK.md updated to v5.0.5
+- `openclaw.plugin.json` updated to v5.0.5
+- CHANGELOG.md updated with complete v5.0.x history
+
+#### Stats
+- Static patterns: 135 → **147** (23 categories)
+- Total tests: 133 → **136** across 24 suites
+- Runtime checks: **26** (5 layers, unchanged)
+- Zero dependencies maintained
+
+---
+
 ## [4.0.0] - 2026-02-24
 
 ### 🚀 Benchmarked & Battle-Tested — 0.016ms/scan
