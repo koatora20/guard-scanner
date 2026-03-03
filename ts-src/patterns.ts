@@ -88,7 +88,7 @@ export const PATTERNS: PatternRule[] = [
     // ── PII Exposure (OWASP LLM02) ───────────────────────────────────────
     { id: 'PII_EMAIL', cat: 'pii-exposure', regex: /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, severity: 'MEDIUM', desc: 'Email address detected', all: true, owasp: 'LLM02' },
     { id: 'PII_PHONE_JP', cat: 'pii-exposure', regex: /0[789]0-?\d{4}-?\d{4}/g, severity: 'HIGH', desc: 'Japanese phone number', all: true, owasp: 'LLM02' },
-    { id: 'PII_MY_NUMBER', cat: 'pii-exposure', regex: /(?<!\d)\d{4}\s*\d{4}\s*\d{4}(?!\d)/g, severity: 'CRITICAL', desc: 'Potential My Number (個人番号)', all: true, owasp: 'LLM02' },
+    { id: 'PII_MY_NUMBER', cat: 'pii-exposure', regex: /(?<!\d)(?:\d{4}\s?\d{4}\s?\d{4})(?!\d)/g, severity: 'CRITICAL', desc: 'Potential My Number (個人番号)', all: true, owasp: 'LLM02' },
 
     // ── Shadow AI (OWASP LLM03 — Supply Chain) ───────────────────────────
     { id: 'SHADOW_AI_OPENAI', cat: 'shadow-ai', regex: /api\.openai\.com/gi, severity: 'HIGH', desc: 'Direct OpenAI API call (Shadow AI)', codeOnly: true, owasp: 'LLM03' },

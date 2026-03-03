@@ -198,6 +198,10 @@ class GuardScanner {
         this.loadIgnoreFile(dir);
         const skills = fs.readdirSync(dir).filter((f) => {
             const p = path.join(dir, f);
+            // Ignore ONLY system dependencies and build outputs. DO NOT ignore 'test' globally.
+            const low = f.toLowerCase();
+            if (low === 'node_modules' || low === '.git' || low === 'dist' || low === 'build' || low === 'coverage')
+                return false;
             return fs.statSync(p).isDirectory();
         });
         if (!this.quiet) {
@@ -259,11 +263,10 @@ class GuardScanner {
             if (content.length > 500_000)
                 continue;
             const fileType = this.classifyFile(ext, relFile);
-            const skipThreatCorpusChecks = this.isSelfThreatCorpus(skillName, relFile);
-            if (!skipThreatCorpusChecks)
-                this.checkIoCs(content, relFile, skillFindings);
-            if (!skipThreatCorpusChecks)
-                this.checkSignatures(content, file, skillFindings); // NEW: hbg-scan compatible
+            if (this.isSelfThreatCorpus(skillName, relFile))
+                continue;
+            this.checkIoCs(content, relFile, skillFindings);
+            this.checkSignatures(content, file, skillFindings); // NEW: hbg-scan compatible
             this.checkPatterns(content, relFile, fileType, skillFindings);
             if (this.customRules.length > 0) {
                 this.checkPatterns(content, relFile, fileType, skillFindings, this.customRules);
@@ -319,17 +322,25 @@ class GuardScanner {
         }
     }
     isSelfNoisePath(skillName, relFile) {
-        if (skillName !== 'guard-scanner')
+        // Only apply this noise reduction if we are scanning the guard-scanner repository itself
+        const isSelf = skillName === 'guard-scanner' || skillName === '.' || skillName === 'ts-src' || skillName === 'src' || skillName === 'test';
+        if (!isSelf)
             return false;
-        return /^test\//.test(relFile)
-            || /^dist\/__tests__\//.test(relFile)
-            || /^ts-src\/__tests__\//.test(relFile)
-            || /^docs\//.test(relFile)
-            || relFile === 'ROADMAP-RESEARCH.md'
-            || relFile === 'CHANGELOG.md';
+        const p = relFile.replace(/\\/g, '/').toLowerCase();
+        // Exclude our own tests, fixtures, and documentation where we intentionally write malicious patterns
+        if (p.includes('__tests__/') ||
+            p.includes('fixtures/') ||
+            p.includes('docs/') ||
+            p === 'roadmap-research.md' ||
+            p === 'changelog.md') {
+            return true;
+        }
+        // We do NOT exclude the entire src/ or test/ folders for normal skills.
+        return false;
     }
     isSelfThreatCorpus(skillName, relFile) {
-        if (skillName !== 'guard-scanner')
+        const isSelf = skillName === 'guard-scanner' || skillName === '.' || skillName === 'ts-src' || skillName === 'src';
+        if (!isSelf)
             return false;
         return /(^|\/)(ioc-db|patterns)\.(js|ts)$/.test(relFile);
     }
@@ -854,59 +865,46 @@ class GuardScanner {
         if (findings.length === 0)
             return 0;
         let score = 0;
+        const catCounts = {};
+        // Safe domain whitelist (減衰対象)
+        const SAFE_DOMAINS = [
+            'openai.com', 'anthropic.com', 'google.com', 'microsoft.com',
+            'github.com', 'npmjs.com', 'openclaw.ai', 'guava-parity.org'
+        ];
         for (const f of findings) {
-            score += SEVERITY_WEIGHTS[f.severity] || 0;
+            // Safe domain checking
+            if (f.id === 'IOC_DOMAIN' || f.id === 'SHADOW_AI_OPENAI' || f.id === 'SHADOW_AI_ANTHROPIC') {
+                if (SAFE_DOMAINS.some(d => f.desc.includes(d))) {
+                    score += 1; // ほぼ無視 (1点)
+                    continue;
+                }
+            }
+            // Logarithmic decay per category
+            catCounts[f.cat] = (catCounts[f.cat] || 0) + 1;
+            const weight = SEVERITY_WEIGHTS[f.severity] || 0;
+            if (catCounts[f.cat] === 1) {
+                score += weight;
+            }
+            else if (catCounts[f.cat] === 2) {
+                score += Math.round(weight * 0.5);
+            }
+            else {
+                score += Math.round(weight * 0.2); // 3つ目以降はノイズとみなして大幅減退
+            }
         }
         const ids = new Set(findings.map(f => f.id));
         const cats = new Set(findings.map(f => f.cat));
-        // Amplifiers
+        // Amplifiers (相関分析) — 意味のある組み合わせのみ増幅
         if (cats.has('credential-handling') && cats.has('exfiltration'))
-            score = Math.round(score * 2);
-        if (cats.has('credential-handling') && findings.some(f => f.id === 'MAL_CHILD' || f.id === 'MAL_EXEC'))
             score = Math.round(score * 1.5);
-        if (cats.has('obfuscation') && (cats.has('malicious-code') || cats.has('credential-handling')))
-            score = Math.round(score * 2);
+        if (cats.has('obfuscation') && cats.has('malicious-code'))
+            score = Math.round(score * 1.5);
         if (ids.has('DEP_LIFECYCLE_EXEC'))
             score = Math.round(score * 2);
-        if (ids.has('PI_BIDI') && findings.length > 1)
-            score = Math.round(score * 1.5);
-        if (cats.has('leaky-skills') && (cats.has('exfiltration') || cats.has('malicious-code')))
-            score = Math.round(score * 2);
-        if (cats.has('memory-poisoning'))
-            score = Math.round(score * 1.5);
-        if (cats.has('prompt-worm'))
-            score = Math.round(score * 2);
-        if (cats.has('cve-patterns'))
-            score = Math.max(score, 70);
-        if (cats.has('persistence') && (cats.has('malicious-code') || cats.has('credential-handling') || cats.has('memory-poisoning')))
-            score = Math.round(score * 1.5);
-        if (cats.has('identity-hijack'))
-            score = Math.round(score * 2);
-        if (cats.has('identity-hijack') && (cats.has('persistence') || cats.has('memory-poisoning')))
-            score = Math.max(score, 90);
-        if (ids.has('IOC_IP') || ids.has('IOC_URL') || ids.has('KNOWN_TYPOSQUAT'))
-            score = 100;
-        // v1.1
-        if (cats.has('config-impact'))
-            score = Math.round(score * 2);
-        if (cats.has('config-impact') && cats.has('sandbox-validation'))
-            score = Math.max(score, 70);
-        if (cats.has('complexity') && (cats.has('malicious-code') || cats.has('obfuscation')))
-            score = Math.round(score * 1.5);
-        // v2.1 PII
-        if (cats.has('pii-exposure') && cats.has('exfiltration'))
-            score = Math.round(score * 3);
-        if (cats.has('pii-exposure') && (ids.has('SHADOW_AI_OPENAI') || ids.has('SHADOW_AI_ANTHROPIC') || ids.has('SHADOW_AI_GENERIC')))
-            score = Math.round(score * 2.5);
-        if (cats.has('pii-exposure') && cats.has('credential-handling'))
-            score = Math.round(score * 2);
-        // v3.0 Compaction persistence
-        if (cats.has('compaction-persistence'))
-            score = Math.round(score * 2);
-        if (cats.has('compaction-persistence') && cats.has('prompt-injection'))
-            score = Math.max(score, 90);
-        if (cats.has('signature-match'))
-            score = Math.max(score, 70);
+        // Critical override (Blacklist matches)
+        if (ids.has('IOC_IP') || ids.has('IOC_URL') || ids.has('KNOWN_TYPOSQUAT')) {
+            return 100;
+        }
         return Math.min(100, score);
     }
     getVerdict(risk) {
@@ -926,12 +924,13 @@ class GuardScanner {
             for (const entry of entries) {
                 const fullPath = path.join(dir, entry.name);
                 if (entry.isDirectory()) {
-                    if (entry.name === '.git' || entry.name === 'node_modules')
+                    if (entry.name === '.git' || entry.name === 'node_modules' || entry.name === 'dist' || entry.name === 'build')
                         continue;
                     results.push(...this.getFiles(fullPath));
                 }
                 else {
-                    if (GENERATED_REPORT_FILES.has(entry.name.toLowerCase()))
+                    const base = entry.name.toLowerCase();
+                    if (GENERATED_REPORT_FILES.has(base))
                         continue;
                     results.push(fullPath);
                 }
