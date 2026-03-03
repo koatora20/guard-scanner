@@ -60,7 +60,7 @@ describe('guard-scanner v3.0.0', () => {
     // ── Version ─────────────────────────────────────────────────────────────
 
     it('T01: exports correct version', () => {
-        assert.equal(VERSION, '3.2.0');
+        assert.equal(VERSION, '5.0.0');
     });
 
     // ── IoC Detection ───────────────────────────────────────────────────────

@@ -7,4 +7,5 @@ export type { Severity, Finding, SkillResult, PatternRule, CustomRuleInput, Scan
 export { KNOWN_MALICIOUS, SIGNATURES_DB } from './ioc-db.js';
 export { PATTERNS } from './patterns.js';
 export { QuarantineNode, QuarantineResult } from './quarantine.js';
+export { guardScan, guardScanJson, GuardScanResult, GuardCheck, GuardDetection, GuardOptions, LAYER_1_CHECKS, LAYER_2_CHECKS, LAYER_3_CHECKS, LAYER_4_CHECKS } from './runtime.js';
 //# sourceMappingURL=index.d.ts.map
