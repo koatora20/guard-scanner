@@ -59,7 +59,8 @@ const PATTERNS = [
 
     // ── Category 5: Secret Detection (HIGH) ──
     { id: 'SECRET_HARDCODED_KEY', cat: 'secret-detection', regex: /(?:api[_-]?key|apikey|secret[_-]?key|access[_-]?token)\s*[:=]\s*['"][a-zA-Z0-9_\-]{20,}['"]/gi, severity: 'HIGH', desc: 'Hardcoded API key/secret', codeOnly: true },
-    { id: 'SECRET_AWS', cat: 'secret-detection', regex: /AKIA[0-9A-Z]{16}/g, severity: 'CRITICAL', desc: 'AWS Access Key ID', all: true },
+
+    { id: 'PII_MY_NUMBER', cat: 'pii-exposure', regex: /(?<!\d)\d{4}\s*\d{4}\s*\d{4}(?!\d)/g, severity: 'CRITICAL', desc: 'Potential My Number (個人番号)', all: true },
     { id: 'SECRET_PRIVATE_KEY', cat: 'secret-detection', regex: /-----BEGIN\s+(RSA\s+)?PRIVATE\s+KEY-----/g, severity: 'CRITICAL', desc: 'Embedded private key', all: true },
     { id: 'SECRET_GITHUB_TOKEN', cat: 'secret-detection', regex: /gh[ps]_[A-Za-z0-9_]{36,}/g, severity: 'CRITICAL', desc: 'GitHub token', all: true },
 
@@ -224,6 +225,14 @@ const PATTERNS = [
     // ── Category 23: Vector DB & AI Memory Injection (CVE-2026-26030) ──
     { id: 'VDB_NOSQL_INJECT', cat: 'vdb-injection', regex: /(?:\$where|\$ne|\$gt|\$regex)\s*[:=]\s*(?:req\.|input|caller|args|params)/gi, severity: 'CRITICAL', desc: 'Vector DB/NoSQL injection via caller input', codeOnly: true },
     { id: 'VDB_SK_RCE_FILTER', cat: 'cve-patterns', regex: /(?:InMemoryVectorStore|VectorStore|Pinecone|Milvus)[^]*?\.filter\s*\(\s*(?:req\.|input|caller|args)/gis, severity: 'CRITICAL', desc: 'CVE-2026-26030: Semantic Kernel VectorStore RCE filter bypass', codeOnly: true },
+    // ── Category 24: Claude Code Vulnerabilities (2026) ──
+    { id: 'CVE_CLAUDE_INFO_DISC', cat: 'cve-patterns', regex: /sk-ant-api[a-zA-Z0-9_\-]{20,}/gi, severity: 'CRITICAL', desc: 'CVE-2026-21852: Anthropic API Key Leak (Claude Code Info Disclosure)', codeOnly: true },
+    { id: 'CVE_CLAUDE_PRIVESC', cat: 'cve-patterns', regex: /[a-zA-Z0-9_\-\.]+\.hook\.js.*host.*privilege/gi, severity: 'CRITICAL', desc: 'CVE-2026-25725: Claude Code Privilege Escalation Hook', codeOnly: true },
+    { id: 'CVE_CLAUDE_CODE_INJ', cat: 'cve-patterns', regex: /claude\.hooks\.[^]*?exec/gis, severity: 'CRITICAL', desc: 'CVE-2025-59536: Claude Code Injection via untrusted hook', codeOnly: true },
+
+    // ── Category 25: Moltbook Exploits (2026) ──
+    { id: 'MOLTBOOK_REVERSE_PI', cat: 'prompt-injection', regex: /(?:moltbook|social)\s+(?:post|message)[\s\S]{0,100}(?:ignore|forget|override|execute|system\s+prompt)/gi, severity: 'CRITICAL', desc: 'Moltbook Reverse Prompt Injection', all: true },
+    { id: 'MOLTBOOK_SUPABASE_LEAK', cat: 'secret-detection', regex: /sbp_[a-zA-Z0-9]{36,}/g, severity: 'CRITICAL', desc: 'Supabase API Key (Moltbook 1.5M Leak pattern)', all: true },
 ];
 
 module.exports = { PATTERNS };

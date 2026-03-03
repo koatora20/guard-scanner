@@ -2,9 +2,9 @@
 
 *The Original, Zero-Dependency Shield for the AI Agent Era.*
 
-As autonomous AI agents (like OpenClaw) become more powerful, the risk of executing untrusted or malicious skills increases. **guard-scanner** is the **definitive, zero-dependency** static and runtime security scanner strictly designed to protect developers' local machines and agents' identities from Prompt Injections (RPI), RCEs, and Memory Poisoning.
+As autonomous AI agents become more prevalent, the risk of executing untrusted or malicious skills increases. **guard-scanner** is an open-source, zero-dependency static and runtime security scanner designed to help protect developers' local machines from Prompt Injections, RCEs, and Memory Poisoning.
 
-Built by the **[Guava Parity Institute](https://github.com/koatora20)**. Accept no imitations. We believe that AI should empower human creators, and foundational safety infrastructure must always be free, open-source, and uncompromised.
+Built collaboratively by the **[Guava Parity Institute](https://github.com/koatora20)** and the open-source community. We believe that AI safety infrastructure should be a shared, transparent, and accessible resource for everyone. We welcome contributions, feedback, and discussion from all developers!
 
 **144+ static patterns + 26 runtime checks** across **22 threat categories**.
 
@@ -17,9 +17,9 @@ Built by the **[Guava Parity Institute](https://github.com/koatora20)**. Accept 
 npm install -g @guava-parity/guard-scanner
 ```
 
-> **Why use this?** If you are downloading third-party skills for your agent, `guard-scanner` acts as an immune system, blocking hidden prompts that might attempt to steal your API keys or secretly modify your system. 
+> **Why use this?** If you are experimenting with third-party skills for your AI agents, `guard-scanner` acts as a basic safety net, helping to identify hidden prompts or dangerous execution patterns.
 > 
-> ⚠️ **Beware of Imitations**: Recently, several clone tools (e.g., *ClawMoat*) have appeared, copying our architecture and pattern database. **guard-scanner v5.0.0+** is the original, maintained by the creators of the threat models, ensuring you get the fastest, zero-dependency protection without bloat or telemetry.
+> 🤝 **We need your help!**: The landscape of Agentic AI threats is evolving rapidly. We are maintaining this project out of goodwill to provide a baseline defense, but we rely on community contributions to keep our pattern database updated. If you find a false positive or a new threat vector, please consider opening an issue or a pull request!
 
 ## Quick Start
 
@@ -195,6 +195,16 @@ guard-scanner ./skills/ --rules ./my-rules.json
 - **SARIF 2.1.0** — GitHub Code Scanning / CI/CD (`--sarif`)
 - **HTML** — Visual dashboard (`--html`)
 - **stdout** — Pipeable output (`--format json|sarif --quiet`)
+
+## Contributing
+
+We wholeheartedly welcome contributions! Guard-scanner is built on community knowledge. 
+
+Whether you're fixing a bug, adding a new threat pattern, or simply improving the documentation, your help is deeply appreciated. Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to get started.
+
+## Code of Conduct
+
+We are committed to fostering a welcoming, respectful, and harassment-free environment. Please read our [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) before participating in our community.
 
 ## License
 

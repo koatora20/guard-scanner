@@ -1,12 +1,14 @@
 # Contributing to guard-scanner
 
-Thanks for your interest in improving agent security! 🛡️
+First off, thank you for considering contributing to `guard-scanner`! It's people like you that make open-source such a great community to learn, inspire, and create. 
+
+We are building this tool out of goodwill to provide a zero-dependency safety net for developers exploring Agentic AI. We rely heavily on the community to help identify new threat vectors and false positives.
 
 ## How to Contribute
 
 ### Adding Threat Patterns
 
-The easiest way to contribute is adding new detection patterns to `src/patterns.js`:
+The easiest way to contribute is adding new detection patterns to our TypeScript source `ts-src/patterns.ts` (or `src/patterns.js` for the compiled version):
 
 ```javascript
 {
@@ -39,7 +41,7 @@ node src/cli.js test/fixtures/ --json --sarif --html --verbose
 
 ### Pull Request Checklist
 
-- [ ] Tests pass (`npm test` — 45+ tests)
+- [ ] Tests pass (`npm test` — 130+ tests)
 - [ ] New patterns have test coverage in `test/scanner.test.js`
 - [ ] No false positives against `test/fixtures/clean-skill/`
 - [ ] Severity level is appropriate (see `docs/THREAT_TAXONOMY.md`)
@@ -51,7 +53,7 @@ See [SECURITY.md](SECURITY.md) for responsible disclosure procedures.
 
 ## Code of Conduct
 
-Be respectful. We're all here to make AI agents safer.
+This project and everyone participating in it is governed by our [Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Be respectful. We're all here to make AI agents safer.
 
 ## License
 

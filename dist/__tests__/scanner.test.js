@@ -76,7 +76,7 @@ function findingsOfCat(findings, cat) {
 (0, node_test_1.describe)('guard-scanner v3.0.0', () => {
     // ── Version ─────────────────────────────────────────────────────────────
     (0, node_test_1.it)('T01: exports correct version', () => {
-        assert.equal(scanner_js_1.VERSION, '3.2.0');
+        assert.equal(scanner_js_1.VERSION, '5.0.0');
     });
     // ── IoC Detection ───────────────────────────────────────────────────────
     (0, node_test_1.describe)('checkIoCs', () => {

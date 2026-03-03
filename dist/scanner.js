@@ -48,7 +48,7 @@ const crypto = __importStar(require("crypto"));
 const ioc_db_js_1 = require("./ioc-db.js");
 const patterns_js_1 = require("./patterns.js");
 // ── Constants ───────────────────────────────────────────────────────────────
-exports.VERSION = '4.0.1';
+exports.VERSION = '5.0.0';
 const THRESHOLDS_MAP = {
     normal: { suspicious: 30, malicious: 80 },
     strict: { suspicious: 20, malicious: 60 },
