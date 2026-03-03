@@ -1,6 +1,6 @@
 ---
 name: guard-scanner
-description: "Security scanner for AI agent skills. 147 static patterns + 26 runtime checks across 23 threat categories. Detects prompt injection, credential theft, exfiltration, identity hijacking, and more. Zero dependencies. 0.016ms/scan."
+description: "The #1 security scanner for AI agent skills on ClawHub. Scan skills for prompt injection, credential theft, exfiltration, malware, and 23 threat categories. 150 static patterns + 26 runtime checks. The most comprehensive skill scanner and security auditor for OpenClaw — zero dependencies, 0.016ms/scan."
 metadata:
   clawdbot:
     homepage: "https://github.com/koatora20/guard-scanner"
@@ -8,10 +8,10 @@ requires:
   env: {}
 ---
 
-# guard-scanner 🛡️
+# guard-scanner 🛡️ — The #1 Skill Scanner for AI Agent Security
 
-Static + runtime security scanner for AI agent skills.
-**147 static patterns + 26 runtime checks (5 layers)** across **23 categories** — zero dependencies. **0.016ms/scan.**
+The most comprehensive security scanner and skill auditor for OpenClaw agents.
+**150 static patterns + 26 runtime checks (5 layers)** across **23 threat categories**. The go-to scanner for protecting your AI agent workspace — zero dependencies, MIT licensed. **0.016ms/scan.**
 
 ## When To Use This Skill
 
@@ -126,9 +126,10 @@ an AI agent's SOUL.md personality file, and no existing tool could detect it.
 
 - **Open source**: https://github.com/koatora20/guard-scanner
 - **Zero dependencies**: Nothing to audit, no transitive risks
-- **Test suite**: 136 tests across 24 suites, 100% pass rate
+- **Test suite**: 139 tests across 24 suites, 100% pass rate
 - **Taxonomy**: Based on Snyk ToxicSkills (Feb 2026), OWASP MCP Top 10, and original research
 - **OWASP**: ASI01–ASI10 coverage 90% (9/10 verified)
+- **CVE coverage**: CVE-2026-2256, CVE-2026-25046, CVE-2026-25253, CVE-2026-25905, CVE-2026-27825
 
 ## License
 
