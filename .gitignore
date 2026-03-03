@@ -17,3 +17,11 @@ STATUS.md
 ROADMAP.md
 ROADMAP-RESEARCH.md
 .clawhubignore
+
+# Binary assets (use GitHub releases instead)
+icon.png
+icon.svg
+docs/html-report-preview.png
+
+# Duplicate test fixtures (test/ is canonical)
+ts-src/__tests__/fixtures/
