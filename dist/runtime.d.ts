@@ -52,7 +52,7 @@ export interface GuardScanResult {
 export declare function guardScan(text: string, toolName?: string, options?: GuardOptions): GuardScanResult;
 /**
  * Convenience method that returns a JSON string, directly backwards-compatible
- * with the original GuavaSuite `guardScan` function signature.
+ * with the original `guardScan` function signature.
  */
 export declare function guardScanJson(text: string, toolName?: string, options?: GuardOptions): string;
 //# sourceMappingURL=runtime.d.ts.map

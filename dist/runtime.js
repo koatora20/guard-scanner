@@ -190,7 +190,7 @@ function guardScan(text, toolName, options) {
 }
 /**
  * Convenience method that returns a JSON string, directly backwards-compatible
- * with the original GuavaSuite `guardScan` function signature.
+ * with the original `guardScan` function signature.
  */
 function guardScanJson(text, toolName, options) {
     return JSON.stringify(guardScan(text, toolName, options), null, 2);
