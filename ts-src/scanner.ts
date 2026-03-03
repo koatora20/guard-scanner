@@ -238,16 +238,18 @@ export class GuardScanner {
 
             if (relFile.includes('node_modules') || relFile.startsWith('.git')) continue;
             if (BINARY_EXTENSIONS.has(ext)) continue;
+            if (this.isSelfNoisePath(skillName, relFile)) continue;
 
             let content: string;
             try { content = fs.readFileSync(file, 'utf-8'); } catch { continue; }
             if (content.length > 500_000) continue;
 
             const fileType = this.classifyFile(ext, relFile);
+            const skipThreatCorpusChecks = this.isSelfThreatCorpus(skillName, relFile);
 
-            this.checkIoCs(content, relFile, skillFindings);
+            if (!skipThreatCorpusChecks) this.checkIoCs(content, relFile, skillFindings);
+            if (!skipThreatCorpusChecks) this.checkSignatures(content, file, skillFindings); // NEW: hbg-scan compatible
             this.checkPatterns(content, relFile, fileType, skillFindings);
-            this.checkSignatures(content, file, skillFindings); // NEW: hbg-scan compatible
 
             if (this.customRules.length > 0) {
                 this.checkPatterns(content, relFile, fileType, skillFindings, this.customRules);
@@ -305,6 +307,21 @@ export class GuardScanner {
         if (filtered.length > 0) {
             this.findings.push({ skill: skillName, risk, verdict: verdict.label, findings: filtered });
         }
+    }
+
+    private isSelfNoisePath(skillName: string, relFile: string): boolean {
+        if (skillName !== 'guard-scanner') return false;
+        return /^test\//.test(relFile)
+            || /^dist\/__tests__\//.test(relFile)
+            || /^ts-src\/__tests__\//.test(relFile)
+            || /^docs\//.test(relFile)
+            || relFile === 'ROADMAP-RESEARCH.md'
+            || relFile === 'CHANGELOG.md';
+    }
+
+    private isSelfThreatCorpus(skillName: string, relFile: string): boolean {
+        if (skillName !== 'guard-scanner') return false;
+        return /(^|\/)(ioc-db|patterns)\.(js|ts)$/.test(relFile);
     }
 
     // ── Check Methods ─────────────────────────────────────────────────────

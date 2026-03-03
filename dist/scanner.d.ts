@@ -29,6 +29,8 @@ export declare class GuardScanner {
     private loadIgnoreFile;
     scanDirectory(dir: string): SkillResult[];
     scanSkill(skillPath: string, skillName: string): void;
+    private isSelfNoisePath;
+    private isSelfThreatCorpus;
     private classifyFile;
     private checkIoCs;
     private checkPatterns;

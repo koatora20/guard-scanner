@@ -247,6 +247,8 @@ class GuardScanner {
                 continue;
             if (BINARY_EXTENSIONS.has(ext))
                 continue;
+            if (this.isSelfNoisePath(skillName, relFile))
+                continue;
             let content;
             try {
                 content = fs.readFileSync(file, 'utf-8');
@@ -257,9 +259,12 @@ class GuardScanner {
             if (content.length > 500_000)
                 continue;
             const fileType = this.classifyFile(ext, relFile);
-            this.checkIoCs(content, relFile, skillFindings);
+            const skipThreatCorpusChecks = this.isSelfThreatCorpus(skillName, relFile);
+            if (!skipThreatCorpusChecks)
+                this.checkIoCs(content, relFile, skillFindings);
+            if (!skipThreatCorpusChecks)
+                this.checkSignatures(content, file, skillFindings); // NEW: hbg-scan compatible
             this.checkPatterns(content, relFile, fileType, skillFindings);
-            this.checkSignatures(content, file, skillFindings); // NEW: hbg-scan compatible
             if (this.customRules.length > 0) {
                 this.checkPatterns(content, relFile, fileType, skillFindings, this.customRules);
             }
@@ -312,6 +317,21 @@ class GuardScanner {
         if (filtered.length > 0) {
             this.findings.push({ skill: skillName, risk, verdict: verdict.label, findings: filtered });
         }
+    }
+    isSelfNoisePath(skillName, relFile) {
+        if (skillName !== 'guard-scanner')
+            return false;
+        return /^test\//.test(relFile)
+            || /^dist\/__tests__\//.test(relFile)
+            || /^ts-src\/__tests__\//.test(relFile)
+            || /^docs\//.test(relFile)
+            || relFile === 'ROADMAP-RESEARCH.md'
+            || relFile === 'CHANGELOG.md';
+    }
+    isSelfThreatCorpus(skillName, relFile) {
+        if (skillName !== 'guard-scanner')
+            return false;
+        return /(^|\/)(ioc-db|patterns)\.(js|ts)$/.test(relFile);
     }
     // ── Check Methods ─────────────────────────────────────────────────────
     classifyFile(ext, relFile) {
