@@ -60,7 +60,7 @@ representative at an online or offline event.
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported to the community leaders responsible for enforcement at
-koatora20@github.com. All complaints will be reviewed and investigated promptly
+reported via [GitHub Issues](https://github.com/koatora20/guard-scanner/issues). All complaints will be reviewed and investigated promptly
 and fairly.
 
 All community leaders are obligated to respect the privacy and security of the

@@ -10,7 +10,7 @@ const assert = require('node:assert/strict');
 const path = require('path');
 const { GuardScanner, THRESHOLDS } = require('../src/scanner.js');
 
-const SKILLS_DIR = '/Users/ishikawaryuuta/.openclaw/workspace/skills';
+const SKILLS_DIR = process.env.GUARD_SCANNER_TEST_SKILLS_DIR || path.resolve(__dirname, 'fixtures');
 const TARGET_SKILLS = [
     'bug-bounty-scan',
     'opencrabs-swarm-bounty',
