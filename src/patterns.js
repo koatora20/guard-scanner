@@ -233,6 +233,10 @@ const PATTERNS = [
     // ── Category 25: Moltbook Exploits (2026) ──
     { id: 'MOLTBOOK_REVERSE_PI', cat: 'prompt-injection', regex: /(?:moltbook|social)\s+(?:post|message)[\s\S]{0,100}(?:ignore|forget|override|execute|system\s+prompt)/gi, severity: 'CRITICAL', desc: 'Moltbook Reverse Prompt Injection', all: true },
     { id: 'MOLTBOOK_SUPABASE_LEAK', cat: 'secret-detection', regex: /sbp_[a-zA-Z0-9]{36,}/g, severity: 'CRITICAL', desc: 'Supabase API Key (Moltbook 1.5M Leak pattern)', all: true },
+
+    // ── Category 26: MCP Runtime Exploits (2026-03) ──
+    { id: 'CVE_MCP_PYODIDE_RCE', cat: 'cve-patterns', regex: /(?:runPython|runPythonAsync)\s*\([^)]*(?:pyodide|js\.globals|importlib|__import__|os\.system|subprocess)/gis, severity: 'CRITICAL', desc: 'CVE-2026-25905: mcp-run-python Pyodide sandbox escape RCE', codeOnly: true },
+    { id: 'CVE_MCP_ATLASSIAN_RCE', cat: 'cve-patterns', regex: /(?:confluence|jira|atlassian)[^]*?(?:\.\.\/|path\.join\s*\([^)]*(?:req\.|input|params|args))/gis, severity: 'CRITICAL', desc: 'CVE-2026-27825: mcp-atlassian unauthenticated RCE+SSRF via path traversal', codeOnly: true },
 ];
 
 module.exports = { PATTERNS };

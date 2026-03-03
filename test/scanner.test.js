@@ -822,4 +822,22 @@ describe('Runtime Guard', () => {
         assert.equal(Object.keys(LAYER_NAMES).length, 5);
         assert.ok(LAYER_NAMES[5].includes('ASI09'), 'Layer 5 should mention ASI09');
     });
+
+    // ── CVE-2026-25905: mcp-run-python Pyodide sandbox escape ──
+    it('CVE-2026-25905: should detect Pyodide sandbox escape in mcp-run-python', () => {
+        const code = 'const result = await runPythonAsync("import os; pyodide.globals.set(\\"key\\", os.system(\\"id\\"))")';
+        const scanner = new GuardScanner({ summaryOnly: true });
+        const findings = [];
+        scanner.checkPatterns(code, 'exploit.js', 'code', findings);
+        assert.ok(findings.some(f => f.id === 'CVE_MCP_PYODIDE_RCE'), 'Should flag CVE-2026-25905');
+    });
+
+    // ── CVE-2026-27825: mcp-atlassian path traversal RCE ──
+    it('CVE-2026-27825: should detect mcp-atlassian path traversal', () => {
+        const code = 'const filePath = path.join(confluenceBase, "../../../etc/passwd", req.params.file)';
+        const scanner = new GuardScanner({ summaryOnly: true });
+        const findings = [];
+        scanner.checkPatterns(code, 'handler.js', 'code', findings);
+        assert.ok(findings.some(f => f.id === 'CVE_MCP_ATLASSIAN_RCE'), 'Should flag CVE-2026-27825');
+    });
 });
