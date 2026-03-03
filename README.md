@@ -34,6 +34,16 @@ guard-scanner ./skills/ --strict --json --sarif --fail-on-findings
 guard-scanner ./skills/ --format sarif --quiet | upload-sarif
 ```
 
+## 🚀 Standalone Boot Sequence (OSS Edition)
+
+**guard-scanner** is designed as the "Shield" of the OpenClaw ecosystem. 
+Unlike comprehensive AI agent brain frameworks, it features a **Standalone Boot Sequence**:
+- **Zero API/DB Dependencies**: It initializes purely from local, static Threat Patterns (144+ regex rules) defined in its codebase.
+- **No Heavy Context Loading**: It does *not* require loading heavy memory databases or executing contextual commands like `guava_session_load`.
+- **Privacy First**: It never accesses or exposes your agent's private memory (`SOUL.md` or `MEMORY.md`) during the boot phase.
+
+This lightweight initialization makes it perfect for zero-trust environments, ensuring complete safety without exposing proprietary agent logic.
+
 ## Options
 
 | Flag | Description |
