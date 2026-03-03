@@ -7,7 +7,7 @@
  * Zero dependencies. MIT License.
  */
 import type { SkillResult, ScannerOptions, ScanStats, Thresholds, JSONReport, SARIFReport } from './types.js';
-export declare const VERSION = "4.0.1";
+export declare const VERSION = "5.0.3";
 export declare class GuardScanner {
     readonly verbose: boolean;
     readonly selfExclude: boolean;

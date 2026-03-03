@@ -23,7 +23,7 @@ import { PATTERNS } from './patterns.js';
 
 // ── Constants ───────────────────────────────────────────────────────────────
 
-export const VERSION = '4.0.1';
+export const VERSION = '5.0.3';
 
 const THRESHOLDS_MAP: Record<string, Thresholds> = {
     normal: { suspicious: 30, malicious: 80 },
