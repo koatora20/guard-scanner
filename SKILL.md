@@ -6,6 +6,11 @@ metadata:
     homepage: "https://github.com/koatora20/guard-scanner"
 requires:
   env: {}
+files:
+  - "dist/*"
+  - "src/*"
+  - "hooks/*"
+  - "openclaw.plugin.json"
 ---
 
 # guard-scanner 🛡️ — The #1 Skill Scanner for AI Agent Security
