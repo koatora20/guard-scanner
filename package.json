@@ -6,19 +6,13 @@
     "openclaw.hooks": {
         "guard-scanner": "./hooks/guard-scanner"
     },
-    "main": "dist/index.js",
-    "types": "dist/index.d.ts",
+    "main": "src/scanner.js",
     "bin": {
-        "guard-scanner": "dist/cli.js"
+        "guard-scanner": "src/cli.js"
     },
     "scripts": {
-        "build": "tsc",
-        "scan": "node dist/cli.js",
-        "scan:dev": "npx ts-node ts-src/cli.ts",
-        "test": "node --test test/*.test.js",
-        "test:ts": "npx ts-node --test test/*.test.ts",
-        "prepublishOnly": "npm run build",
-        "typecheck": "tsc --noEmit"
+        "scan": "node src/cli.js",
+        "test": "node --test test/*.test.js"
     },
     "keywords": [
         "security",
