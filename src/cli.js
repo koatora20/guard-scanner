@@ -34,6 +34,11 @@ const { GuardScanner, VERSION } = require('./scanner.js');
 
 const args = process.argv.slice(2);
 
+if (args.includes('--version') || args.includes('-V')) {
+  console.log(`guard-scanner v${VERSION}`);
+  process.exit(0);
+}
+
 if (args.includes('--help') || args.includes('-h')) {
   console.log(`
 🛡️  guard-scanner v${VERSION} — Agent Skill Security Scanner
@@ -56,6 +61,7 @@ Options:
   --plugin <file>     Load plugin module (JS file exporting { name, patterns })
   --fail-on-findings  Exit code 1 if any findings (CI/CD)
   --help, -h          Show this help
+  --version, -V       Show version
 
 Custom Rules JSON Format:
   [
