@@ -6,7 +6,7 @@ As autonomous AI agents become more prevalent, the risk of executing untrusted o
 
 Built collaboratively by the **[Guava Parity Institute](https://github.com/koatora20)** and the open-source community. We believe that AI safety infrastructure should be a shared, transparent, and accessible resource for everyone. We welcome contributions, feedback, and discussion from all developers!
 
-**147 static patterns + 26 runtime checks** across **23 threat categories**.
+**150 static patterns + 26 runtime checks** across **23 threat categories**.
 
 [![npm](https://img.shields.io/npm/v/guard-scanner)](https://www.npmjs.com/package/guard-scanner)
 [![license](https://img.shields.io/npm/l/guard-scanner)](LICENSE)
@@ -177,7 +177,7 @@ Modes: `monitor` (log only) / `enforce` (block CRITICAL) / `strict` (block HIGH+
 | Risk Score Calculation | 5 ✅ |
 | Verdict Determination | 5 ✅ |
 | Output Formats (JSON/SARIF/HTML) | 4 ✅ |
-| Pattern Database (147 patterns, 23 categories) | 4 ✅ |
+| Pattern Database (150 patterns, 23 categories) | 4 ✅ |
 | IoC Database | 5 ✅ |
 | Shannon Entropy | 2 ✅ |
 | Ignore Functionality | 1 ✅ |
