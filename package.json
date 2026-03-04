@@ -38,10 +38,8 @@
     },
     "homepage": "https://github.com/koatora20/guard-scanner",
     "files": [
-        "dist/",
         "src/",
         "hooks/",
-        "ts-src/",
         "docs/",
         "openclaw.plugin.json",
         "SKILL.md",
