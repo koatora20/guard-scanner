@@ -32,6 +32,7 @@ const fs = require('fs');
 const path = require('path');
 const { GuardScanner, VERSION } = require('./scanner.js');
 const { AssetAuditor, AUDIT_VERSION } = require('./asset-auditor.js');
+const { VTClient } = require('./vt-client.js');
 
 const args = process.argv.slice(2);
 
@@ -78,7 +79,15 @@ Examples:
     process.exit(2);
   }
 
-  const auditor = new AssetAuditor({ verbose, format: formatValue, quiet });
+  const vtScan = args.includes('--vt-scan');
+  let vtClient = null;
+  if (vtScan) {
+    const vtKey = process.env.VT_API_KEY;
+    if (!vtKey) { console.error('❌ --vt-scan requires VT_API_KEY environment variable'); process.exit(2); }
+    vtClient = new VTClient(vtKey, { verbose });
+  }
+
+  const auditor = new AssetAuditor({ verbose, format: formatValue, quiet, vtClient });
 
   (async () => {
     try {

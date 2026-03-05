@@ -15,7 +15,7 @@
 const https = require('https');
 const { execSync } = require('child_process');
 
-const AUDIT_VERSION = '6.0.0';
+const AUDIT_VERSION = '7.0.0';
 
 // ── HTTP helper (no external deps) ─────────────────────────────────
 function httpGet(url, options = {}) {
