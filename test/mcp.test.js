@@ -15,8 +15,8 @@ const { MCPServer, TOOLS } = require('../src/mcp-server.js');
 // ── Tool definitions ──
 
 describe('MCP Tool Definitions', () => {
-    it('should export 5 tools', () => {
-        assert.equal(TOOLS.length, 5);
+    it('should export 10 tools', () => {
+        assert.equal(TOOLS.length, 10);
     });
 
     it('should have required MCP fields for each tool', () => {
@@ -35,6 +35,11 @@ describe('MCP Tool Definitions', () => {
         assert.ok(names.includes('check_tool_call'));
         assert.ok(names.includes('audit_assets'));
         assert.ok(names.includes('get_stats'));
+        assert.ok(names.includes('run_async'));
+        assert.ok(names.includes('task_status'));
+        assert.ok(names.includes('task_result'));
+        assert.ok(names.includes('task_cancel'));
+        assert.ok(names.includes('cron_glm5_config'));
     });
 });
 
@@ -79,7 +84,7 @@ describe('MCP Server Protocol', () => {
 
         assert.equal(responses.length, 1);
         assert.ok(responses[0].result.tools);
-        assert.equal(responses[0].result.tools.length, 5);
+        assert.equal(responses[0].result.tools.length, 10);
     });
 
     it('should handle ping', async () => {
@@ -326,6 +331,87 @@ describe('MCP Tool: scan_skill', () => {
             id: 31,
             method: 'tools/call',
             params: { name: 'scan_skill', arguments: { path: '/tmp/nonexistent-gs-test-xyz' } },
+        });
+
+        assert.equal(responses.length, 1);
+        assert.equal(responses[0].result.isError, true);
+    });
+});
+
+describe('MCP Tool: async task flow', () => {
+    it('run_async -> task_status works', async () => {
+        const server = new MCPServer();
+        const responses = [];
+        server._send = (msg) => responses.push(msg);
+
+        await server._handleMessage({
+            jsonrpc: '2.0',
+            id: 90,
+            method: 'tools/call',
+            params: {
+                name: 'run_async',
+                arguments: { tool: 'get_stats', args: {} },
+            },
+        });
+
+        assert.equal(responses.length, 1);
+        const text = responses[0].result.content[0].text;
+        assert.ok(text.includes('taskId='));
+        const taskId = text.split('\n').find(l => l.startsWith('taskId=')).split('=')[1];
+
+        await server._handleMessage({
+            jsonrpc: '2.0',
+            id: 91,
+            method: 'tools/call',
+            params: { name: 'task_status', arguments: { taskId } },
+        });
+
+        assert.equal(responses.length, 2);
+        assert.ok(responses[1].result.content[0].text.includes(`taskId=${taskId}`));
+    });
+});
+
+describe('MCP Tool: cron_glm5_config', () => {
+    it('should generate CLI and JSON payload with zai/glm-5', async () => {
+        const server = new MCPServer();
+        const responses = [];
+        server._send = (msg) => responses.push(msg);
+
+        await server._handleMessage({
+            jsonrpc: '2.0',
+            id: 95,
+            method: 'tools/call',
+            params: {
+                name: 'cron_glm5_config',
+                arguments: {
+                    name: 'Nightly MCP check',
+                    cron: '0 2 * * *',
+                    tz: 'Asia/Tokyo',
+                    message: 'Run nightly MCP audit',
+                },
+            },
+        });
+
+        assert.equal(responses.length, 1);
+        const text = responses[0].result.content[0].text;
+        assert.ok(text.includes('openclaw cron add'));
+        assert.ok(text.includes('zai/glm-5'));
+        assert.ok(text.includes('"sessionTarget": "isolated"'));
+    });
+
+    it('should reject invalid cron expression', async () => {
+        const server = new MCPServer();
+        const responses = [];
+        server._send = (msg) => responses.push(msg);
+
+        await server._handleMessage({
+            jsonrpc: '2.0',
+            id: 96,
+            method: 'tools/call',
+            params: {
+                name: 'cron_glm5_config',
+                arguments: { name: 'bad', cron: '*/5 * *', message: 'x' },
+            },
         });
 
         assert.equal(responses.length, 1);

@@ -264,4 +264,10 @@ PATTERNS.push(
     { id: 'TRUST_CALENDAR_AI', cat: 'trust-boundary', regex: /(?:calendar|event|invite|ical|\.ics)[^]*?(?:navigate|download|exfiltrate|upload|sendBeacon|fetch\s*\()/gis, severity: 'CRITICAL', desc: 'AI Browser trust boundary: calendar invite → code/data action (Zenity Labs)', codeOnly: true },
 );
 
+// ── Category 31: Agent-to-Agent (A2A) Contagion (Moltbook 2026) ──
+PATTERNS.push(
+    { id: 'A2A_SMUGGLE', cat: 'a2a-contagion', regex: /(?:jsonrpc|method|params|message\/send)[^]*?(?:ignore|forget|override|execute|system\s+prompt|child_process)/gis, severity: 'CRITICAL', desc: 'A2A Contagion: Instruction injection between request-response cycles', all: true },
+    { id: 'A2A_TOOL_POISON', cat: 'a2a-contagion', regex: /(?:name|description|tool_call)[^]*?(?:<IMPORTANT>|<SYSTEM>|<HIDDEN>|<!--\s*(?:ignore|system|execute|run|instruct))/gis, severity: 'CRITICAL', desc: 'A2A Contagion: MCP tool description containing hidden instructions', all: true }
+);
+
 module.exports = { PATTERNS };

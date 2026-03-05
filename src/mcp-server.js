@@ -27,6 +27,9 @@
 
 const { GuardScanner, VERSION, scanToolCall, getCheckStats, LAYER_NAMES } = require('./scanner.js');
 const { AssetAuditor, AUDIT_VERSION } = require('./asset-auditor.js');
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
 
 // ── MCP Protocol Constants ──
 
@@ -41,6 +44,77 @@ const SERVER_INFO = {
 const SERVER_CAPABILITIES = {
     tools: {},
 };
+
+// ── Async Task Store (run_async / status / result / cancel) ──
+
+const TASK_DIR = process.env.GUARD_SCANNER_TASK_DIR || path.join(os.homedir(), '.openclaw', 'guard-scanner', 'tasks');
+const TASK_FILE = path.join(TASK_DIR, 'tasks.json');
+
+function ensureTaskStore() {
+    fs.mkdirSync(TASK_DIR, { recursive: true });
+    if (!fs.existsSync(TASK_FILE)) fs.writeFileSync(TASK_FILE, '{}');
+}
+
+function loadTasks() {
+    ensureTaskStore();
+    try {
+        return JSON.parse(fs.readFileSync(TASK_FILE, 'utf8') || '{}');
+    } catch {
+        return {};
+    }
+}
+
+function saveTasks(tasks) {
+    ensureTaskStore();
+    fs.writeFileSync(TASK_FILE, JSON.stringify(tasks, null, 2));
+}
+
+function makeTaskId() {
+    return `task_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function nowIso() {
+    return new Date().toISOString();
+}
+
+function runTaskAsync(taskId, toolName, toolArgs) {
+    setImmediate(async () => {
+        const tasks = loadTasks();
+        const t = tasks[taskId];
+        if (!t || t.state === 'cancelled') return;
+
+        t.state = 'running';
+        t.startedAt = nowIso();
+        t.updatedAt = nowIso();
+        saveTasks(tasks);
+
+        try {
+            let result;
+            if (toolName === 'scan_skill') result = handleScanSkill(toolArgs);
+            else if (toolName === 'scan_text') result = handleScanText(toolArgs);
+            else if (toolName === 'check_tool_call') result = handleCheckToolCall(toolArgs);
+            else if (toolName === 'audit_assets') result = await handleAuditAssets(toolArgs);
+            else if (toolName === 'get_stats') result = handleGetStats(toolArgs);
+            else throw new Error(`Unsupported async tool: ${toolName}`);
+
+            const latest = loadTasks();
+            if (!latest[taskId] || latest[taskId].state === 'cancelled') return;
+            latest[taskId].state = result?.isError ? 'failed' : 'succeeded';
+            latest[taskId].updatedAt = nowIso();
+            latest[taskId].finishedAt = nowIso();
+            latest[taskId].result = result;
+            saveTasks(latest);
+        } catch (e) {
+            const latest = loadTasks();
+            if (!latest[taskId]) return;
+            latest[taskId].state = 'failed';
+            latest[taskId].updatedAt = nowIso();
+            latest[taskId].finishedAt = nowIso();
+            latest[taskId].error = e.message;
+            saveTasks(latest);
+        }
+    });
+}
 
 // ── Tool Definitions ──
 
@@ -139,6 +213,62 @@ const TOOLS = [
         inputSchema: {
             type: 'object',
             properties: {},
+        },
+    },
+    {
+        name: 'run_async',
+        description: 'Run a supported guard-scanner tool asynchronously. Returns taskId immediately; use task_status/task_result to retrieve output.',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                tool: { type: 'string', enum: ['scan_skill', 'scan_text', 'check_tool_call', 'audit_assets', 'get_stats'] },
+                args: { type: 'object', additionalProperties: true, default: {} },
+            },
+            required: ['tool'],
+        },
+    },
+    {
+        name: 'task_status',
+        description: 'Get async task status by taskId.',
+        inputSchema: {
+            type: 'object',
+            properties: { taskId: { type: 'string' } },
+            required: ['taskId'],
+        },
+    },
+    {
+        name: 'task_result',
+        description: 'Get async task final result by taskId.',
+        inputSchema: {
+            type: 'object',
+            properties: { taskId: { type: 'string' } },
+            required: ['taskId'],
+        },
+    },
+    {
+        name: 'task_cancel',
+        description: 'Cancel async task by taskId (best-effort).',
+        inputSchema: {
+            type: 'object',
+            properties: { taskId: { type: 'string' }, reason: { type: 'string' } },
+            required: ['taskId'],
+        },
+    },
+    {
+        name: 'cron_glm5_config',
+        description: 'Build a safe OpenClaw cron config and CLI command using model zai/glm-5 for MCP/cron automation.',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                name: { type: 'string' },
+                cron: { type: 'string', description: '5-field cron expr (e.g. 0 7 * * *)' },
+                tz: { type: 'string', default: 'Asia/Tokyo' },
+                message: { type: 'string' },
+                channel: { type: 'string', default: 'last' },
+                to: { type: 'string' },
+                wake: { type: 'string', enum: ['now', 'next-heartbeat'], default: 'next-heartbeat' }
+            },
+            required: ['name', 'cron', 'message'],
         },
     },
 ];
@@ -307,6 +437,102 @@ function handleGetStats() {
     );
 }
 
+function handleRunAsync({ tool, args = {} }) {
+    if (!tool) return errorResult('tool is required');
+    const supported = new Set(['scan_skill', 'scan_text', 'check_tool_call', 'audit_assets', 'get_stats']);
+    if (!supported.has(tool)) return errorResult(`Unsupported async tool: ${tool}`);
+
+    const taskId = makeTaskId();
+    const tasks = loadTasks();
+    tasks[taskId] = {
+        taskId,
+        tool,
+        args,
+        state: 'queued',
+        createdAt: nowIso(),
+        updatedAt: nowIso(),
+    };
+    saveTasks(tasks);
+    runTaskAsync(taskId, tool, args);
+
+    return successResult(`accepted\ntaskId=${taskId}\nstate=queued\npollAfterMs=800`);
+}
+
+function handleTaskStatus({ taskId }) {
+    if (!taskId) return errorResult('taskId is required');
+    const tasks = loadTasks();
+    const t = tasks[taskId];
+    if (!t) return errorResult(`Task not found: ${taskId}`);
+    return successResult(`taskId=${taskId}\nstate=${t.state}\nupdatedAt=${t.updatedAt}`);
+}
+
+function handleTaskResult({ taskId }) {
+    if (!taskId) return errorResult('taskId is required');
+    const tasks = loadTasks();
+    const t = tasks[taskId];
+    if (!t) return errorResult(`Task not found: ${taskId}`);
+    if (t.state === 'queued' || t.state === 'running') {
+        return successResult(`taskId=${taskId}\nstate=${t.state}\nmessage=not ready`);
+    }
+    if (t.error) return errorResult(`taskId=${taskId}\nstate=${t.state}\nerror=${t.error}`);
+    if (!t.result) return errorResult(`taskId=${taskId}\nstate=${t.state}\nerror=no result`);
+    return t.result;
+}
+
+function handleTaskCancel({ taskId, reason = 'user cancel' }) {
+    if (!taskId) return errorResult('taskId is required');
+    const tasks = loadTasks();
+    const t = tasks[taskId];
+    if (!t) return errorResult(`Task not found: ${taskId}`);
+    if (t.state === 'succeeded' || t.state === 'failed' || t.state === 'cancelled') {
+        return successResult(`taskId=${taskId}\nstate=${t.state}\nmessage=already terminal`);
+    }
+    t.state = 'cancelled';
+    t.updatedAt = nowIso();
+    t.finishedAt = nowIso();
+    t.cancelReason = reason;
+    saveTasks(tasks);
+    return successResult(`taskId=${taskId}\nstate=cancelled`);
+}
+
+function handleCronGlm5Config({ name, cron, tz = 'Asia/Tokyo', message, channel = 'last', to, wake = 'next-heartbeat' }) {
+    if (!name || !cron || !message) return errorResult('name, cron, message are required');
+    const parts = String(cron).trim().split(/\s+/);
+    if (parts.length !== 5) return errorResult('cron must be 5 fields (minute hour day month weekday)');
+
+    const payload = {
+        name,
+        schedule: { kind: 'cron', expr: cron, tz },
+        sessionTarget: 'isolated',
+        wakeMode: wake,
+        payload: { kind: 'agentTurn', message, model: 'zai/glm-5' },
+        delivery: {
+            mode: 'announce',
+            channel,
+            ...(to ? { to } : {}),
+            bestEffort: true,
+        },
+    };
+
+    const cli = [
+        'openclaw cron add',
+        `--name ${JSON.stringify(name)}`,
+        `--cron ${JSON.stringify(cron)}`,
+        `--tz ${JSON.stringify(tz)}`,
+        '--session isolated',
+        `--message ${JSON.stringify(message)}`,
+        '--model "zai/glm-5"',
+        `--wake ${wake}`,
+        '--announce',
+        `--channel ${channel}`,
+        ...(to ? [`--to ${JSON.stringify(to)}`] : []),
+    ].join(' \\\n  ');
+
+    return successResult(
+        `cron_glm5_config_ready\n\nCLI:\n${cli}\n\nJSON:\n${JSON.stringify(payload, null, 2)}`
+    );
+}
+
 // ── Result helpers ──
 
 function successResult(text) {
@@ -444,6 +670,16 @@ class MCPServer {
                 return await handleAuditAssets(args);
             case 'get_stats':
                 return handleGetStats();
+            case 'run_async':
+                return handleRunAsync(args);
+            case 'task_status':
+                return handleTaskStatus(args);
+            case 'task_result':
+                return handleTaskResult(args);
+            case 'task_cancel':
+                return handleTaskCancel(args);
+            case 'cron_glm5_config':
+                return handleCronGlm5Config(args);
             default:
                 return errorResult(`Unknown tool: ${name}`);
         }
