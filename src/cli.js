@@ -33,12 +33,33 @@ const path = require('path');
 const { GuardScanner, VERSION } = require('./scanner.js');
 const { AssetAuditor, AUDIT_VERSION } = require('./asset-auditor.js');
 const { VTClient } = require('./vt-client.js');
+const { GuardWatcher } = require('./watcher.js');
+const { CIReporter } = require('./ci-reporter.js');
 
 const args = process.argv.slice(2);
 
 if (args.includes('--version') || args.includes('-V')) {
   console.log(`guard-scanner v${VERSION} (audit v${AUDIT_VERSION})`);
   process.exit(0);
+}
+
+// ── watch subcommand ──────────────────────────────────────────
+if (args[0] === 'watch') {
+  const watchDir = args[1] || '.';
+  const verbose = args.includes('--verbose') || args.includes('-v');
+  const strict = args.includes('--strict');
+  const soulLock = args.includes('--soul-lock');
+
+  const watcher = new GuardWatcher({ verbose, strict, soulLock });
+
+  process.on('SIGINT', () => {
+    const stats = watcher.stop();
+    console.log(`\n📊 Session: ${stats.scanCount} scans, ${stats.alertCount} alerts`);
+    process.exit(0);
+  });
+
+  watcher.watch(watchDir);
+  // Keep process alive
 }
 
 // ── audit subcommand ──────────────────────────────────────────

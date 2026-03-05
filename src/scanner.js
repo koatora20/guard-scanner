@@ -31,7 +31,7 @@ const { KNOWN_MALICIOUS } = require('./ioc-db.js');
 const { generateHTML } = require('./html-template.js');
 
 // ===== CONFIGURATION =====
-const VERSION = '7.0.0';
+const VERSION = '8.0.0';
 
 const THRESHOLDS = {
     normal: { suspicious: 30, malicious: 80 },

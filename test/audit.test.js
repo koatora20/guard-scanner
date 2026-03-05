@@ -517,7 +517,7 @@ describe('Asset Audit: Module', () => {
     });
 
     it('should export AUDIT_VERSION', () => {
-        assert.equal(AUDIT_VERSION, '7.0.0');
+        assert.equal(AUDIT_VERSION, '8.0.0');
     });
 
     it('should export ALERT_SEVERITY enum', () => {
