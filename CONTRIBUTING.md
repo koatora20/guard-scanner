@@ -41,7 +41,7 @@ node src/cli.js test/fixtures/ --json --sarif --html --verbose
 
 ### Pull Request Checklist
 
-- [ ] Tests pass (`npm test` — 130+ tests)
+- [ ] Tests pass (`npm test` — 225+ tests)
 - [ ] New patterns have test coverage in `test/scanner.test.js`
 - [ ] No false positives against `test/fixtures/clean-skill/`
 - [ ] Severity level is appropriate (see `docs/THREAT_TAXONOMY.md`)
