@@ -43,6 +43,13 @@ if (args.includes('--version') || args.includes('-V')) {
   process.exit(0);
 }
 
+// ── serve subcommand (MCP server) ────────────────────────────
+if (args[0] === 'serve') {
+  const { startServer } = require('./mcp-server.js');
+  startServer();
+  // Server runs until stdin closes
+}
+
 // ── watch subcommand ──────────────────────────────────────────
 if (args[0] === 'watch') {
   const watchDir = args[1] || '.';
@@ -151,6 +158,7 @@ Examples:
 🛡️  guard-scanner v${VERSION} — Agent Skill Security Scanner
 
 Usage: guard-scanner [scan-dir] [options]
+       guard-scanner serve              Start as MCP server (stdio)
        guard-scanner audit <npm|github|clawhub|all> <username> [options]
 
 Options:
