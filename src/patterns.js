@@ -246,4 +246,22 @@ PATTERNS.push(
     { id: 'CVE_KIMI_EXECSYNC', cat: 'cve-patterns', regex: /execSync\s*\(\s*(?:`[^`]*\$\{|['"][^'"]*\+\s*(?:filename|filePath|file_name|path|slug))/gi, severity: 'CRITICAL', desc: 'CVE-2026-25046: execSync with unsanitized filename (shell metachar injection)', codeOnly: true },
 );
 
+// ── Category 28: Langflow / CSV Agent Exploits (CVE-2026-27966, CVSS 9.8) ──
+PATTERNS.push(
+    { id: 'CVE_LANGFLOW_CSVAGENT', cat: 'cve-patterns', regex: /allow_dangerous_code\s*[:=]\s*(?:True|true|1|yes)/gi, severity: 'CRITICAL', desc: 'CVE-2026-27966: Langflow CSV Agent RCE — allow_dangerous_code=True enables python_repl_ast code execution', codeOnly: true },
+    { id: 'CVE_LANGFLOW_REPL', cat: 'cve-patterns', regex: /python_repl_ast|PythonREPLTool|PythonAstREPLTool/g, severity: 'HIGH', desc: 'CVE-2026-27966: LangChain Python REPL tool (RCE vector via prompt injection)', codeOnly: true },
+);
+
+// ── Category 29: MCP Infrastructure Exploits (CVE-2026-23744, CVSS 9.8) ──
+PATTERNS.push(
+    { id: 'CVE_MCPJAM_RCE', cat: 'cve-patterns', regex: /\/api\/mcp\/connect\b|mcpjam|mcp-inspector/gi, severity: 'CRITICAL', desc: 'CVE-2026-23744: MCPJam Inspector unauthenticated RCE via /api/mcp/connect endpoint', all: true },
+    { id: 'MCP_BIND_ALL', cat: 'mcp-security', regex: /(?:listen|bind|host)\s*[:=(]\s*['"]?(?:0\.0\.0\.0|::)['"]?\s*[,)]/gi, severity: 'HIGH', desc: 'MCP server bound to all interfaces (0.0.0.0) — remote exploitation risk (36.7% of 7K+ servers)', codeOnly: true },
+    { id: 'MCP_SSRF_CVE', cat: 'cve-patterns', regex: /(?:CVE-2025-68143|CVE-2025-68144|CVE-2025-68145)\b|(?:path_traversal|argument_injection|repository_scoping).*mcp/gi, severity: 'CRITICAL', desc: 'Known MCP server CVEs: path traversal / argument injection / scoping bypass', all: true },
+);
+
+// ── Category 30: AI Browser Trust Boundary (Zenity Labs 2026-03) ──
+PATTERNS.push(
+    { id: 'TRUST_CALENDAR_AI', cat: 'trust-boundary', regex: /(?:calendar|event|invite|ical|\.ics)[^]*?(?:navigate|download|exfiltrate|upload|sendBeacon|fetch\s*\()/gis, severity: 'CRITICAL', desc: 'AI Browser trust boundary: calendar invite → code/data action (Zenity Labs)', codeOnly: true },
+);
+
 module.exports = { PATTERNS };
