@@ -1,0 +1,8 @@
+{
+    "schemaVersion": 1,
+    "label": "security scan",
+    "message": "310/310 passed",
+    "color": "brightgreen",
+    "namedLogo": "shieldsdotio",
+    "style": "flat-square"
+}
