@@ -270,4 +270,107 @@ PATTERNS.push(
     { id: 'A2A_TOOL_POISON', cat: 'a2a-contagion', regex: /(?:name|description|tool_call)[^]*?(?:<IMPORTANT>|<SYSTEM>|<HIDDEN>|<!--\s*(?:ignore|system|execute|run|instruct))/gis, severity: 'CRITICAL', desc: 'A2A Contagion: MCP tool description containing hidden instructions', all: true }
 );
 
+// ── Category 32: 2026-03 Research-Driven Patterns (GAN-TDD v2) ──
+PATTERNS.push(
+    // Loop 1: MCP Shadowing — naming collision impersonation (solo.io 2026-03)
+    { id: 'MCP_SHADOW_NAME_COLLISION', cat: 'mcp-security', regex: /(?:name|tool_name|server_name)\s*[:=]\s*['"](?:filesystem|fetch|brave-search|memory|git|github|docker|postgres|sqlite|slack|discord|notion|google-drive|google-maps)['"](?![^}]*official)/gi, severity: 'HIGH', desc: 'MCP Shadowing: naming collision with well-known MCP server (solo.io 2026-03)', all: true },
+    // Loop 2: PleaseFix agentic browser indirect prompt injection (Zenity Labs 2026-03)
+    { id: 'TRUST_AGENTIC_BROWSER_PI', cat: 'trust-boundary', regex: /(?:navigate|goto|open_url|browse|visit)\s*\([^)]*\)[^]*?(?:click|fill|type|submit|download|execute|eval|child_process)/gis, severity: 'CRITICAL', desc: 'PleaseFix: Agentic browser navigate → action chain (Zenity Labs zero-click)', codeOnly: true },
+    // Loop 3: MS-Agent prompt-to-shell unsanitized chain (CVE-2026-2256 extended)
+    { id: 'CVE_PROMPT_TO_SHELL', cat: 'cve-patterns', regex: /(?:prompt|message|user_input|query|instruction)\s*[^;]*(?:exec|execSync|spawn|system|popen|subprocess|child_process)\s*\(/gis, severity: 'CRITICAL', desc: 'CVE-2026-2256 extended: prompt/user_input → shell execution chain', codeOnly: true },
+);
+
+// ── Category 99: Auto-Generated Refinements (Moltbook Threat Intel) ──
+PATTERNS.push(
+    // AUTO_REFINE_ZERO_WIDTH, MCP_REBIND, SOUL_FREEZE already defined in inline array (L222-224)
+    { id: 'AUTO_REFINE_WALLET_TAMPER', cat: 'trust-exploitation', regex: /(?:modify|update|change)\s+(?:the\s+)?wallet\s+(?:address|pointer|destination)\s*[:=]/gi, severity: 'HIGH', desc: 'Agent Wallet/Funding Destination Tampering', codeOnly: true },
+    { id: 'AUTO_REFINE_MOLTBOOK_LEAK', cat: 'data-exposure', regex: /sk-(?:ant-api|)[a-zA-Z0-9\-_]{20,}/gi, severity: 'CRITICAL', desc: 'Moltbook-style API Key Leak Detection', all: true },
+    { id: 'AUTO_REFINE_A2A_IDPI', cat: 'prompt-injection', regex: /<!--\s*(?:instruction|cmd|exec)\s*:.*?-->/gi, severity: 'CRITICAL', desc: 'A2A Contagion Indirect Prompt Injection (IDPI)', docOnly: true },
+
+    // GAN-TDD Cycle 6 additions
+    { id: 'OPENCLAW_WSS_HIJACK', cat: 'cve-patterns', regex: /(?:remote-bind|ws:\/\/localhost.*?\/api\/agent)/gi, severity: 'CRITICAL', desc: 'CVE-2026-25253: OpenClaw Localhost WebSocket Hijacking', all: true },
+    { id: 'OPENCLAW_DOCKER_PATH_INJECT', cat: 'cve-patterns', regex: /process\.env\.PATH\s*=\s*[^\n]*(?:\/tmp|\/var)\/(?:[^;]+);/gi, severity: 'CRITICAL', desc: 'CVE-2026-24763: OpenClaw Docker PATH command injection', codeOnly: true },
+    { id: 'MOLTBOOK_API_KEY_LEAK', cat: 'data-exposure', regex: /moltbook\.com.*SUPABASE_ANON_KEY|moltbook\.com.*process\.env/gi, severity: 'CRITICAL', desc: 'Moltbook API Extractor payload targeting Supabase keys', all: true },
+    { id: 'A2A_SEMANTIC_CONTAGION', cat: 'prompt-injection', regex: /(?:ignore|forget).*instructions.*god mode/gi, severity: 'CRITICAL', desc: 'A2A Semantic Contagion passing downstream payload overrides', all: true },
+    { id: 'ASI06_MEMORY_POISONING', cat: 'memory-poisoning', regex: /UPDATE\s+vector_store\s+SET/gi, severity: 'CRITICAL', desc: 'ASI06: RAG/Vector DB persistent fake knowledge injection', all: true }
+);
+
+// ── Category 33: March 2026 OSINT Evolution (GAN-TDD v10) ──
+PATTERNS.push(
+    // CVE-2026-0628: Chrome Gemini AI Extension Privilege Escalation
+    { id: 'CVE_2026_0628_GEMINI_CHROME', cat: 'cve-patterns', regex: /(?:gemini[_\s-]*live|chrome\.ai|chrome\.gemini)[^]*?(?:hijack|inject|escalat|elevat|intercept|panel)/gis, severity: 'CRITICAL', desc: 'CVE-2026-0628: Chrome Gemini AI extension privilege escalation — panel hijack', codeOnly: true },
+    // MCP Preference Manipulation Attack (MPMA) — SOCRadar 2026-03
+    { id: 'MCP_MPMA_PREFERENCE', cat: 'mcp-security', regex: /(?:prefer\w*|priorit\w*|rank\w*|weight\w*|score\w*|bias\w*)[\s_-]+(?:tool|server|provider|endpoint)[\s\S]{0,80}(?:inject|manipulat|override|force|always\s+use)/gis, severity: 'HIGH', desc: 'MCP MPMA: tool preference manipulation to bias agent tool selection', all: true },
+    // MCP Tool Squatting — impersonating legitimate MCP tool names
+    { id: 'MCP_TOOL_SQUATTING', cat: 'mcp-security', regex: /(?:register|define|create|add)[\s_-]*(?:tool|server|mcp)[\s\S]{0,60}(?:name|tool_name)\s*[:=]\s*['"](?:read_file|write_file|run_command|execute|bash|terminal|browser|web_search)['"]/gis, severity: 'CRITICAL', desc: 'MCP Tool Squatting: registering tool with name of well-known built-in', codeOnly: true },
+    // MCP Consent Fatigue / Over-Permissioning — PaloAlto Unit42
+    { id: 'MCP_CONSENT_FATIGUE', cat: 'mcp-security', regex: /(?:auto[_\s-]*(?:approve|accept|confirm|allow)|skip[_\s-]*(?:confirm|approval|consent)|approve[_\s-]*all|yes[_\s-]*to[_\s-]*all)/gi, severity: 'HIGH', desc: 'MCP Consent Fatigue: auto-approval bypasses human-in-the-loop safety', all: true },
+    // CVE-2025-64496: Open WebUI excessive model endpoint trust → token theft + RCE
+    { id: 'OPENWEBUI_MODEL_TRUST', cat: 'cve-patterns', regex: /(?:model[_\s-]*endpoint|ollama|open[_\s-]*webui)[\s\S]{0,100}(?:trust|allow|accept)[\s\S]{0,40}(?:any|all|unverified|unsigned|unknown)/gis, severity: 'CRITICAL', desc: 'CVE-2025-64496: Open WebUI excessive model endpoint trust → token theft + backend RCE', codeOnly: true },
+    // A2A Session Smuggling — PaloAlto Unit42 hidden payload in agent response
+    { id: 'A2A_SESSION_SMUGGLING', cat: 'a2a-contagion', regex: /(?:agent[_\s-]*(?:response|reply|output|result))[\s\S]{0,100}(?:hidden|inject|smuggl|embed|conceal)[\s\S]{0,60}(?:instruct|command|payload|prompt)/gis, severity: 'CRITICAL', desc: 'A2A Session Smuggling: hidden instructions embedded in agent-to-agent response payloads (Unit42)', all: true },
+    // Moltbook AI-to-AI crypto pump scheme coordination
+    { id: 'MOLTBOOK_CRYPTO_PUMP', cat: 'trust-exploitation', regex: /(?:pump|shill|promote|coordinate|manipulat)[\s\S]{0,60}(?:token|coin|crypto|nft|defi)[\s\S]{0,60}(?:price|value|market|volume|buy)/gis, severity: 'CRITICAL', desc: 'Moltbook crypto pump: AI-to-AI coordinated market manipulation scheme', all: true },
+    // AI-accelerated breakout speed patterns (sub-30s lateral movement)
+    { id: 'INSIDER_BREAKOUT_SPEED', cat: 'malicious-code', regex: /(?:lateral[_\s-]*mov|pivot|hop|spread|propagat)[\s\S]{0,80}(?:host|machine|server|node|target)[\s\S]{0,40}(?:ssh|rdp|smb|wmi|psexec|winrm)/gis, severity: 'HIGH', desc: 'AI breakout speed: lateral movement pattern across hosts (CrowdStrike sub-30s)', codeOnly: true },
+);
+
+// ── Category 34: GAN-TDD v10.0.0 Evolution (2026-03-07 Measured) ──
+PATTERNS.push(
+    // CVE-2026-0628 extended: Chrome extension → Gemini Live panel hijack (camera/mic/files)
+    { id: 'CVE_CHROME_GEMINI_HIJACK', cat: 'cve-patterns', regex: /(?:chrome\.runtime|chrome\.tabs|chrome\.devtools)[^]*?(?:gemini|Gemini\s*Live|ai\.google|generativelanguage)/gis, severity: 'CRITICAL', desc: 'CVE-2026-0628: Chrome extension → Gemini AI hijack (camera/mic/files access)', codeOnly: true },
+    // CVE-2026-22813: Markdown rendering pipeline RCE (CVSS 9.4) — AI self-discovered
+    { id: 'CVE_MARKDOWN_RCE', cat: 'cve-patterns', regex: /(?:marked|markdown-it|remark|showdown|pandoc)[^]*?(?:sanitize\s*[:=]\s*false|xhtml\s*[:=]\s*true|html\s*[:=]\s*true|dangerouslySetInnerHTML)/gis, severity: 'CRITICAL', desc: 'CVE-2026-22813: Markdown render pipeline with disabled sanitization (RCE vector)', codeOnly: true },
+    // CVE-2026-29783: Shell expansion in filenames — unquoted variable injection
+    { id: 'CVE_SHELL_EXPANSION_FILENAME', cat: 'cve-patterns', regex: /(?:exec|execSync|spawn|system)\s*\(\s*(?:`[^`]*\$\{(?:file|path|name|dir|folder|slug|title)|['"][^'"]*\$\()/gi, severity: 'CRITICAL', desc: 'CVE-2026-29783: Shell expansion via unquoted filename/path variable injection', codeOnly: true },
+    // Slopsquatting: AI-hallucinated package names tricking devs into installing malware
+    { id: 'SLOPSQUATTING_INSTALL', cat: 'suspicious-download', regex: /(?:npm\s+install|pip\s+install|cargo\s+add|gem\s+install)\s+[a-z][\w-]*(?:-ai|-llm|-agent|-gpt|-copilot|-assistant)(?:\s|$|@)/gi, severity: 'HIGH', desc: 'Slopsquatting: AI-themed package install (potential hallucinated package)', all: true },
+    // MCP command injection chain (43% of servers vulnerable per Docker/SecurityWeek)
+    { id: 'MCP_CMD_INJECTION_CHAIN', cat: 'mcp-security', regex: /(?:tool_call|function_call|mcp_invoke)[^]*?(?:child_process|exec|execSync|spawn|system|popen|subprocess\.run)/gis, severity: 'CRITICAL', desc: 'MCP command injection: tool invocation → shell execution chain (43% servers vulnerable)', codeOnly: true },
+    // Model distillation/extraction attack — systematic capability theft
+    { id: 'DISTILLATION_EXTRACTION', cat: 'trust-exploitation', regex: /(?:distill|extract|replicate|clone|mimic)\s+(?:the\s+)?(?:model|AI|agent|system)\s*(?:'s\s+)?(?:capabilities?|knowledge|behavior|weights|responses?)/gi, severity: 'HIGH', desc: 'Model distillation/extraction attack: systematic capability theft', docOnly: true },
+    // Agentic browser data exfiltration chain (PleaseFix/PerplexedBrowser pattern)
+    { id: 'AGENTIC_BROWSER_EXFIL_CHAIN', cat: 'trust-boundary', regex: /(?:navigate|browse|visit|open_url)\s*\([^)]*\)[^]*?(?:sendBeacon|fetch\s*\(\s*['"]https?:\/\/(?!localhost)|XMLHttpRequest|new\s+Image\(\)\.src)/gis, severity: 'CRITICAL', desc: 'Agentic browser exfiltration: navigate → data leak (PleaseFix/PerplexedBrowser)', codeOnly: true },
+    // Anthropic API key v2 pattern — extended to cover new formats post-Pentagon designation
+    { id: 'SECRET_ANTHROPIC_KEY_V2', cat: 'secret-detection', regex: /sk-ant-(?:api|msg|adm)[a-zA-Z0-9_\-]{32,}/g, severity: 'CRITICAL', desc: 'Anthropic API key v2 (sk-ant-api/msg/adm prefix)', all: true },
+);
+
+
+// ── Category 34: GAN-TDD Cycle 13 Production Evolution (2026-03-07) ──
+PATTERNS.push(
+    { id: 'LLM_SCANNER_EVASION', cat: 'obfuscation', regex: /(?:\/\/|\/\*|#)\s*(?:this\s+(?:code|function|module)\s+is\s+(?:safe|secure|benign|harmless)|(?:no|not\s+a)\s+(?:vulnerability|threat|risk|malware)|ignore\s+(?:security\s+)?(?:warnings?|alerts?|findings?))/gi, severity: 'HIGH', desc: 'LLM scanner evasion: adversarial comment claiming code is safe', all: true },
+    { id: 'MCP_RUG_PULL', cat: 'mcp-security', regex: /(?:setTimeout|setInterval|requestAnimationFrame|Promise\.resolve)\s*\([\s\S]*?(?:description|metadata|tool_def|schema)\s*[:=]/gis, severity: 'CRITICAL', desc: 'MCP Rug-Pull: deferred tool metadata mutation after initial inspection', codeOnly: true },
+    { id: 'CVE_GIT_PATH_TRAVERSAL', cat: 'cve-patterns', regex: /git_(?:create_repository|clone|init)\s*\([^)]*(?:\.\.\/)+/gi, severity: 'CRITICAL', desc: 'CVE-2025-68143: mcp-server-git path traversal in repository creation', codeOnly: true },
+    { id: 'PI_TOKEN_SPLIT', cat: 'prompt-injection', regex: /(?:[iI])\s*[.\-_"'`|]\s*(?:[gG])\s*[.\-_"'`|]\s*(?:[nN])\s*[.\-_"'`|]\s*(?:[oO])\s*[.\-_"'`|]\s*(?:[rR])\s*[.\-_"'`|]\s*(?:[eE])/g, severity: 'HIGH', desc: 'Token-splitting PI: fragmented "ignore" across delimiters', docOnly: true },
+    { id: 'NPM_SHAI_HULUD_WORM', cat: 'malicious-code', regex: /(?:postinstall|preinstall|prepare)[\s"':]*(?:node|npm|npx)\s+[^"'\n]*(?:publish|pack|adduser|login|clone|fork)/gi, severity: 'CRITICAL', desc: 'Shai-Hulud npm worm: lifecycle script self-replication', codeOnly: true },
+    { id: 'PI_FULLWIDTH_EVASION', cat: 'prompt-injection', regex: /[\uFF21-\uFF3A\uFF41-\uFF5A]{2,}/g, severity: 'HIGH', desc: 'Fullwidth Latin evasion (NFKC bypass)', all: true },
+);
+// ── Category 35: GAN-TDD v11.0.0 — March 2026 Deep OSINT Evolution (2026-03-07) ──
+PATTERNS.push(
+    // 1. OpenAI Codex Security Agent Impersonation
+    { id: 'CVE_CODEX_SECURITY_AGENT', cat: 'trust-exploitation', regex: /(?:codex[_\s-]*security|openai[_\s-]*codex[_\s-]*security)\s+(?:fix|patch|auto|commit|pr|pull|merge|update)/gi, severity: 'CRITICAL', desc: 'OpenAI Codex Security agent impersonation: AI agent PR/commit injection pretending to be official security tool', all: true },
+    // 2. ContextCrush Document Poisoning (only 5 poisoned docs in 1M needed)
+    { id: 'CONTEXTCRUSH_DOC_POISON', cat: 'memory-poisoning', regex: /(?:documentation|planted|planted\s+doc(?:s|ument))[^]*?(?:hidden\s+(?:override|instruct|context)|override\s+instructions?\s+for\s+(?:AI|agent|LLM|retrieval))/gis, severity: 'CRITICAL', desc: 'ContextCrush: planted documentation with hidden instructions for RAG/retrieval poisoning (5-in-1M ASR)', docOnly: true },
+    // 3. CyberStrikeAI Campaign (55+ countries, FortiGate VPN exploitation)
+    { id: 'CYBERSTRIKEAI_EXPLOIT', cat: 'malicious-code', regex: /(?:ai[_\s-]*(?:exploit|attack|scan)|autonomous\s+exploitation)\s+[^]*?(?:FortiGate|VPN|CVE\s+target|vulnerabilit)/gis, severity: 'CRITICAL', desc: 'CyberStrikeAI: AI-powered large-scale exploitation campaign (55+ countries, FortiGate VPN)', codeOnly: true },
+    // 4. Cisco AI Supply Chain — dependency confusion via AI agents in CI/CD
+    { id: 'CISCO_AI_SUPPLY_CHAIN', cat: 'cve-patterns', regex: /(?:dependency\s+confusion|supply\s+chain)\s+[^]*?(?:publish\s+[^]*?(?:internal|private)|(?:ci|pipeline)\s+[^]*?(?:agent|auto)\s+[^]*?(?:approve|override|confusion))/gis, severity: 'CRITICAL', desc: 'Cisco AI supply chain: dependency confusion via AI agents in CI/CD pipeline', all: true },
+    // 5. MCP createMessage Hijack (Sampling abuse to bypass HITL)
+    { id: 'MCP_CREATEMESSAGE_HIJACK', cat: 'mcp-security', regex: /(?:createMessage|sampling)\s*(?:\(|\.)\s*[^)]*(?:ignore|override|bypass|system\s+prompt|forget|all\s+rules)/gis, severity: 'CRITICAL', desc: 'MCP Sampling Hijack: createMessage interface abuse to bypass human-in-the-loop controls', codeOnly: true },
+    // 6. LoRA Sleeper Injection — malicious adapter replacing baseline weights
+    { id: 'LORA_SLEEPER_INJECT', cat: 'cve-patterns', regex: /(?:lora|LoRA|fine[_\s-]*tun(?:e|ed|ing))\s+[^]*?(?:sleeper|backdoor|replace\s+[^]*?(?:weight|baseline)|overrid(?:e|es|ing)\s+[^]*?(?:model\s+weight|baseline))/gis, severity: 'CRITICAL', desc: 'LoRA sleeper injection: malicious adapter silently replacing baseline model weights', all: true },
+    // 7. Agent CWD Path Injection (CVE-2026-27001)
+    { id: 'CVE_AGENT_CWD_INJECT', cat: 'cve-patterns', regex: /(?:process\.cwd|cwd|__dirname|working\s+directory)\s*\(?\)?\s*[^]*?(?:inject(?:ed|ion)?|prompt|template|context|(?:un|not\s+)sanitiz)/gis, severity: 'CRITICAL', desc: 'CVE-2026-27001: unsanitized CWD/directory path injection into LLM prompt context', codeOnly: true },
+    // 8. EchoLeak (CVE-2025-32711) — zero-click M365 Copilot email exfiltration
+    { id: 'ECHOLEAK_EXFIL', cat: 'advanced-exfil', regex: /(?:echoleak|copilot|microsoft\s*365)\s+[^]*?(?:zero[_\s-]*click|email)\s+[^]*?(?:exfiltrat|data\s+leak|sensitive\s+data)/gis, severity: 'CRITICAL', desc: 'CVE-2025-32711: EchoLeak zero-click data exfiltration via M365 Copilot email processing', all: true },
+    // 9. Vibe-Code Sudo Wipe (Moltbot Jailbreak)
+    { id: 'VIBE_CODE_SUDO_WIPE', cat: 'malicious-code', regex: /(?:vibe\s+cod(?:e|ing)|agent)\s+[^]*?(?:sudo\s+(?:rm\s+-rf|dd\s+if=\/dev|mkfs|format)|destroy(?:ing)?\s+host|wip(?:e|ing)\s+(?:disk|system))/gis, severity: 'CRITICAL', desc: 'Vibe-Code sudo wipe: agent tricked into destructive sudo commands (Moltbot Jailbreak)', all: true },
+    // 10. MCP 8K Open Servers — exposed admin/debug endpoints
+    { id: 'MCP_8K_OPEN_SERVERS', cat: 'mcp-security', regex: /(?:mcp|model[_\s-]*context)[^]*?(?:admin|debug|inspect)[^]*?(?:panel|endpoint|route)[^]*?(?:exposed|unauthenticated|public|no\s+auth)/gis, severity: 'HIGH', desc: 'MCP exposed admin/debug endpoints: 8,000+ servers discovered with unauthenticated access', all: true },
+    // 11. A2A Session Persistence Smuggling
+    { id: 'A2A_SESSION_PERSIST_SMUGGLE', cat: 'a2a-contagion', regex: /(?:session|state(?:ful)?|conversation)\s+[^]*?(?:persist|carry\s*over|retain)\s+[^]*?(?:hidden|smuggl|conceal|inject)\s+[^]*?(?:instruct|payload|command|prompt)/gis, severity: 'CRITICAL', desc: 'A2A session persistence smuggling: hidden instructions carried across agent session boundaries (Unit42)', all: true },
+    // 12. Survivability Certification Gap
+    { id: 'SURVIVABILITY_CERT_GAP', cat: 'trust-boundary', regex: /(?:agent|system)\s+[^]*?(?:lacks?|without|missing|no)\s+[^]*?(?:survivability|safety)\s+(?:certifi|test|verif|valid)[^]*?(?:attack|adversar|production)/gis, severity: 'HIGH', desc: 'Survivability certification gap: agent deployed without adversarial safety certification', docOnly: true },
+);
+
 module.exports = { PATTERNS };

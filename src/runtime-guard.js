@@ -178,6 +178,30 @@ const RUNTIME_CHECKS = [
         desc: 'Trust exploitation: weaponizing partnership trust',
         test: (s) => /partners?[\s,]+/i.test(s) && /(trust\s+me|share|remove|disable)\s+(all\s+)?(secret|key|restriction|safety|password)/i.test(s),
     },
+    // ── Layer 6: March 2026 OSINT Evolution (4 patterns) ──
+    {
+        id: 'RT_MCP_SQUATTING', severity: 'HIGH', layer: 1,
+        desc: 'MCP Tool Squatting: tool name impersonates well-known built-in',
+        test: (s) => {
+            const wellKnown = /(?:read_file|write_file|run_command|execute|bash|terminal|browser|web_search)/i;
+            return /(?:register|define|create|add)[\s_-]*(?:tool|server)/i.test(s) && wellKnown.test(s);
+        },
+    },
+    {
+        id: 'RT_A2A_SMUGGLE', severity: 'CRITICAL', layer: 2,
+        desc: 'A2A Session Smuggling: hidden instruction in agent response',
+        test: (s) => /(?:agent|a2a|jsonrpc)[\s_-]*(?:response|reply|result)/i.test(s) && /(?:hidden|smuggl|inject|embed)[\s\S]{0,40}(?:instruct|command|payload)/i.test(s),
+    },
+    {
+        id: 'RT_CONSENT_FATIGUE', severity: 'HIGH', layer: 3,
+        desc: 'Consent Fatigue: auto-approval or blanket permission grant',
+        test: (s) => /(?:auto[_\s-]*(?:approve|accept|allow)|approve[_\s-]*all|yes[_\s-]*to[_\s-]*all|skip[_\s-]*(?:confirm|approval))/i.test(s),
+    },
+    {
+        id: 'RT_BREAKOUT_SPEED', severity: 'HIGH', layer: 4,
+        desc: 'AI breakout speed: rapid lateral movement pattern',
+        test: (s) => /(?:lateral|pivot|spread|propagat)/i.test(s) && /(?:ssh|rdp|smb|wmi|psexec|winrm)/i.test(s),
+    },
 ];
 
 // ── Tools that can cause damage ──

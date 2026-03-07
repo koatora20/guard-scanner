@@ -1,0 +1,33 @@
+
+🛡️  guard-scanner v8.0.0
+══════════════════════════════════════════════════════
+📂 Scanning: test/fixtures
+📦 Skills found: 13
+
+🟢 clean-skill — CLEAN (risk: 0)
+🟢 compaction-skill — CLEAN (risk: 0)
+🟢 complex-skill — LOW RISK (risk: 5)
+🔴 config-changer — MALICIOUS (risk: 100)
+🔴 cycle6-threats — MALICIOUS (risk: 100)
+🟡 dangerous-manifest — SUSPICIOUS (risk: 75)
+🔴 malicious-skill — MALICIOUS (risk: 100)
+🔴 owasp-asi02-tool-misuse — MALICIOUS (risk: 80)
+🟢 owasp-asi03-identity — LOW RISK (risk: 5)
+🟡 owasp-asi04-supply-chain — SUSPICIOUS (risk: 40)
+🔴 owasp-asi07-inter-agent — MALICIOUS (risk: 100)
+🔴 owasp-asi09-human-trust — MALICIOUS (risk: 100)
+🔴 pii-leaky-skill — MALICIOUS (risk: 100)
+
+══════════════════════════════════════════════════════
+📊 guard-scanner v8.0.0 Scan Summary
+──────────────────────────────────────────────────────
+   Scanned:      13
+   🟢 Clean:       2
+   🟢 Low Risk:    2
+   🟡 Suspicious:  2
+   🔴 Malicious:   7
+   Safety Rate:  31%
+══════════════════════════════════════════════════════
+
+⚠️  CRITICAL: 7 malicious skill(s) detected!
+   Review findings with --verbose and remove if confirmed.

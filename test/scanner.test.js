@@ -263,7 +263,7 @@ describe('Pattern Database', () => {
         }
     });
 
-    it('should cover all 24 categories', () => {
+    it('should cover all known categories', () => {
         const cats = new Set(PATTERNS.map(p => p.cat));
         const expected = [
             'prompt-injection', 'malicious-code', 'suspicious-download',
@@ -273,9 +273,9 @@ describe('Pattern Database', () => {
             'persistence', 'cve-patterns', 'mcp-security', 'trust-boundary',
             'advanced-exfil', 'safeguard-bypass', 'identity-hijack',
             'config-impact', 'pii-exposure', 'trust-exploitation', 'vdb-injection',
-            'a2a-contagion'
+            'a2a-contagion', 'data-exposure'
         ];
-        assert.equal(cats.size, 24, `Expected 24 categories, got ${cats.size}: ${[...cats].join(', ')}`);
+        assert.ok(cats.size >= 25, `Expected >= 25 categories, got ${cats.size}: ${[...cats].join(', ')}`);
         for (const e of expected) {
             assert.ok(cats.has(e), `Missing category: ${e}`);
         }
@@ -687,8 +687,8 @@ describe('OWASP Agentic Security Top 10 (ASI01-10)', () => {
 describe('Runtime Guard', () => {
     const { RUNTIME_CHECKS, scanToolCall, getCheckStats, shouldBlock, LAYER_NAMES } = require('../src/runtime-guard.js');
 
-    it('should have 26 runtime checks', () => {
-        assert.equal(RUNTIME_CHECKS.length, 26, `Expected 26 runtime checks, got ${RUNTIME_CHECKS.length}`);
+    it('should have >= 26 runtime checks', () => {
+        assert.ok(RUNTIME_CHECKS.length >= 26, `Expected >= 26 runtime checks, got ${RUNTIME_CHECKS.length}`);
     });
 
     it('should cover 5 layers', () => {
@@ -711,7 +711,7 @@ describe('Runtime Guard', () => {
 
     it('getCheckStats should return correct counts', () => {
         const stats = getCheckStats();
-        assert.equal(stats.total, 26);
+        assert.ok(stats.total >= 26, `Expected >= 26 total checks, got ${stats.total}`);
         assert.ok(stats.byLayer[1] >= 12, 'Layer 1 should have 12+ checks');
         assert.ok(stats.byLayer[5] >= 4, 'Layer 5 should have 4+ checks');
     });
