@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * guard-scanner MCP Server — Zero-dependency stdio JSON-RPC 2.0
+ * guard-scanner MCP Server — Lightweight stdio JSON-RPC 2.0
  *
  * @security-manifest
  *   env-read: [VT_API_KEY (optional, for audit vt-scan)]
@@ -15,7 +15,7 @@
  * Implements: initialize, tools/list, tools/call, notifications
  *
  * Tools:
- *   scan_skill      — Scan a directory for security threats (166 patterns)
+ *   scan_skill      — Scan a directory for security threats
  *   scan_text       — Scan a code/text snippet inline
  *   check_tool_call — Runtime check before a tool call (26 checks, 5 layers)
  *   audit_assets    — Audit npm/GitHub/ClawHub assets for exposure
@@ -30,6 +30,7 @@ const { AssetAuditor, AUDIT_VERSION } = require('./asset-auditor.js');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const CAPABILITIES = require('../docs/spec/capabilities.json');
 
 // ── MCP Protocol Constants ──
 
@@ -44,6 +45,8 @@ const SERVER_INFO = {
 const SERVER_CAPABILITIES = {
     tools: {},
 };
+
+const STATIC_SUMMARY = `${CAPABILITIES.static_pattern_count} threat patterns across ${CAPABILITIES.threat_category_count} categories`;
 
 // ── Async Task Store (run_async / status / result / cancel) ──
 
@@ -121,7 +124,7 @@ function runTaskAsync(taskId, toolName, toolArgs) {
 const TOOLS = [
     {
         name: 'scan_skill',
-        description: 'Scan a directory for agent security threats. Detects prompt injection, data exfiltration, credential theft, reverse shells, and 166+ threat patterns across 23 categories. Returns risk score, verdict, and detailed findings.',
+        description: `Scan a directory for agent security threats. Detects prompt injection, data exfiltration, credential theft, reverse shells, and ${STATIC_SUMMARY}. Returns risk score, verdict, and detailed findings.`,
         inputSchema: {
             type: 'object',
             properties: {
@@ -416,7 +419,7 @@ function handleGetStats() {
     return successResult(
         `🛡️ guard-scanner v${VERSION}\n\n` +
         `Static Analysis:\n` +
-        `  • 166 threat patterns across 23 categories\n` +
+        `  • ${STATIC_SUMMARY}\n` +
         `  • Entropy-based secret detection\n` +
         `  • Data flow analysis (JS)\n` +
         `  • Cross-file reference checking\n` +

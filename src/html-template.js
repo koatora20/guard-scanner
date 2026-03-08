@@ -1,7 +1,7 @@
 /**
  * guard-scanner — HTML Report Template
  * Dark Glassmorphism + Conic-gradient Risk Gauges
- * Zero dependencies. Pure CSS animations.
+ * Lightweight HTML report template. Pure CSS animations.
  */
 
 'use strict';
@@ -229,7 +229,7 @@ ${total > 0 ? `<div class="ag">
 </div>
 
 <div class="ft">
-  guard-scanner v${version} &mdash; Zero dependencies. Zero compromises. 🛡️<br>
+  guard-scanner v${version} &mdash; Lightweight runtime footprint (1 dependency: ws). 🛡️<br>
   Built by <a href="https://github.com/koatora20">Guava 🍈 &amp; Dee</a>
 </div>
 </div>

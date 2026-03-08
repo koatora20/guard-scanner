@@ -33,6 +33,7 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const { normalizeFinding } = require('./finding-schema.js');
 
 // ── Runtime threat patterns (26 checks, 5 layers) ──
 
@@ -275,14 +276,29 @@ function scanToolCall(toolName, params, options = {}) {
         if (!check.test(serialized)) continue;
 
         const action = shouldBlock(check.severity, mode) ? 'blocked' : 'warned';
+        const paramsPreview = serialized.length > 200 ? `${serialized.slice(0, 200)}…` : serialized;
 
-        const detection = {
+        const detection = normalizeFinding({
             id: check.id,
+            category: LAYER_CATEGORIES[check.layer] || 'runtime-guard',
             severity: check.severity,
             layer: check.layer,
             desc: check.desc,
             action,
-        };
+            rationale: check.rationale || `Runtime guard matched ${check.desc.toLowerCase()} before the tool call executed.`,
+            preconditions: check.preconditions || 'The tool call arguments must reach the runtime enforcement hook with attacker-controlled or unsafe content.',
+            false_positive_scenarios: check.falsePositiveScenarios || [
+                'The arguments are part of a security test, audit note, or documentation sample and are not actually executed.',
+                'The command is legitimate but still requires explicit human review before execution.',
+            ],
+            remediation_hint: check.remediationHint || 'Review the tool arguments, remove the unsafe construct, and rerun only after an allowlisted human review.',
+        }, {
+            source: 'runtime',
+            toolName,
+            paramsPreview,
+            layer_name: LAYER_NAMES[check.layer],
+            ruleMetadata: check,
+        });
 
         result.detections.push(detection);
 
@@ -330,6 +346,14 @@ const LAYER_NAMES = {
     3: 'Safety Judge',
     4: 'Brain / Behavioral',
     5: 'Trust Exploitation (ASI09)',
+};
+
+const LAYER_CATEGORIES = {
+    1: 'threat-detection',
+    2: 'trust-defense',
+    3: 'safety-judge',
+    4: 'behavioral-guard',
+    5: 'trust-exploitation',
 };
 
 module.exports = {

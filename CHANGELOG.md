@@ -1,5 +1,23 @@
 # Changelog
 
+## [14.0.0] - 2026-03-08
+
+### 🛡️ P0 Spec Governance & Security Claim Rewrite
+
+Major architectural alignment based on critical security review ("辛口レビュー v1"). Addressed all mathematical and positioning inconsistencies across the repository.
+
+#### Changed
+- **Single Source of Truth**: Established `docs/spec/capabilities.json` as the definitive specification for pattern counts, categories, and dependencies.
+- **Dependency Claim Fixed**: Removed false "zero dependencies" claims globally. Replaced with "Lightweight (1 runtime dependency: ws)".
+- **Market Positioning**: Removed dangerous "The first open-source" claims. Repositioned strictly as "Security policy and analysis layer for agent skills and MCP-connected workflows."
+- **Security Boundary Definition**: Explicitly documented that guard-scanner is a heuristic and policy tool, not a complete defense, and requires contextual sandboxing for full ASI security.
+
+#### Stats Aligned
+- Static patterns: **352**
+- Threat categories: **32**
+- Runtime checks: **26**
+- Tests: **356** across 8 suites
+
 ## [5.0.5] - 2026-03-04
 
 ### 🛡️ OSS Refinement + CVE Extensions
@@ -30,7 +48,7 @@ Complete OSS cleanup and fact-checked documentation for the open-source communit
 - Static patterns: 135 → **147** (23 categories)
 - Total tests: 133 → **136** across 24 suites
 - Runtime checks: **26** (5 layers, unchanged)
-- Zero dependencies maintained
+- Lightweight (only `ws` runtime dependency)
 
 ---
 

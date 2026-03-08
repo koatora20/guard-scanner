@@ -2,15 +2,7 @@
 name: guard-scanner
 description: "Security scanner and runtime guard for AI agent skills. 352 static threat patterns across 32 categories + 26 runtime checks (5 defense layers). Use when scanning skill directories for security threats, auditing npm/GitHub/ClawHub assets for leaked credentials, running real-time file watch during development, integrating security checks into CI/CD pipelines (SARIF/JSON), setting up MCP server for editor-integrated scanning (Cursor, Windsurf, Claude Code, OpenClaw), or runtime guarding tool calls via before_tool_call hook. Single dependency (ws). MIT licensed."
 license: MIT
-prerequisites:
-  - type: binary
-    name: node
-    check: node --version
-    hint: "Install Node.js >= 22: https://nodejs.org"
-  - type: env
-    name: VT_API_KEY
-    check: test -n "$VT_API_KEY"
-    hint: "Optional. Get free key at https://www.virustotal.com for double-layered defense."
+metadata: {"openclaw": {"requires": {"bins": ["node"]}}}
 ---
 
 # guard-scanner

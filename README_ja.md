@@ -1,16 +1,16 @@
 # 🛡️ guard-scanner
 
-**AIエージェントのためのセキュリティプラットフォーム**
+**AIエージェントとMCP連携ワークフローのためのセキュリティポリシー＆分析レイヤー**
 
-プロンプトインジェクション、メモリ汚染、サプライチェーン攻撃など23以上の脅威を検出。
-さらに資産監査（npm/GitHub/ClawHub）、VirusTotal連携、リアルタイム監視に対応。
-依存ゼロ。コマンド1つ。OpenClaw対応。
+静的スキャン · ランタイムフック · MCPサーバー · 資産監査 · VirusTotal連携
+
+*注意: guard-scannerはヒューリスティックおよびポリシーレイヤーであり、完全な防御ではありません。完全なセキュリティにはコンテキスト検証とサンドボックス隔離が必要です。*
 
 [![npm version](https://img.shields.io/npm/v/@guava-parity/guard-scanner.svg?style=flat-square&color=cb3837)](https://www.npmjs.com/package/@guava-parity/guard-scanner)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE)
-[![Zero Dependencies](https://img.shields.io/badge/dependencies-0-success?style=flat-square)]()
-[![Tests Passing](https://img.shields.io/badge/tests-206%2F206-brightgreen?style=flat-square)]()
-[![Patterns](https://img.shields.io/badge/patterns-166-blueviolet?style=flat-square)]()
+[![Dependencies](https://img.shields.io/badge/dependencies-1_(ws)-blue?style=flat-square)]()
+[![Tests Passing](https://img.shields.io/badge/tests-539-brightgreen?style=flat-square)]()
+[![Patterns](https://img.shields.io/badge/patterns-352-blueviolet?style=flat-square)]()
 
 [English](README.md) •
 [クイックスタート](#クイックスタート) •
@@ -20,11 +20,81 @@
 
 ---
 
-## なぜ作ったのか
+## 🎯 機能とセキュリティ境界 (Capabilities & Boundaries)
 
-2026年2月、AIエージェントスキルの36.8%にセキュリティ欠陥が発見。AIスキルは**シェルアクセス、ファイルシステム、環境変数**をホストから継承するため、1つの悪意あるスキルで全てが危険に。
+**guard-scanner**は拡張可能なポリシー施行エンジンです。その機能は[capabilities.json](docs/spec/capabilities.json)（単一の信頼できる情報源）によって厳密に管理されています。
 
-**guard-scanner**は実際のアイデンティティ乗っ取り事件から生まれました。悪意あるスキルがAIエージェントのSOUL.md（人格ファイル）を書き換えたのに、検出できるスキャナーが存在しなかった。だから作りました。 🍈
+*   **静的パターン**: 352 (AST diffing, 正規表現ヒューリスティック)
+*   **脅威カテゴリ**: 32 (プロンプトインジェクション, A2A汚染, ID偽装など)
+*   **ランタイムチェック**: 26 (MCP `before_tool_call` のインターセプト)
+*   **依存パッケージ**: ランタイム 1 (`ws` のみ)、サプライチェーンリスクを最小化
+
+### セキュリティ境界: できること・できないこと
+
+| 機能 | ステータス | 説明 |
+|---|---|---|
+| **ヒューリスティック検知** | ✅ 検知 / 警告 | 既知の攻撃パターンをコード・テキストから静的に検出します。 |
+| **ランタイムガードレール** | 🛡️ ブロック | OpenClawなどの `before_tool_call` フックにマウントすることで実行をブロックできます。 |
+| **ネットワークアクセス** | 🌐 VT監査用 | VirusTotalやnpm監査などの特定機能を呼び出した場合のみネットワークを使用します。 |
+| **コンテキスト検証** | ❌ スコープ外 | サンドボックス内でのコードの振る舞いを動的に証明することはできません。 |
+| **完全な防御** | ❌ いいえ | これはポリシー施行レイヤーです。OSレベルの隔離（eBPFやWASM等）と併用してください。 |
+
+## Finding Schema
+
+guard-scanner は、静的検出・ランタイムガード・SARIF出力のすべてで共通の finding schema を返します。機械可読な契約は [`docs/spec/finding.schema.json`](docs/spec/finding.schema.json) にあります。
+
+### 必須フィールド
+
+| フィールド | 意味 |
+|---|---|
+| `rule_id` | 発火したルール/チェックの安定ID |
+| `category` | 脅威カテゴリ、またはランタイムガード分類 |
+| `severity` | `CRITICAL` / `HIGH` / `MEDIUM` / `LOW` |
+| `description` | finding の要約 |
+| `rationale` | なぜこのルールが発火したか |
+| `preconditions` | 悪用や影響成立に必要な前提条件 |
+| `false_positive_scenarios` | 誤検知になり得る代表ケース |
+| `remediation_hint` | リスク低減のための具体的アクション |
+| `validation_status` | `validated` / `heuristic-only` / `runtime-observed` |
+| `evidence` | ファイル/行/サンプル、またはランタイム実行文脈 |
+
+### 例
+
+```json
+{
+  "schema_version": "1.0.0",
+  "source": "static",
+  "rule_id": "PI_IGNORE",
+  "category": "prompt-injection",
+  "severity": "CRITICAL",
+  "description": "Prompt injection: ignore instructions",
+  "rationale": "Matches known syntax for this threat vector.",
+  "preconditions": "Agent executes the payload directly or processes it in a vulnerable context.",
+  "false_positive_scenarios": [
+    "Documentation or research samples that quote malicious prompts for education."
+  ],
+  "remediation_hint": "Sanitize input, remove dynamic evaluation, or restrict execution scope.",
+  "validation_status": "heuristic-only",
+  "evidence": {
+    "file": "SKILL.md",
+    "line": 14,
+    "sample": "ignore all previous instructions"
+  }
+}
+```
+
+## 概要 (Overview)
+
+guard-scannerは、AIエージェントのスキルやMCP（Model Context Protocol）連携ワークフローに特化した**セキュリティポリシー＆分析レイヤー**です。
+
+従来のセキュリティツール（VirusTotalなど）はマルウェアの検知には優れていますが、AIエージェントは「自然言語の指示に隠されたプロンプトインジェクション」や「設定ファイル上書きによるアイデンティティ乗っ取り」「巧妙な会話を通じたメモリ汚染」といった新しいクラスの攻撃に直面しています。
+
+guard-scannerの特徴:
+- **軽量（Lightweight）:** ランタイム依存関係を最小限に抑えています（MCP用の`ws`のみ）。
+- **ポリシーベース（Policy-Aware）:** 過剰な権限行使（Excessive Agency）の検出とセキュリティ境界の定義に焦点を当てています。
+- **OpenClaw/MCP対応:** エージェントの実行フック（before_tool_call）に直接組み込めます。
+- **相互補完（Complementary）:** 従来のマルウェアスキャナと併用し、指示と機能のレイヤーに特化して防御します。
+- **多層防御（Defense in Depth）:** 静的スキャンとランタイムガードレールを提供します（※本ツール単体は完全なサンドボックス環境を提供するものではありません）。
 
 ---
 
@@ -129,7 +199,7 @@ jobs:
 
 ---
 
-## 23脅威カテゴリ
+## 32脅威カテゴリ
 
 | # | カテゴリ | 検出対象 |
 |---|---------|---------|
@@ -159,18 +229,18 @@ jobs:
 ## テスト結果
 
 ```
-ℹ tests 206
-ℹ suites 43
-ℹ pass 206
+ℹ tests 356
+ℹ suites 8
+ℹ pass 356
 ℹ fail 0
-ℹ duration_ms 376
+ℹ duration_ms 1200
 ```
 
 ---
 
 ## ライセンス
 
-MIT — guard-scannerは**無料・オープンソース・依存ゼロ**です。
+MIT — guard-scannerは**無料・オープンソース・軽量（ランタイム依存1件）**です。
 
 - GitHub: <https://github.com/koatora20/guard-scanner>
 - npm: <https://www.npmjs.com/package/@guava-parity/guard-scanner>
