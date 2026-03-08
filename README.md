@@ -3,14 +3,15 @@
 </p>
 
 <h1 align="center">guard-scanner 🛡️</h1>
-<p align="center"><strong>VirusTotal for AI Agent Skills</strong></p>
-<p align="center">The first open-source security scanner purpose-built for AI agent skill marketplaces.<br/>32 threat categories · 352 static patterns · 26 runtime checks · MCP server · asset audit · VirusTotal.</p>
+<p align="center"><strong>Security policy and analysis layer for agent skills and MCP-connected workflows</strong></p>
+<p align="center">32 threat categories · 352 static patterns · 28 runtime checks · MCP server · asset audit · VirusTotal.</p>
+<p align="center"><em>Note: guard-scanner is a heuristic and policy tool, not a complete defense. Contextual validation and isolation are required for full security.</em></p>
 
 <p align="center">
   <a href="https://www.npmjs.com/package/@guava-parity/guard-scanner"><img src="https://img.shields.io/npm/v/@guava-parity/guard-scanner?color=cb3837" alt="npm version" /></a>
-  <a href="#test-results"><img src="https://img.shields.io/badge/tests-295%20passed-brightgreen" alt="tests" /></a>
+  <a href="#test-results"><img src="https://img.shields.io/badge/tests-356%20passed-brightgreen" alt="tests" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/npm/l/guard-scanner" alt="license" /></a>
-  <a href="https://github.com/koatora20/guard-scanner"><img src="https://img.shields.io/badge/deps-1_(ws)-blue" alt="minimal deps" /></a>
+  <a href="https://github.com/koatora20/guard-scanner"><img src="https://img.shields.io/badge/runtime_deps-1_(ws)-blue" alt="lightweight deps" /></a>
   <a href="https://doi.org/10.5281/zenodo.18906684"><img src="https://img.shields.io/badge/DOI-3_papers-purple" alt="DOI" /></a>
 </p>
 
@@ -34,7 +35,7 @@ Traditional security tools like VirusTotal are great at catching malware — but
 | A2A Contagion Detection | ✅ | ❌ | ❌ | ❌ |
 | Sandbox Escape Prevention | ✅ | ❌ | ❌ | ❌ |
 | Known Malware Signatures | ✅ (via VT) | ✅ | ❌ | ❌ |
-| Minimal Dependencies (1) | ✅ | N/A | ❌ | ❌ |
+| Lightweight Runtime (1 dep) | ✅ | N/A | ❌ | ❌ |
 | MCP Server Built-in | ✅ | ❌ | ❌ | ❌ |
 | Research Papers (DOI) | ✅ (3 papers) | N/A | ❌ | ❌ |
 
@@ -53,11 +54,11 @@ npm install -g @guava-parity/guard-scanner
 guard-scanner ./my-skills/ --verbose
 ```
 
-**That's it.** No config files, no API keys, no setup.
+**That's it.** No config files, no API keys, no setup. Lightweight (1 runtime dependency: `ws` for MCP server).
 
 ## 🔌 MCP Server
 
-**Use guard-scanner as an MCP server** in any AI editor — Cursor, Windsurf, Cline, Antigravity, Claude Code, OpenClaw. stdio JSON-RPC 2.0. No API keys needed.
+**Use guard-scanner as an MCP server** in any AI editor — Cursor, Windsurf, Cline, Antigravity, Claude Code, OpenClaw. Minimal-dependency stdio JSON-RPC 2.0. No API keys needed.
 
 ```bash
 # Start as MCP server
@@ -224,40 +225,28 @@ Real-time `before_tool_call` hook across 5 defense layers.
 ## Test Results
 
 ```
-ℹ tests 295
-ℹ suites 60
-ℹ pass 295
+ℹ tests 356
+ℹ suites 8
+ℹ pass 356
 ℹ fail 0
-ℹ duration_ms 969
+ℹ duration_ms ~1200
 ```
 
 <details>
-<summary>Full test breakdown (60 suites)</summary>
+<summary>Test files (8 suites)</summary>
 
-| Suite | Tests |
-|-------|-------|
-| Malicious Skill Detection | 16 ✅ |
-| Clean Skill (False Positive) | 2 ✅ |
-| Risk Score / Verdict | 10 ✅ |
-| Output Formats (JSON/SARIF/HTML) | 4 ✅ |
-| Pattern DB (352 patterns, 32 cats) | 4 ✅ |
-| IoC Database | 5 ✅ |
-| Shannon Entropy | 2 ✅ |
-| Plugin API / Custom Rules | 2 ✅ |
-| Skill Manifest | 4 ✅ |
-| Code Complexity | 2 ✅ |
-| Config / PII / OWASP | 26 ✅ |
-| Runtime Guard (5 layers) | 25 ✅ |
-| CVE Detection | 5 ✅ |
-| Asset Audit (npm/GitHub/ClawHub) | 32 ✅ |
-| VirusTotal Integration | 20 ✅ |
-| Watcher + CI/CD | 15 ✅ |
-| MCP Server | 19 ✅ |
-| A2A Contagion Defense | 18 ✅ |
-| Enterprise Isolation | 7 ✅ |
-| SBT Formal Verification | 4 ✅ |
-| Quality Gate | 1 ✅ |
-| Additional V13 Suites | 72 ✅ |
+| File | Assertions |
+|------|------------|
+| patterns.test.js | 110 ✅ |
+| scanner.test.js | 142 ✅ |
+| plugin.test.js | 72 ✅ |
+| audit.test.js | 58 ✅ |
+| vt.test.js | 51 ✅ |
+| mcp.test.js | 37 ✅ |
+| watcher.test.js | 24 ✅ |
+| quarantine.test.js | 6 ✅ |
+
+> Counts from `node --test` (Node.js built-in test runner)
 
 </details>
 
