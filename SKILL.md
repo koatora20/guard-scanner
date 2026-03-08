@@ -1,6 +1,6 @@
 ---
 name: guard-scanner
-description: "AI agent security platform. 166 static patterns + 26 runtime checks + npm/GitHub/ClawHub asset audit + VirusTotal integration + real-time file watch. Zero dependencies, 0.016ms/scan."
+description: "Security policy and analysis layer for AI agents. 352 static patterns (32 categories) + 28 runtime checks (5 layers) + npm/GitHub/ClawHub asset audit + VirusTotal integration + real-time file watch. Lightweight (1 runtime dependency: ws), 0.016ms/scan."
 metadata:
   clawdbot:
     homepage: "https://github.com/koatora20/guard-scanner"
@@ -16,7 +16,7 @@ files:
 
 # guard-scanner 🛡️
 
-166 static patterns + 26 runtime checks (5 layers), 23 threat categories + asset audit + VirusTotal + real-time watch. Zero deps, MIT licensed.
+352 static patterns + 28 runtime checks (5 layers), 32 threat categories + asset audit + VirusTotal + real-time watch. Lightweight (1 runtime dependency: `ws`), MIT licensed.
 
 ## When To Use
 
@@ -47,7 +47,7 @@ guard-scanner ./skills/ --format sarif --quiet | upload-sarif
 
 ## VirusTotal Integration
 
-guard-scanner combines its own 166 semantic patterns with VirusTotal's 70+ antivirus engines for **Double-Layered Defense**:
+guard-scanner combines its own 352 semantic patterns with VirusTotal's 70+ antivirus engines for **Double-Layered Defense**:
 
 | Layer | Engine | Focus |
 |---|---|---|
@@ -74,18 +74,18 @@ Free tier: 4 req/min, 500/day, 15,500/month. VT is **optional** — guard-scanne
 | `enforce` (default) | Block CRITICAL |
 | `strict` | Block HIGH + CRITICAL |
 
-## 23 Threat Categories
+## 32 Threat Categories
 
-Prompt Injection, Malicious Code, Suspicious Downloads, Credential Handling, Secret Detection, Exfiltration, Unverifiable Deps, Financial Access, Obfuscation, Prerequisites Fraud, Leaky Skills, Memory Poisoning*, Prompt Worm, Persistence, CVE Patterns, MCP Security, Identity Hijacking*, Sandbox Validation, Code Complexity, Config Impact, PII Exposure, Trust Exploitation, VDB Injection.
+Prompt Injection, Malicious Code, Suspicious Downloads, Credential Handling, Secret Detection, Exfiltration, Unverifiable Deps, Financial Access, Obfuscation, Prerequisites Fraud, Leaky Skills, Memory Poisoning\*, Prompt Worm, Persistence, CVE Patterns, MCP Security, Identity Hijacking\*, Sandbox Validation, Code Complexity, Config Impact, PII Exposure, Trust Exploitation, VDB Injection, A2A Contagion, Data Exposure, Sandbox Escape, Agent Protocol, Supply Chain V2, Model Poisoning, Inference Manipulation, Autonomous Risk, API Abuse.
 
 \* = Requires `--soul-lock` flag
 
 ## Security & Privacy
 
-Zero network requests (unless `--vt-scan`). Read-only scanning. No telemetry. No env access. Deterministic. Your VT API key stays local.
+No network requests (unless `--vt-scan`). Read-only scanning. No telemetry. No env access. Deterministic. Your VT API key stays local.
 
 ## Trust
 
-Open source, zero deps, **206 tests / 43 suites** 100% pass. OWASP LLM Top 10 + Agentic Security Top 10 coverage.
+Open source, lightweight (1 runtime dependency `ws` for MCP server), **539 tests / 8 suites** 100% pass. OWASP LLM Top 10 + Agentic Security Top 10 coverage.
 
 MIT — [LICENSE](LICENSE)

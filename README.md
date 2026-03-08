@@ -17,27 +17,16 @@
 
 ---
 
-## Why guard-scanner?
+## Overview
 
-Traditional security tools like VirusTotal are great at catching malware — but they **can't see threats that live in natural language**. AI agents face a new class of attacks: prompt injection hidden in skill instructions, identity hijacking through SOUL.md overwrites, memory poisoning via crafted conversations. guard-scanner catches what others miss.
+guard-scanner is a **security policy and analysis layer** designed for agent skills and MCP-connected workflows. Traditional security tools are great at catching malware, but AI agents face a new class of attacks: prompt injection hidden in skill instructions, identity hijacking through configuration overwrites, and memory poisoning via crafted conversations.
 
-### What guard-scanner catches that others can't
-
-| Threat Class | guard-scanner | VirusTotal | Snyk Agent Scan | Garak (NVIDIA) |
-|---|:---:|:---:|:---:|:---:|
-| Prompt Injection in Skills | ✅ | ❌ | ✅ | ✅ (LLM-level) |
-| Identity Hijacking (SOUL.md) | ✅ | ❌ | ❌ | ❌ |
-| Memory Poisoning | ✅ | ❌ | ❌ | ❌ |
-| Agent-to-Agent Worm | ✅ | ❌ | ❌ | ❌ |
-| Trust Exploitation | ✅ | ❌ | ❌ | ❌ |
-| MCP Tool Poisoning | ✅ | ❌ | ✅ | ❌ |
-| VDB Injection (CVE-2026-26030) | ✅ | ❌ | ❌ | ❌ |
-| A2A Contagion Detection | ✅ | ❌ | ❌ | ❌ |
-| Sandbox Escape Prevention | ✅ | ❌ | ❌ | ❌ |
-| Known Malware Signatures | ✅ (via VT) | ✅ | ❌ | ❌ |
-| Lightweight Runtime (1 dep) | ✅ | N/A | ❌ | ❌ |
-| MCP Server Built-in | ✅ | ❌ | ❌ | ❌ |
-| Research Papers (DOI) | ✅ (3 papers) | N/A | ❌ | ❌ |
+guard-scanner is built to be:
+- **Lightweight:** Minimal runtime dependencies (`ws` only for MCP).
+- **Policy-Aware:** Focuses on detecting excessive agency and defining security boundaries.
+- **OpenClaw/MCP-Friendly:** Plugs directly into agent execution hooks.
+- **Complementary:** Works alongside standard malware scanners by focusing on the instruction and capability layer.
+- **Defense in Depth:** Provides static scanning and runtime guardrails (not a standalone sandbox).
 
 > 📄 **Backed by research**: [The Sanctuary Protocol](https://doi.org/10.5281/zenodo.18906684) — 3-paper series with Zenodo DOIs, CC BY 4.0.
 
