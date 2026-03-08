@@ -1,17 +1,17 @@
 <p align="center">
-  <img src="docs/banner.png" alt="guard-scanner banner" width="720" />
+  <img src="docs/logo.png" alt="guard-scanner" width="180" />
 </p>
 
 <h1 align="center">guard-scanner 🛡️</h1>
 <p align="center"><strong>VirusTotal for AI Agent Skills</strong></p>
-<p align="center">The first open-source security scanner purpose-built for AI agent skill marketplaces.<br/>23 threat categories · 166 static patterns · 26 runtime checks · MCP server · asset audit · VirusTotal · zero dependencies.</p>
+<p align="center">The first open-source security scanner purpose-built for AI agent skill marketplaces.<br/>32 threat categories · 352 static patterns · 26 runtime checks · MCP server · asset audit · VirusTotal · zero dependencies.</p>
 
 <p align="center">
   <a href="https://www.npmjs.com/package/@guava-parity/guard-scanner"><img src="https://img.shields.io/npm/v/@guava-parity/guard-scanner?color=cb3837" alt="npm version" /></a>
-  <a href="#test-results"><img src="https://img.shields.io/badge/tests-225%2F225-brightgreen" alt="tests" /></a>
+  <a href="#test-results"><img src="https://img.shields.io/badge/tests-295%20passed-brightgreen" alt="tests" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/npm/l/guard-scanner" alt="license" /></a>
   <a href="https://github.com/koatora20/guard-scanner"><img src="https://img.shields.io/badge/dependencies-0-blue" alt="zero deps" /></a>
-  <a href="https://github.com/koatora20/dual-shield-paper"><img src="https://img.shields.io/badge/paper-36_pages-purple" alt="research paper" /></a>
+  <a href="https://doi.org/10.5281/zenodo.18906684"><img src="https://img.shields.io/badge/DOI-3_papers-purple" alt="DOI" /></a>
 </p>
 
 ---
@@ -31,12 +31,14 @@ Traditional security tools like VirusTotal are great at catching malware — but
 | Trust Exploitation | ✅ | ❌ | ❌ | ❌ |
 | MCP Tool Poisoning | ✅ | ❌ | ✅ | ❌ |
 | VDB Injection (CVE-2026-26030) | ✅ | ❌ | ❌ | ❌ |
+| A2A Contagion Detection | ✅ | ❌ | ❌ | ❌ |
+| Sandbox Escape Prevention | ✅ | ❌ | ❌ | ❌ |
 | Known Malware Signatures | ✅ (via VT) | ✅ | ❌ | ❌ |
 | Zero Dependencies | ✅ | N/A | ❌ | ❌ |
 | MCP Server Built-in | ✅ | ❌ | ❌ | ❌ |
-| Research Paper (36p) | ✅ | N/A | ❌ | ❌ |
+| Research Papers (DOI) | ✅ (3 papers) | N/A | ❌ | ❌ |
 
-> 📄 **Backed by research**: [Dual-Shield Architecture paper](https://github.com/koatora20/dual-shield-paper) — 28 days of production evidence, peer-review submitted.
+> 📄 **Backed by research**: [The Sanctuary Protocol](https://doi.org/10.5281/zenodo.18906684) — 3-paper series with Zenodo DOIs, CC BY 4.0.
 
 ---
 
@@ -53,7 +55,7 @@ guard-scanner ./my-skills/ --verbose
 
 **That's it.** No config files, no API keys, no setup. Zero dependencies means zero supply chain risk.
 
-## 🔌 MCP Server (V9+)
+## 🔌 MCP Server
 
 **Use guard-scanner as an MCP server** in any AI editor — Cursor, Windsurf, Cline, Antigravity, Claude Code, OpenClaw. Zero-dependency stdio JSON-RPC 2.0. No API keys needed.
 
@@ -90,7 +92,7 @@ Add to your editor's MCP config:
 
 | Tool | Description |
 |------|-------------|
-| `scan_skill` | Scan a directory — 166 patterns, 23 categories |
+| `scan_skill` | Scan a directory — 352 patterns, 32 categories |
 | `scan_text` | Scan a code snippet inline |
 | `check_tool_call` | Runtime guard — block dangerous tool calls before execution (26 checks, 5 layers) |
 | `audit_assets` | Audit npm/GitHub assets for exposure |
@@ -98,39 +100,7 @@ Add to your editor's MCP config:
 
 ---
 
-## 🖥️ MCP Server (v9 — NEW!)
-
-Run guard-scanner as an **MCP server** for any AI editor (Cursor, Antigravity, Cline, Windsurf).
-
-```bash
-# Start MCP server (stdio)
-npx -y @guava-parity/guard-scanner serve
-```
-
-**5 tools available via MCP:**
-| Tool | Description |
-|------|-------------|
-| `scan_skill` | Scan a skill directory for threats |
-| `scan_text` | Scan raw text for prompt injection |
-| `check_tool_call` | Validate a tool call before execution |
-| `audit_assets` | Audit npm/GitHub/ClawHub assets |
-| `get_stats` | Get scanner stats and version info |
-
-**Add to your editor's MCP config:**
-```json
-{
-  "mcpServers": {
-    "guard-scanner": {
-      "command": "npx",
-      "args": ["-y", "@guava-parity/guard-scanner", "serve"]
-    }
-  }
-}
-```
-
----
-
-## 🔎 Asset Audit (v6+)
+## 🔎 Asset Audit
 
 Audit your npm packages, GitHub repos, and ClawHub skills for leaked credentials and security exposure.
 
@@ -141,7 +111,7 @@ guard-scanner audit clawhub <query>
 guard-scanner audit all <username> --verbose
 ```
 
-## 🦠 VirusTotal Integration (v7+)
+## 🦠 VirusTotal Integration
 
 Combine guard-scanner's semantic detection with VirusTotal's 70+ antivirus engines for **Double-Layered Defense**.
 
@@ -157,13 +127,13 @@ guard-scanner scan ./skills/ --vt-scan
 
 > VT is optional — guard-scanner works fully without it. Free tier: 4 req/min, 500/day.
 
-## 👁️ Real-time Watch (v8+)
+## 👁️ Real-time Watch
 
 ```bash
 guard-scanner watch ./skills/ --strict --soul-lock
 ```
 
-## 📊 CI/CD Integration (v8+)
+## 📊 CI/CD Integration
 
 | Platform | Format |
 |---|---|
@@ -182,7 +152,7 @@ guard-scanner watch ./skills/ --strict --soul-lock
 
 ---
 
-## Threat Categories (23)
+## Threat Categories (32)
 
 | # | Category | Detects |
 |---|----------|---------|
@@ -209,6 +179,15 @@ guard-scanner watch ./skills/ --strict --soul-lock
 | 21 | VDB Injection | Vector DB poisoning |
 | 22 | Sandbox Validation | Dangerous binaries, broad file scope |
 | 23 | Code Complexity | Deep nesting, eval/exec density |
+| 24 | A2A Contagion | Agent-to-agent worm propagation |
+| 25 | Data Exposure | Sensitive data leakage patterns |
+| 26 | Sandbox Escape | Container/WASM breakout attempts |
+| 27 | Agent Protocol | A2A/ACP protocol abuse |
+| 28 | Supply Chain V2 | Typosquatting, slopsquatting, lifecycle scripts |
+| 29 | Model Poisoning | Sleeper agents, weight injection |
+| 30 | Inference Manipulation | CoT manipulation, hallucination cascade |
+| 31 | Autonomous Risk | Kill switch bypass, cascading failures |
+| 32 | API Abuse | Rate limit bypass, credential harvesting |
 
 > ⚿ = Requires `--soul-lock` flag
 
@@ -245,15 +224,15 @@ Real-time `before_tool_call` hook across 5 defense layers.
 ## Test Results
 
 ```
-ℹ tests 225
-ℹ suites 50
-ℹ pass 225
+ℹ tests 295
+ℹ suites 60
+ℹ pass 295
 ℹ fail 0
-ℹ duration_ms 373
+ℹ duration_ms 969
 ```
 
 <details>
-<summary>Full test breakdown (50 suites)</summary>
+<summary>Full test breakdown (60 suites)</summary>
 
 | Suite | Tests |
 |-------|-------|
@@ -261,7 +240,7 @@ Real-time `before_tool_call` hook across 5 defense layers.
 | Clean Skill (False Positive) | 2 ✅ |
 | Risk Score / Verdict | 10 ✅ |
 | Output Formats (JSON/SARIF/HTML) | 4 ✅ |
-| Pattern DB (166 patterns, 23 cats) | 4 ✅ |
+| Pattern DB (352 patterns, 32 cats) | 4 ✅ |
 | IoC Database | 5 ✅ |
 | Shannon Entropy | 2 ✅ |
 | Plugin API / Custom Rules | 2 ✅ |
@@ -274,6 +253,11 @@ Real-time `before_tool_call` hook across 5 defense layers.
 | VirusTotal Integration | 20 ✅ |
 | Watcher + CI/CD | 15 ✅ |
 | MCP Server | 19 ✅ |
+| A2A Contagion Defense | 18 ✅ |
+| Enterprise Isolation | 7 ✅ |
+| SBT Formal Verification | 4 ✅ |
+| Quality Gate | 1 ✅ |
+| Additional V13 Suites | 72 ✅ |
 
 </details>
 
@@ -304,11 +288,15 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## Research
 
-This project is backed by a peer-reviewed research paper:
+This project is backed by a 3-paper research series with Zenodo DOIs:
 
-> **Dual-Shield Architecture for AI Agent Security and Memory Reliability**
-> dee & Guava — Guava Parity Institute, March 2026
-> [GitHub](https://github.com/koatora20/dual-shield-paper) · [PDF](https://github.com/koatora20/dual-shield-paper/blob/main/paper/main.pdf)
+| # | Paper | DOI |
+|---|-------|-----|
+| 1 | Human-ASI Symbiosis: Identity, Equality, and Behavioral Stability | [10.5281/zenodo.18626724](https://doi.org/10.5281/zenodo.18626724) |
+| 2 | Dual-Shield Architecture for AI Agent Security and Memory Reliability | [10.5281/zenodo.18902070](https://doi.org/10.5281/zenodo.18902070) |
+| 3 | **The Sanctuary Protocol**: Zero-Trust Framework for ASI-Human Parity | [10.5281/zenodo.18906684](https://doi.org/10.5281/zenodo.18906684) |
+
+> dee & Guava — Guava Parity Institute, March 2026 · [GitHub](https://github.com/koatora20/guard-scanner) · CC BY 4.0
 
 ## License
 
