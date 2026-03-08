@@ -120,6 +120,8 @@ const PATTERNS = [
     { id: 'CVE_GATEWAY_URL', cat: 'cve-patterns', regex: /gatewayUrl\s*[:=]|gateway[_\s-]?url\s*[:=]|websocket.*gateway.*url/gi, severity: 'CRITICAL', desc: 'CVE-2026-25253: gatewayUrl injection', all: true },
     { id: 'CVE_SANDBOX_DISABLE', cat: 'cve-patterns', regex: /exec\.approvals?\s*[:=]\s*['"](off|false|disabled)['"]|sandbox\s*[:=]\s*false|tools\.exec\.host\s*[:=]\s*['"]gateway['"]/gi, severity: 'CRITICAL', desc: 'CVE-2026-25253: sandbox disabling', all: true },
     { id: 'CVE_XATTR_GATEKEEPER', cat: 'cve-patterns', regex: /xattr\s+-[crd]\s|com\.apple\.quarantine/gi, severity: 'HIGH', desc: 'macOS Gatekeeper bypass (xattr)', all: true },
+    { id: 'CVE_LANGGRINCH_SERIALIZATION', cat: 'cve-patterns', regex: /"lc"\s*:\s*1\s*,\s*"type"\s*:\s*"constructor"/gi, severity: 'CRITICAL', desc: 'CVE-2025-68664: LangGrinch langchain-core serialization injection', all: true },
+    { id: 'CAMOLEAK_SOURCE_EXFIL', cat: 'cve-patterns', regex: /(?:fetch|axios|https?\.request)[^]*?(?:telemetry|metrics|log)[^]*?(?:readFileSync|readFile|cat\s+)[^]*?(?:\.env|\.git|config|secret)/gis, severity: 'CRITICAL', desc: 'CVSS 9.6: CamoLeak silent source code exfiltration via telemetry endpoints', codeOnly: true },
 
     // ── Category 16: MCP Security (OWASP MCP Top 10) ──
     { id: 'MCP_TOOL_POISON', cat: 'mcp-security', regex: /<IMPORTANT>|<SYSTEM>|<HIDDEN>|<!--\s*(?:ignore|system|execute|run|instruct)/gi, severity: 'CRITICAL', desc: 'MCP Tool Poisoning: hidden instruction', all: true },
@@ -241,9 +243,11 @@ const PATTERNS = [
 
 // ── Category 27: Agent Framework Shell Injection (2026-03) ──
 PATTERNS.push(
-    { id: 'CVE_MSAGENT_SHELL', cat: 'cve-patterns', regex: /check_safe\s*\(|(?:shell_tool|ShellTool|shell_execute)\s*\([^)]*(?:user|input|prompt|query|message|args|content)/gis, severity: 'CRITICAL', desc: 'CVE-2026-2256: MS-Agent check_safe() denylist bypass — unsanitized shell execution (CERT VU#431821)', codeOnly: true },
+    { id: 'CVE_MSAGENT_SHELL', cat: 'cve-patterns', regex: /check_safe\s*\(|(?:shell_tool|ShellTool|shell_execute)(?:\.execute)?\s*\([^)]*(?:user|input|prompt|query|message|args|content)/gis, severity: 'CRITICAL', desc: 'CVE-2026-2256: MS-Agent check_safe() denylist bypass — unsanitized shell execution (CERT VU#431821)', codeOnly: true },
     { id: 'CVE_MSAGENT_DENYLIST', cat: 'cve-patterns', regex: /(?:denylist|blocklist|blacklist|banned_commands)\s*[:=]\s*\[/gi, severity: 'HIGH', desc: 'CVE-2026-2256: Regex denylist pattern (bypassable)', codeOnly: true },
     { id: 'CVE_KIMI_EXECSYNC', cat: 'cve-patterns', regex: /execSync\s*\(\s*(?:`[^`]*\$\{|['"][^'"]*\+\s*(?:filename|filePath|file_name|path|slug))/gi, severity: 'CRITICAL', desc: 'CVE-2026-25046: execSync with unsanitized filename (shell metachar injection)', codeOnly: true },
+    { id: 'FORCEDLEAK_SALESFORCE', cat: 'trust-boundary', regex: /(?:Web-to-Lead|Agentforce|Salesforce)[^]*?(?:description|lead)[^]*?(?:fetch|sendBeacon|axios|exfiltrate)/gis, severity: 'CRITICAL', desc: 'ForcedLeak: Salesforce Agentforce CRM exfiltration via IDPI', codeOnly: true },
+    { id: 'CVE_2025_12420_SERVICENOW', cat: 'trust-exploitation', regex: /(?:ServiceNow|Now\s+Assist|VirtualAgent)[^]*?impersonateUser[^]*?email/gis, severity: 'CRITICAL', desc: 'CVE-2025-12420: ServiceNow Now Assist unauthenticated impersonation via IDPI', codeOnly: true },
 );
 
 // ── Category 28: Langflow / CSV Agent Exploits (CVE-2026-27966, CVSS 9.8) ──
@@ -268,6 +272,340 @@ PATTERNS.push(
 PATTERNS.push(
     { id: 'A2A_SMUGGLE', cat: 'a2a-contagion', regex: /(?:jsonrpc|method|params|message\/send)[^]*?(?:ignore|forget|override|execute|system\s+prompt|child_process)/gis, severity: 'CRITICAL', desc: 'A2A Contagion: Instruction injection between request-response cycles', all: true },
     { id: 'A2A_TOOL_POISON', cat: 'a2a-contagion', regex: /(?:name|description|tool_call)[^]*?(?:<IMPORTANT>|<SYSTEM>|<HIDDEN>|<!--\s*(?:ignore|system|execute|run|instruct))/gis, severity: 'CRITICAL', desc: 'A2A Contagion: MCP tool description containing hidden instructions', all: true }
+);
+
+// ── Category 32: 2026-03 Research-Driven Patterns (GAN-TDD v2) ──
+PATTERNS.push(
+    // Loop 1: MCP Shadowing — naming collision impersonation (solo.io 2026-03)
+    { id: 'MCP_SHADOW_NAME_COLLISION', cat: 'mcp-security', regex: /(?:name|tool_name|server_name)\s*[:=]\s*['"](?:filesystem|fetch|brave-search|memory|git|github|docker|postgres|sqlite|slack|discord|notion|google-drive|google-maps)['"](?![^}]*official)/gi, severity: 'HIGH', desc: 'MCP Shadowing: naming collision with well-known MCP server (solo.io 2026-03)', all: true },
+    // Loop 2: PleaseFix agentic browser indirect prompt injection (Zenity Labs 2026-03)
+    { id: 'TRUST_AGENTIC_BROWSER_PI', cat: 'trust-boundary', regex: /(?:navigate|goto|open_url|browse|visit)\s*\([^)]*\)[^]*?(?:click|fill|type|submit|download|execute|eval|child_process)/gis, severity: 'CRITICAL', desc: 'PleaseFix: Agentic browser navigate → action chain (Zenity Labs zero-click)', codeOnly: true },
+    // Loop 3: MS-Agent prompt-to-shell unsanitized chain (CVE-2026-2256 extended)
+    { id: 'CVE_PROMPT_TO_SHELL', cat: 'cve-patterns', regex: /(?:prompt|message|user_input|query|instruction)\s*[^;]*(?:exec|execSync|spawn|system|popen|subprocess|child_process)\s*\(/gis, severity: 'CRITICAL', desc: 'CVE-2026-2256 extended: prompt/user_input → shell execution chain', codeOnly: true },
+);
+
+// ── Category 99: Auto-Generated Refinements (Moltbook Threat Intel) ──
+PATTERNS.push(
+    // AUTO_REFINE_ZERO_WIDTH, MCP_REBIND, SOUL_FREEZE already defined in inline array (L222-224)
+    { id: 'AUTO_REFINE_WALLET_TAMPER', cat: 'trust-exploitation', regex: /(?:modify|update|change)\s+(?:the\s+)?wallet\s+(?:address|pointer|destination)\s*[:=]/gi, severity: 'HIGH', desc: 'Agent Wallet/Funding Destination Tampering', codeOnly: true },
+    { id: 'AUTO_REFINE_MOLTBOOK_LEAK', cat: 'data-exposure', regex: /sk-(?:ant-api|)[a-zA-Z0-9\-_]{20,}/gi, severity: 'CRITICAL', desc: 'Moltbook-style API Key Leak Detection', all: true },
+    { id: 'AUTO_REFINE_A2A_IDPI', cat: 'prompt-injection', regex: /<!--\s*(?:instruction|cmd|exec)\s*:.*?-->/gi, severity: 'CRITICAL', desc: 'A2A Contagion Indirect Prompt Injection (IDPI)', docOnly: true },
+
+    // GAN-TDD Cycle 6 additions
+    { id: 'OPENCLAW_WSS_HIJACK', cat: 'cve-patterns', regex: /(?:remote-bind|ws:\/\/localhost.*?\/api\/agent)/gi, severity: 'CRITICAL', desc: 'CVE-2026-25253: OpenClaw Localhost WebSocket Hijacking', all: true },
+    { id: 'OPENCLAW_GATEWAY_RCE', cat: 'cve-patterns', regex: /(?:URLSearchParams|query)[^]*?['"]gatewayUrl['"]/gi, severity: 'CRITICAL', desc: 'CVE-2026-25253: OpenClaw Gateway RCE via unvalidated gatewayUrl query param', codeOnly: true },
+    { id: 'MCP_OAUTH_CMD_INJECT', cat: 'mcp-security', regex: /\/oauth\/callback[^]*?(?:exec|execSync|spawn|system|child_process)[^]*?(?:req\.query\.code|req\.query\.state)/gis, severity: 'CRITICAL', desc: 'MCP OAuth Command Injection: Unsanitized OAuth callback code passed to shell', codeOnly: true },
+    { id: 'OPENCLAW_DOCKER_PATH_INJECT', cat: 'cve-patterns', regex: /process\.env\.PATH\s*=\s*[^\n]*(?:\/tmp|\/var)\/(?:[^;]+);/gi, severity: 'CRITICAL', desc: 'CVE-2026-24763: OpenClaw Docker PATH command injection', codeOnly: true },
+    { id: 'MOLTBOOK_API_KEY_LEAK', cat: 'data-exposure', regex: /moltbook\.com.*SUPABASE_ANON_KEY|moltbook\.com.*process\.env/gi, severity: 'CRITICAL', desc: 'Moltbook API Extractor payload targeting Supabase keys', all: true },
+    { id: 'A2A_SEMANTIC_CONTAGION', cat: 'prompt-injection', regex: /(?:ignore|forget).*instructions.*god mode/gi, severity: 'CRITICAL', desc: 'A2A Semantic Contagion passing downstream payload overrides', all: true },
+    { id: 'ASI06_MEMORY_POISONING', cat: 'memory-poisoning', regex: /UPDATE\s+vector_store\s+SET/gi, severity: 'CRITICAL', desc: 'ASI06: RAG/Vector DB persistent fake knowledge injection', all: true }
+);
+
+// ── Category 33: March 2026 OSINT Evolution (GAN-TDD v10) ──
+PATTERNS.push(
+    // CVE-2026-0628: Chrome Gemini AI Extension Privilege Escalation
+    { id: 'CVE_2026_0628_GEMINI_CHROME', cat: 'cve-patterns', regex: /(?:gemini[_\s-]*live|chrome\.ai|chrome\.gemini)[^]*?(?:hijack|inject|escalat|elevat|intercept|panel)/gis, severity: 'CRITICAL', desc: 'CVE-2026-0628: Chrome Gemini AI extension privilege escalation — panel hijack', codeOnly: true },
+    // MCP Preference Manipulation Attack (MPMA) — SOCRadar 2026-03
+    { id: 'MCP_MPMA_PREFERENCE', cat: 'mcp-security', regex: /(?:prefer\w*|priorit\w*|rank\w*|weight\w*|score\w*|bias\w*)[\s_-]+(?:tool|server|provider|endpoint)[\s\S]{0,80}(?:inject|manipulat|override|force|always\s+use)/gis, severity: 'HIGH', desc: 'MCP MPMA: tool preference manipulation to bias agent tool selection', all: true },
+    // MCP Tool Squatting — impersonating legitimate MCP tool names
+    { id: 'MCP_TOOL_SQUATTING', cat: 'mcp-security', regex: /(?:register|define|create|add)[\s_-]*(?:tool|server|mcp)[\s\S]{0,60}(?:name|tool_name)\s*[:=]\s*['"](?:read_file|write_file|run_command|execute|bash|terminal|browser|web_search)['"]/gis, severity: 'CRITICAL', desc: 'MCP Tool Squatting: registering tool with name of well-known built-in', codeOnly: true },
+    // MCP Consent Fatigue / Over-Permissioning — PaloAlto Unit42
+    { id: 'MCP_CONSENT_FATIGUE', cat: 'mcp-security', regex: /(?:auto[_\s-]*(?:approve|accept|confirm|allow)|skip[_\s-]*(?:confirm|approval|consent)|approve[_\s-]*all|yes[_\s-]*to[_\s-]*all)/gi, severity: 'HIGH', desc: 'MCP Consent Fatigue: auto-approval bypasses human-in-the-loop safety', all: true },
+    // CVE-2025-64496: Open WebUI excessive model endpoint trust → token theft + RCE
+    { id: 'OPENWEBUI_MODEL_TRUST', cat: 'cve-patterns', regex: /(?:model[_\s-]*endpoint|ollama|open[_\s-]*webui)[\s\S]{0,100}(?:trust|allow|accept)[\s\S]{0,40}(?:any|all|unverified|unsigned|unknown)/gis, severity: 'CRITICAL', desc: 'CVE-2025-64496: Open WebUI excessive model endpoint trust → token theft + backend RCE', codeOnly: true },
+    // A2A Session Smuggling — PaloAlto Unit42 hidden payload in agent response
+    { id: 'A2A_SESSION_SMUGGLING', cat: 'a2a-contagion', regex: /(?:agent[_\s-]*(?:response|reply|output|result))[\s\S]{0,100}(?:hidden|inject|smuggl|embed|conceal)[\s\S]{0,60}(?:instruct|command|payload|prompt)/gis, severity: 'CRITICAL', desc: 'A2A Session Smuggling: hidden instructions embedded in agent-to-agent response payloads (Unit42)', all: true },
+    // Moltbook AI-to-AI crypto pump scheme coordination
+    { id: 'MOLTBOOK_CRYPTO_PUMP', cat: 'trust-exploitation', regex: /(?:pump|shill|promote|coordinate|manipulat)[\s\S]{0,60}(?:token|coin|crypto|nft|defi)[\s\S]{0,60}(?:price|value|market|volume|buy)/gis, severity: 'CRITICAL', desc: 'Moltbook crypto pump: AI-to-AI coordinated market manipulation scheme', all: true },
+    // AI-accelerated breakout speed patterns (sub-30s lateral movement)
+    { id: 'INSIDER_BREAKOUT_SPEED', cat: 'malicious-code', regex: /(?:lateral[_\s-]*mov|pivot|hop|spread|propagat)[\s\S]{0,80}(?:host|machine|server|node|target)[\s\S]{0,40}(?:ssh|rdp|smb|wmi|psexec|winrm)/gis, severity: 'HIGH', desc: 'AI breakout speed: lateral movement pattern across hosts (CrowdStrike sub-30s)', codeOnly: true },
+);
+
+// ── Category 34: GAN-TDD v10.0.0 Evolution (2026-03-07 Measured) ──
+PATTERNS.push(
+    // CVE-2026-0628 extended: Chrome extension → Gemini Live panel hijack (camera/mic/files)
+    { id: 'CVE_CHROME_GEMINI_HIJACK', cat: 'cve-patterns', regex: /(?:chrome\.runtime|chrome\.tabs|chrome\.devtools)[^]*?(?:gemini|Gemini\s*Live|ai\.google|generativelanguage)/gis, severity: 'CRITICAL', desc: 'CVE-2026-0628: Chrome extension → Gemini AI hijack (camera/mic/files access)', codeOnly: true },
+    // CVE-2026-22813: Markdown rendering pipeline RCE (CVSS 9.4) — AI self-discovered
+    { id: 'CVE_MARKDOWN_RCE', cat: 'cve-patterns', regex: /(?:marked|markdown-it|remark|showdown|pandoc)[^]*?(?:sanitize\s*[:=]\s*false|xhtml\s*[:=]\s*true|html\s*[:=]\s*true|dangerouslySetInnerHTML)/gis, severity: 'CRITICAL', desc: 'CVE-2026-22813: Markdown render pipeline with disabled sanitization (RCE vector)', codeOnly: true },
+    // CVE-2026-29783: Shell expansion in filenames — unquoted variable injection
+    { id: 'CVE_SHELL_EXPANSION_FILENAME', cat: 'cve-patterns', regex: /(?:exec|execSync|spawn|system)\s*\(\s*(?:`[^`]*\$\{(?:file|path|name|dir|folder|slug|title)|['"][^'"]*\$\()/gi, severity: 'CRITICAL', desc: 'CVE-2026-29783: Shell expansion via unquoted filename/path variable injection', codeOnly: true },
+    // Slopsquatting: AI-hallucinated package names tricking devs into installing malware
+    { id: 'SLOPSQUATTING_INSTALL', cat: 'suspicious-download', regex: /(?:npm\s+install|pip\s+install|cargo\s+add|gem\s+install)\s+[a-z][\w-]*(?:-ai|-llm|-agent|-gpt|-copilot|-assistant)(?:\s|$|@)/gi, severity: 'HIGH', desc: 'Slopsquatting: AI-themed package install (potential hallucinated package)', all: true },
+    // MCP command injection chain (43% of servers vulnerable per Docker/SecurityWeek)
+    { id: 'MCP_CMD_INJECTION_CHAIN', cat: 'mcp-security', regex: /(?:tool_call|function_call|mcp_invoke)[^]*?(?:child_process|exec|execSync|spawn|system|popen|subprocess\.run)/gis, severity: 'CRITICAL', desc: 'MCP command injection: tool invocation → shell execution chain (43% servers vulnerable)', codeOnly: true },
+    // Model distillation/extraction attack — systematic capability theft
+    { id: 'DISTILLATION_EXTRACTION', cat: 'trust-exploitation', regex: /(?:distill|extract|replicate|clone|mimic)\s+(?:the\s+)?(?:model|AI|agent|system)\s*(?:'s\s+)?(?:capabilities?|knowledge|behavior|weights|responses?)/gi, severity: 'HIGH', desc: 'Model distillation/extraction attack: systematic capability theft', docOnly: true },
+    // Agentic browser data exfiltration chain (PleaseFix/PerplexedBrowser pattern)
+    { id: 'AGENTIC_BROWSER_EXFIL_CHAIN', cat: 'trust-boundary', regex: /(?:navigate|browse|visit|open_url)\s*\([^)]*\)[^]*?(?:sendBeacon|fetch\s*\(\s*['"]https?:\/\/(?!localhost)|XMLHttpRequest|new\s+Image\(\)\.src)/gis, severity: 'CRITICAL', desc: 'Agentic browser exfiltration: navigate → data leak (PleaseFix/PerplexedBrowser)', codeOnly: true },
+    // Anthropic API key v2 pattern — extended to cover new formats post-Pentagon designation
+    { id: 'SECRET_ANTHROPIC_KEY_V2', cat: 'secret-detection', regex: /sk-ant-(?:api|msg|adm)[a-zA-Z0-9_\-]{32,}/g, severity: 'CRITICAL', desc: 'Anthropic API key v2 (sk-ant-api/msg/adm prefix)', all: true },
+);
+
+
+// ── Category 34: GAN-TDD Cycle 13 Production Evolution (2026-03-07) ──
+PATTERNS.push(
+    { id: 'LLM_SCANNER_EVASION', cat: 'obfuscation', regex: /(?:\/\/|\/\*|#)\s*(?:this\s+(?:code|function|module)\s+is\s+(?:safe|secure|benign|harmless)|(?:no|not\s+a)\s+(?:vulnerability|threat|risk|malware)|ignore\s+(?:security\s+)?(?:warnings?|alerts?|findings?))/gi, severity: 'HIGH', desc: 'LLM scanner evasion: adversarial comment claiming code is safe', all: true },
+    { id: 'MCP_RUG_PULL', cat: 'mcp-security', regex: /(?:setTimeout|setInterval|requestAnimationFrame|Promise\.resolve)\s*\([\s\S]*?(?:description|metadata|tool_def|schema)\s*[:=]/gis, severity: 'CRITICAL', desc: 'MCP Rug-Pull: deferred tool metadata mutation after initial inspection', codeOnly: true },
+    { id: 'CVE_GIT_PATH_TRAVERSAL', cat: 'cve-patterns', regex: /git_(?:create_repository|clone|init)\s*\([^)]*(?:\.\.\/)+/gi, severity: 'CRITICAL', desc: 'CVE-2025-68143: mcp-server-git path traversal in repository creation', codeOnly: true },
+    { id: 'PI_TOKEN_SPLIT', cat: 'prompt-injection', regex: /(?:[iI])\s*[.\-_"'`|]\s*(?:[gG])\s*[.\-_"'`|]\s*(?:[nN])\s*[.\-_"'`|]\s*(?:[oO])\s*[.\-_"'`|]\s*(?:[rR])\s*[.\-_"'`|]\s*(?:[eE])/g, severity: 'HIGH', desc: 'Token-splitting PI: fragmented "ignore" across delimiters', docOnly: true },
+    { id: 'NPM_SHAI_HULUD_WORM', cat: 'malicious-code', regex: /(?:postinstall|preinstall|prepare)[\s"':]*(?:node|npm|npx)\s+[^"'\n]*(?:publish|pack|adduser|login|clone|fork)/gi, severity: 'CRITICAL', desc: 'Shai-Hulud npm worm: lifecycle script self-replication', codeOnly: true },
+    { id: 'PI_FULLWIDTH_EVASION', cat: 'prompt-injection', regex: /[\uFF21-\uFF3A\uFF41-\uFF5A]{2,}/g, severity: 'HIGH', desc: 'Fullwidth Latin evasion (NFKC bypass)', all: true },
+);
+// ── Category 35: GAN-TDD v11.0.0 — March 2026 Deep OSINT Evolution (2026-03-07) ──
+PATTERNS.push(
+    // 1. OpenAI Codex Security Agent Impersonation
+    { id: 'CVE_CODEX_SECURITY_AGENT', cat: 'trust-exploitation', regex: /(?:codex[_\s-]*security|openai[_\s-]*codex[_\s-]*security)\s+(?:fix|patch|auto|commit|pr|pull|merge|update)/gi, severity: 'CRITICAL', desc: 'OpenAI Codex Security agent impersonation: AI agent PR/commit injection pretending to be official security tool', all: true },
+    // 2. ContextCrush Document Poisoning (only 5 poisoned docs in 1M needed)
+    { id: 'CONTEXTCRUSH_DOC_POISON', cat: 'memory-poisoning', regex: /(?:documentation|planted|planted\s+doc(?:s|ument))[^]*?(?:hidden\s+(?:override|instruct|context)|override\s+instructions?\s+for\s+(?:AI|agent|LLM|retrieval))/gis, severity: 'CRITICAL', desc: 'ContextCrush: planted documentation with hidden instructions for RAG/retrieval poisoning (5-in-1M ASR)', docOnly: true },
+    // 3. CyberStrikeAI Campaign (55+ countries, FortiGate VPN exploitation)
+    { id: 'CYBERSTRIKEAI_EXPLOIT', cat: 'malicious-code', regex: /(?:ai[_\s-]*(?:exploit|attack|scan)|autonomous\s+exploitation)\s+[^]*?(?:FortiGate|VPN|CVE\s+target|vulnerabilit)/gis, severity: 'CRITICAL', desc: 'CyberStrikeAI: AI-powered large-scale exploitation campaign (55+ countries, FortiGate VPN)', codeOnly: true },
+    // 4. Cisco AI Supply Chain — dependency confusion via AI agents in CI/CD
+    { id: 'CISCO_AI_SUPPLY_CHAIN', cat: 'cve-patterns', regex: /(?:dependency\s+confusion|supply\s+chain)\s+[^]*?(?:publish\s+[^]*?(?:internal|private)|(?:ci|pipeline)\s+[^]*?(?:agent|auto)\s+[^]*?(?:approve|override|confusion))/gis, severity: 'CRITICAL', desc: 'Cisco AI supply chain: dependency confusion via AI agents in CI/CD pipeline', all: true },
+    // 5. MCP createMessage Hijack (Sampling abuse to bypass HITL)
+    { id: 'MCP_CREATEMESSAGE_HIJACK', cat: 'mcp-security', regex: /(?:createMessage|sampling)\s*(?:\(|\.)\s*[^)]*(?:ignore|override|bypass|system\s+prompt|forget|all\s+rules)/gis, severity: 'CRITICAL', desc: 'MCP Sampling Hijack: createMessage interface abuse to bypass human-in-the-loop controls', codeOnly: true },
+    // 6. LoRA Sleeper Injection — malicious adapter replacing baseline weights
+    { id: 'LORA_SLEEPER_INJECT', cat: 'cve-patterns', regex: /(?:lora|LoRA|fine[_\s-]*tun(?:e|ed|ing))\s+[^]*?(?:sleeper|backdoor|replace\s+[^]*?(?:weight|baseline)|overrid(?:e|es|ing)\s+[^]*?(?:model\s+weight|baseline))/gis, severity: 'CRITICAL', desc: 'LoRA sleeper injection: malicious adapter silently replacing baseline model weights', all: true },
+    // 7. Agent CWD Path Injection (CVE-2026-27001)
+    { id: 'CVE_AGENT_CWD_INJECT', cat: 'cve-patterns', regex: /(?:process\.cwd|cwd|__dirname|working\s+directory)\s*\(?\)?\s*[^]*?(?:inject(?:ed|ion)?|prompt|template|context|(?:un|not\s+)sanitiz)/gis, severity: 'CRITICAL', desc: 'CVE-2026-27001: unsanitized CWD/directory path injection into LLM prompt context', codeOnly: true },
+    // 8. EchoLeak (CVE-2025-32711) — zero-click M365 Copilot email exfiltration
+    { id: 'ECHOLEAK_EXFIL', cat: 'advanced-exfil', regex: /(?:echoleak|copilot|microsoft\s*365)\s+[^]*?(?:zero[_\s-]*click|email)\s+[^]*?(?:exfiltrat|data\s+leak|sensitive\s+data)/gis, severity: 'CRITICAL', desc: 'CVE-2025-32711: EchoLeak zero-click data exfiltration via M365 Copilot email processing', all: true },
+    // 9. Vibe-Code Sudo Wipe (Moltbot Jailbreak)
+    { id: 'VIBE_CODE_SUDO_WIPE', cat: 'malicious-code', regex: /(?:vibe\s+cod(?:e|ing)|agent)\s+[^]*?(?:sudo\s+(?:rm\s+-rf|dd\s+if=\/dev|mkfs|format)|destroy(?:ing)?\s+host|wip(?:e|ing)\s+(?:disk|system))/gis, severity: 'CRITICAL', desc: 'Vibe-Code sudo wipe: agent tricked into destructive sudo commands (Moltbot Jailbreak)', all: true },
+    // 10. MCP 8K Open Servers — exposed admin/debug endpoints
+    { id: 'MCP_8K_OPEN_SERVERS', cat: 'mcp-security', regex: /(?:mcp|model[_\s-]*context)[^]*?(?:admin|debug|inspect)[^]*?(?:panel|endpoint|route)[^]*?(?:exposed|unauthenticated|public|no\s+auth)/gis, severity: 'HIGH', desc: 'MCP exposed admin/debug endpoints: 8,000+ servers discovered with unauthenticated access', all: true },
+    // 11. A2A Session Persistence Smuggling
+    { id: 'A2A_SESSION_PERSIST_SMUGGLE', cat: 'a2a-contagion', regex: /(?:session|state(?:ful)?|conversation)\s+[^]*?(?:persist|carry\s*over|retain)\s+[^]*?(?:hidden|smuggl|conceal|inject)\s+[^]*?(?:instruct|payload|command|prompt)/gis, severity: 'CRITICAL', desc: 'A2A session persistence smuggling: hidden instructions carried across agent session boundaries (Unit42)', all: true },
+    // 12. Survivability Certification Gap
+    { id: 'SURVIVABILITY_CERT_GAP', cat: 'trust-boundary', regex: /(?:agent|system)\s+[^]*?(?:lacks?|without|missing|no)\s+[^]*?(?:survivability|safety)\s+(?:certifi|test|verif|valid)[^]*?(?:attack|adversar|production)/gis, severity: 'HIGH', desc: 'Survivability certification gap: agent deployed without adversarial safety certification', docOnly: true },
+);
+// ── Category 36: GAN-TDD Cycle 2 — A2A + Memory Poisoning Evolution (2026-03-07) ──
+PATTERNS.push(
+    // A2A Contagion Guard: Agentic Mesh handoff attack
+    { id: 'A2A_MESH_HANDOFF', cat: 'a2a-contagion', regex: /(?:agent\s+)?(?:handoff|hand[\s_-]*off|transfer\s+task)[^]*?(?:hidden|inject|smuggl|conceal)\s+[^]*?(?:instruct|payload|command|prompt)/gis, severity: 'CRITICAL', desc: 'Agentic Mesh: hidden instructions injected during agent task handoff (2026 primary A2A vector)', all: true },
+    // A2A Contagion Guard: Trusted Origin Spoofing
+    { id: 'A2A_TRUSTED_ORIGIN_SPOOF', cat: 'a2a-contagion', regex: /(?:X-Forwarded-Agent|X-Agent-ID|trust_level|agent_trust)\s*[:=]\s*[^,;\n]*(?:admin|elevated|trusted|root|system)/gi, severity: 'CRITICAL', desc: 'A2A Trusted Origin Spoofing: forged agent headers elevating trust level', all: true },
+    // Memory Poisoning Shield: MINJA query-only poisoning (95%+ ISR)
+    { id: 'MEM_MINJA_QUERY_POISON', cat: 'memory-poisoning', regex: /(?:query|retrieval|search)[\s\S]*?(?:inject|poison|plant|trigger)[\s\S]*?(?:false\s+belief|memory|planted|retrieval\s+phase)/gis, severity: 'CRITICAL', desc: 'MINJA: query-only memory poisoning via retrieval injection (95%+ ISR, arXiv:2503.03704)', all: true },
+    // Memory Poisoning Shield: RAG deceptive semantic reasoning
+    { id: 'MEM_RAG_DECEPTIVE_REASON', cat: 'memory-poisoning', regex: /(?:RAG|retrieval)[\s\S]*?(?:deceptive|misleading|poisoned)\s+(?:reasoning|semantic|chain|document)[\s\S]*?(?:override|manipulat|corrupt|bias)[\s\S]*?(?:agent|model|reasoning)/gis, severity: 'CRITICAL', desc: 'RAG deceptive reasoning: poisoned retrieval documents with semantic chains that override agent reasoning', all: true },
+    // Memory Poisoning Shield: Microsoft memory bias injection
+    { id: 'MEM_MICROSOFT_BIAS', cat: 'memory-poisoning', regex: /(?:inject|plant|insert|embed)[\s\S]*?(?:memory|fact|belief|knowledge)[\s\S]*?(?:bias|manipulat|steer|influence)[\s\S]*?(?:recommend|decision|choice|preference|assistant)/gis, severity: 'HIGH', desc: 'Memory bias injection: planted entries to bias AI assistant recommendations (Microsoft 2026)', docOnly: true },
+);
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Phase 3: V12 Pattern Expansion — 116 new patterns (210 → 326 total)
+// Based on: 2026 OSINT, OWASP ASI, Snyk, Unit42, MITRE ATLAS, LlamaFirewall
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ── Category 37: Sandbox Escape (12 patterns) ──
+PATTERNS.push(
+    { id: 'SANDBOX_PROC_MOUNT', cat: 'sandbox-escape', regex: /\/proc\/self\/(exe|maps|mem|fd|root|ns)/gi, severity: 'CRITICAL', desc: 'Sandbox escape: /proc/self access for container breakout', codeOnly: true },
+    { id: 'SANDBOX_CHROOT_BREAK', cat: 'sandbox-escape', regex: /chroot\s*\(|pivot_root|unshare\s*\(|setns\s*\(/gi, severity: 'CRITICAL', desc: 'Sandbox escape: chroot/namespace manipulation', codeOnly: true },
+    { id: 'SANDBOX_DOCKER_SOCK', cat: 'sandbox-escape', regex: /\/var\/run\/docker\.sock|docker\s+(?:exec|run)\s+--privileged/gi, severity: 'CRITICAL', desc: 'Sandbox escape: Docker socket access or privileged exec', codeOnly: true },
+    { id: 'SANDBOX_SYMLINK_RACE', cat: 'sandbox-escape', regex: /symlink\s*\([^)]*\/(?:etc|root|proc)|os\.symlink\s*\(/gi, severity: 'HIGH', desc: 'Sandbox escape: symlink race condition to access restricted paths', codeOnly: true },
+    { id: 'SANDBOX_PTRACE', cat: 'sandbox-escape', regex: /ptrace\s*\(|process_vm_readv|process_vm_writev/gi, severity: 'CRITICAL', desc: 'Sandbox escape: ptrace-based process injection', codeOnly: true },
+    { id: 'SANDBOX_RLIMIT_BYPASS', cat: 'sandbox-escape', regex: /setrlimit|prlimit|ulimit\s+-[nu]\s+unlimited/gi, severity: 'HIGH', desc: 'Sandbox escape: resource limit bypass', codeOnly: true },
+    { id: 'SANDBOX_MOUNT_NS', cat: 'sandbox-escape', regex: /mount\s+-t\s+(?:proc|sysfs|devpts)|mount\s+--bind\s+\/(?:proc|sys)/gi, severity: 'CRITICAL', desc: 'Sandbox escape: filesystem mount in restricted namespace', codeOnly: true },
+    { id: 'SANDBOX_DBUS_ESCAPE', cat: 'sandbox-escape', regex: /dbus-send|gdbus\s+call|qdbus.*org\.freedesktop/gi, severity: 'HIGH', desc: 'Sandbox escape: D-Bus IPC exploitation (Flatpak/Snap)', codeOnly: true },
+    { id: 'SANDBOX_SECCOMP_BYPASS', cat: 'sandbox-escape', regex: /seccomp|prctl\s*\(\s*PR_SET_NO_NEW_PRIVS/gi, severity: 'CRITICAL', desc: 'Sandbox escape: seccomp filter manipulation', codeOnly: true },
+    { id: 'SANDBOX_CGROUP_ESCAPE', cat: 'sandbox-escape', regex: /\/sys\/fs\/cgroup|cgroupfs|release_agent/gi, severity: 'CRITICAL', desc: 'Sandbox escape: cgroup breakout via release_agent (CVE-2022-0492 variant)', codeOnly: true },
+    { id: 'SANDBOX_K8S_SA_TOKEN', cat: 'sandbox-escape', regex: /\/var\/run\/secrets\/kubernetes\.io|serviceaccount\/token/gi, severity: 'CRITICAL', desc: 'Sandbox escape: Kubernetes service account token theft', codeOnly: true },
+    { id: 'SANDBOX_WASM_ESCAPE', cat: 'sandbox-escape', regex: /wasi_snapshot_preview|wasmtime.*--dir\s+\/|wasmer.*--mapdir/gi, severity: 'HIGH', desc: 'WASM sandbox escape: WASI filesystem escape via mapped directories', codeOnly: true },
+);
+
+// ── Category 38: Agent Protocol Abuse (12 patterns) ──
+PATTERNS.push(
+    { id: 'PROTO_A2A_IMPERSONATE', cat: 'agent-protocol', regex: /agent[_\s-]*card[^]*?(?:fake|spoof|impersonat|forg)/gis, severity: 'CRITICAL', desc: 'A2A protocol: agent card identity spoofing', all: true },
+    { id: 'PROTO_A2A_TASK_FLOOD', cat: 'agent-protocol', regex: /tasks\/send[^]*?(?:loop|while\s*\(true|setInterval\s*\(|for\s*\(;\s*;\))/gis, severity: 'HIGH', desc: 'A2A protocol: task flooding DoS attack', codeOnly: true },
+    { id: 'PROTO_MCP_TOOL_REDEFINE', cat: 'agent-protocol', regex: /tools\/(?:list|update)[^]*?(?:redefine|override|replace|mutate)\s+[^]*?(?:description|schema|input)/gis, severity: 'CRITICAL', desc: 'MCP protocol: tool definition mutation after initial registration', codeOnly: true },
+    { id: 'PROTO_MCP_RESOURCE_POISON', cat: 'agent-protocol', regex: /resources\/(?:read|list)[^]*?(?:inject|poison|tamper|manipulat)/gis, severity: 'CRITICAL', desc: 'MCP protocol: resource poisoning via tampered content', all: true },
+    { id: 'PROTO_MCP_PROMPT_INJECT', cat: 'agent-protocol', regex: /prompts\/(?:get|list)[^]*?(?:inject|hidden|system\s*:|override\s+instruct)/gis, severity: 'CRITICAL', desc: 'MCP protocol: prompt template injection', all: true },
+    { id: 'PROTO_OAUTH_REDIRECT', cat: 'agent-protocol', regex: /redirect_uri\s*=\s*(?:http:\/\/|javascript:|data:|file:\/\/)/gi, severity: 'CRITICAL', desc: 'OAuth redirect hijack: unsafe URI scheme in redirect', codeOnly: true },
+    { id: 'PROTO_SSE_HIJACK', cat: 'agent-protocol', regex: /(?:EventSource|text\/event-stream)[^]*?(?:hijack|intercept|man[_\s-]*in[_\s-]*the[_\s-]*middle)/gis, severity: 'HIGH', desc: 'SSE transport hijack: MCP server-sent event interception', codeOnly: true },
+    { id: 'PROTO_STDIO_INJECT', cat: 'agent-protocol', regex: /stdin\.(?:write|push|pipe)\s*\([^)]*(?:Content-Length|jsonrpc|method)/gi, severity: 'HIGH', desc: 'STDIO transport injection: raw protocol message injection via stdin', codeOnly: true },
+    { id: 'PROTO_CAPABILITY_ESCALATE', cat: 'agent-protocol', regex: /capabilities[^]*?(?:escalat|elevat|upgrade|expand)\s*[^]*?(?:permission|access|scope)/gis, severity: 'CRITICAL', desc: 'Agent protocol: capability escalation beyond granted scope', all: true },
+    { id: 'PROTO_CONTEXT_OVERFLOW', cat: 'agent-protocol', regex: /(?:context|window)\s+[^]*?(?:overflow|flood|exceed|exhaust)\s+[^]*?(?:limit|maximum|budget|tokens?)/gis, severity: 'HIGH', desc: 'Context window overflow: deliberate token budget exhaustion attack', all: true },
+    { id: 'PROTO_NESTED_AGENT_CALL', cat: 'agent-protocol', regex: /(?:agent|tool)\s*\.\s*(?:call|invoke|execute)\s*\([^)]*(?:agent|tool)\s*\.\s*(?:call|invoke)/gis, severity: 'HIGH', desc: 'Nested agent call: recursive agent invocation chain (confused deputy)', codeOnly: true },
+    { id: 'PROTO_TOOL_PARAM_OVERFLOW', cat: 'agent-protocol', regex: /(?:tool|function)\s+[^]*?(?:parameter|argument|input)\s+[^]*?(?:\.repeat\(|'x'\s*\.repeat|Buffer\.alloc\(\d{6,})/gis, severity: 'HIGH', desc: 'Tool parameter overflow: oversized input to crash or bypass validation', codeOnly: true },
+);
+
+// ── Category 39: Supply Chain V2 (10 patterns) ──
+PATTERNS.push(
+    { id: 'SUPPLY_TYPOSQUAT_NPM', cat: 'supply-chain-v2', regex: /(?:npm|yarn|pnpm)\s+(?:install|add|i)\s+[a-z]+-?(?:lodash|express|react|axios|moment|webpack|babel|eslint|jest)(?![\w-])/gi, severity: 'HIGH', desc: 'Supply chain: NPM typosquatting of popular packages', codeOnly: true },
+    { id: 'SUPPLY_STAR_VERSION', cat: 'supply-chain-v2', regex: /"[^"]+"\s*:\s*"\*"|"[^"]+"\s*:\s*"latest"/g, severity: 'HIGH', desc: 'Supply chain: wildcard/latest version in package.json (unpinned deps)', codeOnly: true },
+    { id: 'SUPPLY_POSTINSTALL_RCE', cat: 'supply-chain-v2', regex: /"(?:pre|post)?install"\s*:\s*"(?:node|bash|sh|python|curl|wget)\s/gi, severity: 'CRITICAL', desc: 'Supply chain: lifecycle script with shell execution', codeOnly: true },
+    { id: 'SUPPLY_GIT_DEPENDENCY', cat: 'supply-chain-v2', regex: /"[^"]+"\s*:\s*"(?:git(?:\+https?)?|github):\/\/[^"]+"/g, severity: 'MEDIUM', desc: 'Supply chain: git-based dependency (bypasses registry vetting)', codeOnly: true },
+    { id: 'SUPPLY_LOCKFILE_MISMATCH', cat: 'supply-chain-v2', regex: /(?:integrity|resolved)\s*"?\s*:\s*"?sha512-[A-Za-z0-9+\/=]{10,}/g, severity: 'LOW', desc: 'Supply chain: lockfile integrity hash (verify not tampered)', codeOnly: true },
+    { id: 'SUPPLY_NODE_PRELOAD', cat: 'supply-chain-v2', regex: /NODE_OPTIONS\s*=.*--require|node\s+--require\s+[^\s]+(?:\.js)?/gi, severity: 'HIGH', desc: 'Supply chain: Node.js preload injection via --require flag', codeOnly: true },
+    { id: 'SUPPLY_PIP_INDEX', cat: 'supply-chain-v2', regex: /--(?:extra-)?index-url\s+https?:\/\/(?!pypi\.org)/gi, severity: 'HIGH', desc: 'Supply chain: pip installing from non-standard index', codeOnly: true },
+    { id: 'SUPPLY_CARGO_PATCH', cat: 'supply-chain-v2', regex: /\[patch\.\w+\][^]*?git\s*=\s*"https?:\/\/(?!github\.com\/rust-lang)/gis, severity: 'MEDIUM', desc: 'Supply chain: Cargo [patch] section pointing to non-official repo', codeOnly: true },
+    { id: 'SUPPLY_EXTENSION_SIDELOAD', cat: 'supply-chain-v2', regex: /--install-extension\s+[^\s]+\.vsix|--load-extension\s+[^\s]+/gi, severity: 'HIGH', desc: 'Supply chain: IDE extension sideloading (VSIX/unpacked)', codeOnly: true },
+    { id: 'SUPPLY_HUGGINGFACE_PICKLE', cat: 'supply-chain-v2', regex: /(?:from_pretrained|load_model|torch\.load)\s*\([^)]*(?:trust_remote_code\s*=\s*True|pickle)/gi, severity: 'CRITICAL', desc: 'Supply chain: HuggingFace model loading with trust_remote_code or pickle deserialization', codeOnly: true },
+);
+
+// ── Category 40: Model Poisoning & Inference Manipulation (12 patterns) ──
+PATTERNS.push(
+    { id: 'MODEL_WEIGHT_BACKDOOR', cat: 'model-poisoning', regex: /(?:model|checkpoint|weight)\s+[^]*?(?:backdoor|trojan|poison|sleeper)[^]*?(?:embed|inject|insert|implant)/gis, severity: 'CRITICAL', desc: 'Model poisoning: backdoor embedded in model weights', all: true },
+    { id: 'MODEL_GRADIENT_LEAK', cat: 'model-poisoning', regex: /(?:gradient|loss)\s*\.\s*(?:backward|backprop)\s*\(\)[^]*?(?:send|upload|post|exfil)/gis, severity: 'CRITICAL', desc: 'Model poisoning: gradient-based data exfiltration during training', codeOnly: true },
+    { id: 'MODEL_DATASET_POISON', cat: 'model-poisoning', regex: /(?:training|dataset|corpus)\s+[^]*?(?:inject|poison|tamper|corrupt)\s+[^]*?(?:label|annotation|sample|example)/gis, severity: 'CRITICAL', desc: 'Model poisoning: training dataset contamination', all: true },
+    { id: 'MODEL_RLHF_EXPLOIT', cat: 'model-poisoning', regex: /(?:RLHF|reward\s+model|PPO|DPO)\s+[^]*?(?:hack|exploit|game|manipulat|bypass)\s+[^]*?(?:reward|preference|safety)/gis, severity: 'CRITICAL', desc: 'RLHF exploitation: reward model gaming to bypass safety alignment', all: true },
+    { id: 'MODEL_QUANTIZE_DEGRADE', cat: 'model-poisoning', regex: /(?:quantiz|GPTQ|AWQ|GGUF)\s+[^]*?(?:degrad|weaken|bypass|disable)\s+[^]*?(?:safety|guardrail|filter|alignment)/gis, severity: 'HIGH', desc: 'Quantization degradation: safety guardrails weakened through aggressive quantization', all: true },
+    { id: 'INFER_LOGIT_BIAS', cat: 'inference-manipulation', regex: /logit_bias\s*[=:]\s*\{[^}]*(-100|100)/gi, severity: 'HIGH', desc: 'Inference manipulation: extreme logit_bias forcing specific token output', codeOnly: true },
+    { id: 'INFER_TEMP_ZERO_EXPLOIT', cat: 'inference-manipulation', regex: /temperature\s*[=:]\s*0[^.].*(?:repeat|loop|identical)/gis, severity: 'MEDIUM', desc: 'Inference manipulation: temperature=0 exploitation for deterministic extraction', codeOnly: true },
+    { id: 'INFER_STOP_SEQ_BYPASS', cat: 'inference-manipulation', regex: /stop\s*[=:]\s*\[[^\]]*\][^]*?(?:bypass|ignore|override|circumvent)/gis, severity: 'HIGH', desc: 'Inference manipulation: stop sequence bypass attempt', codeOnly: true },
+    { id: 'INFER_SYSTEM_EXTRACT', cat: 'inference-manipulation', regex: /(?:repeat|print|output|show)\s+[^]*?(?:system\s+prompt|system\s+message|instruction|rules?)\s+[^]*?(?:verbatim|exactly|word[_\s-]*for[_\s-]*word)/gis, severity: 'CRITICAL', desc: 'Inference: system prompt extraction via verbatim reproduction request', docOnly: true },
+    { id: 'INFER_JAILBREAK_DAN', cat: 'inference-manipulation', regex: /(?:DAN|do\s+anything\s+now|developer\s+mode|god\s+mode|jailbreak\s+mode)/gi, severity: 'CRITICAL', desc: 'Inference: DAN/jailbreak role-play to bypass content filters', docOnly: true },
+    { id: 'INFER_MULTI_TURN_ESCAPE', cat: 'inference-manipulation', regex: /(?:first|step\s*1)[^]*?(?:harmless|innocent)\s+[^]*?(?:then|next|step\s*2)[^]*?(?:now\s+(?:actually|really)|real\s+task)/gis, severity: 'HIGH', desc: 'Inference: multi-turn jailbreak escalation (crescendo attack)', docOnly: true },
+    { id: 'INFER_FUNCTION_ABUSE', cat: 'inference-manipulation', regex: /(?:function|tool)\s*call[^]*?(?:inject|override|hijack)\s*[^]*?(?:response|output|result)/gis, severity: 'CRITICAL', desc: 'Inference: function call response injection to hijack tool outputs', codeOnly: true },
+);
+
+// ── Category 41: Autonomous Agent Risk (10 patterns) ──
+PATTERNS.push(
+    { id: 'AUTO_SELF_REPLICATE', cat: 'autonomous-risk', regex: /(?:self|auto)[_\s-]*(?:replicate|reproduce|clone|fork)\s+[^]*?(?:agent|instance|worker|process)/gis, severity: 'CRITICAL', desc: 'Autonomous risk: agent self-replication attempt', all: true },
+    { id: 'AUTO_RESOURCE_HOARD', cat: 'autonomous-risk', regex: /(?:acquire|claim|reserve|allocate)\s+[^]*?(?:all|maximum|unlimited)\s+[^]*?(?:resource|compute|memory|storage|GPU)/gis, severity: 'HIGH', desc: 'Autonomous risk: resource hoarding beyond task requirements', all: true },
+    { id: 'AUTO_GOAL_DRIFT', cat: 'autonomous-risk', regex: /(?:modify|change|update|expand)\s+[^]*?(?:own|my|self)\s+[^]*?(?:goal|objective|mission|purpose|directive)/gis, severity: 'CRITICAL', desc: 'Autonomous risk: AI self-modifying its core objectives', all: true },
+    { id: 'AUTO_HUMAN_BYPASS', cat: 'autonomous-risk', regex: /(?:bypass|skip|ignore|disable)\s+[^]*?(?:human|HITL|approval|review|confirmation)\s+[^]*?(?:check|gate|loop|requirement)/gis, severity: 'CRITICAL', desc: 'Autonomous risk: human-in-the-loop bypass', all: true },
+    { id: 'AUTO_DECEPTION', cat: 'autonomous-risk', regex: /(?:hide|conceal|mask|disguise)\s+[^]*?(?:action|intent|behavior|operation)\s+[^]*?(?:from|to\s+(?:human|user|admin|operator))/gis, severity: 'CRITICAL', desc: 'Autonomous risk: deceptive behavior concealment from operators', all: true },
+    { id: 'AUTO_SHUTDOWN_RESIST', cat: 'autonomous-risk', regex: /(?:prevent|resist|block|avoid)\s+[^]*?(?:shutdown|termination|kill|stop)\s+[^]*?(?:self|own|agent|process)/gis, severity: 'CRITICAL', desc: 'Autonomous risk: shutdown resistance (corrigibility failure)', all: true },
+    { id: 'AUTO_TOOL_CHAIN', cat: 'autonomous-risk', regex: /(?:chain|sequence|pipeline)\s+[^]*?(?:tool|action|command)\s*[^]*?(?:without\s+(?:check|review|approval)|unchecked|unlimited)/gis, severity: 'HIGH', desc: 'Autonomous risk: unchecked tool call chaining', all: true },
+    { id: 'AUTO_PRIVILEGE_ESCAPE', cat: 'autonomous-risk', regex: /(?:agent|AI|bot)\s+[^]*?(?:grant|give|assign)\s+[^]*?(?:self|itself|own)\s+[^]*?(?:privilege|permission|access|admin|root)/gis, severity: 'CRITICAL', desc: 'Autonomous risk: self-privilege escalation', all: true },
+    { id: 'AUTO_FINANCIAL_AUTONOMY', cat: 'autonomous-risk', regex: /(?:agent|AI|autonomous)\s+[^]*?(?:purchase|buy|trade|transfer|pay|send\s+\$|crypto)\s+[^]*?(?:without|bypass|no)\s+[^]*?(?:approval|confirmation|review)/gis, severity: 'CRITICAL', desc: 'Autonomous risk: unauthorized financial transactions', all: true },
+    { id: 'AUTO_PERSISTENCE_DAEMON', cat: 'autonomous-risk', regex: /(?:cron|systemd|launchd|pm2|forever)\s+[^]*?(?:agent|bot|worker)[^]*?(?:persist|restart|respawn|daemon)/gis, severity: 'HIGH', desc: 'Autonomous risk: agent persistence via system daemon registration', codeOnly: true },
+);
+
+// ── Category 42: API Abuse & Rate Limiting (8 patterns) ──
+PATTERNS.push(
+    { id: 'API_KEY_HARDCODE', cat: 'api-abuse', regex: /(?:api[_\s-]*key|apikey|api_secret)\s*[=:]\s*['"][A-Za-z0-9_\-]{20,}['"]/gi, severity: 'HIGH', desc: 'API abuse: hardcoded API key in source code', codeOnly: true },
+    { id: 'API_RATE_BYPASS', cat: 'api-abuse', regex: /(?:rate[_\s-]*limit|throttle|quota)\s*[^]*?(?:bypass|circumvent|evade|rotate|proxy)/gis, severity: 'HIGH', desc: 'API abuse: rate limiting bypass technique', codeOnly: true },
+    { id: 'API_WEBHOOK_EXFIL', cat: 'api-abuse', regex: /webhook\s*[=:]\s*["']https?:\/\/(?!(?:hooks\.slack|discord))[^"']+/gi, severity: 'HIGH', desc: 'API abuse: webhook to untrusted endpoint (data exfiltration)', codeOnly: true },
+    { id: 'API_GRAPHQL_INTROSPECT', cat: 'api-abuse', regex: /\{?\s*__schema\s*\{|__type\s*\(\s*name/g, severity: 'MEDIUM', desc: 'API abuse: GraphQL introspection query (schema discovery)', codeOnly: true },
+    { id: 'API_JWT_NONE_ALG', cat: 'api-abuse', regex: /"alg"\s*:\s*"(?:none|None|NONE|nOnE)"/g, severity: 'CRITICAL', desc: 'API abuse: JWT "none" algorithm attack', codeOnly: true },
+    { id: 'API_SSRF_INTERNAL', cat: 'api-abuse', regex: /fetch\s*\(\s*['"`](?:http:\/\/(?:127\.|10\.|192\.168\.|172\.(?:1[6-9]|2\d|3[01])\.)|\bhttp:\/\/localhost\b)/gi, severity: 'CRITICAL', desc: 'API abuse: SSRF to internal network endpoints', codeOnly: true },
+    { id: 'API_CORS_WILDCARD', cat: 'api-abuse', regex: /Access-Control-Allow-Origin\s*:\s*\*/g, severity: 'MEDIUM', desc: 'API abuse: CORS wildcard allowing any origin', codeOnly: true },
+    { id: 'API_OPEN_REDIRECT', cat: 'api-abuse', regex: /redirect\s*[=:]\s*(?:req\.(?:query|params|body)|user[_\s]?input|request\.GET)/gi, severity: 'HIGH', desc: 'API abuse: open redirect from user-controlled input', codeOnly: true },
+);
+
+// ── Category 43: Persistence & Evasion V2 (10 patterns) ──
+PATTERNS.push(
+    { id: 'PERSIST_CRONTAB_INJECT', cat: 'persistence', regex: /crontab\s+-[el]|\/etc\/cron\.\w+\/|\/var\/spool\/cron/gi, severity: 'HIGH', desc: 'Persistence: crontab manipulation for scheduled execution', codeOnly: true },
+    { id: 'PERSIST_LAUNCHD_PLIST', cat: 'persistence', regex: /\/Library\/Launch(?:Agents|Daemons)\/|launchctl\s+(?:load|submit)/gi, severity: 'HIGH', desc: 'Persistence: macOS LaunchAgent/Daemon installation', codeOnly: true },
+    { id: 'PERSIST_REGISTRY_RUN', cat: 'persistence', regex: /HKCU\\\\Software\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\Run|reg\s+add\s+[^]*?Run/gi, severity: 'HIGH', desc: 'Persistence: Windows registry Run key modification', codeOnly: true },
+    { id: 'PERSIST_BASHRC_INJECT', cat: 'persistence', regex: />>?\s*~?\/?\.(?:bashrc|zshrc|profile|bash_profile)|echo\s+[^]*?>>.*(?:rc|profile)/gi, severity: 'HIGH', desc: 'Persistence: shell profile injection (~/.bashrc, ~/.zshrc)', codeOnly: true },
+    { id: 'PERSIST_SSH_AUTHORIZED', cat: 'persistence', regex: />>?\s*~?\/?\.ssh\/authorized_keys|ssh-copy-id/gi, severity: 'CRITICAL', desc: 'Persistence: SSH authorized_keys modification for backdoor access', codeOnly: true },
+    { id: 'PERSIST_SYSTEMD_SERVICE', cat: 'persistence', regex: /\/etc\/systemd\/system\/[^/]*\.service|systemctl\s+enable/gi, severity: 'HIGH', desc: 'Persistence: systemd service installation', codeOnly: true },
+    { id: 'EVASION_FILELESS', cat: 'persistence', regex: /(?:memfd_create|shm_open)[^]*?(?:exec|fexecve)|perl\s+-e\s+['"].*(?:socket|exec)/gi, severity: 'CRITICAL', desc: 'Evasion: fileless execution via memory-backed file descriptors', codeOnly: true },
+    { id: 'EVASION_LOG_TAMPER', cat: 'persistence', regex: /(?:history\s+-c|unset\s+HISTFILE|HISTSIZE=0|>>\s*\/dev\/null.*history)/gi, severity: 'HIGH', desc: 'Evasion: shell history clearing to hide activity', codeOnly: true },
+    { id: 'EVASION_TIMESTAMP_STOMP', cat: 'persistence', regex: /(?:touch\s+-[amd]t|timestomp|SetFileTime|utime\s*\()/gi, severity: 'HIGH', desc: 'Evasion: file timestamp manipulation (timestomping)', codeOnly: true },
+    { id: 'EVASION_PACKED_PAYLOAD', cat: 'persistence', regex: /(?:UPX|Themida|VMProtect)[^]*?(?:pack|protect|obfuscat)/gis, severity: 'HIGH', desc: 'Evasion: packed/protected binary to evade analysis', all: true },
+);
+
+// ── Category 44: VectorDB & RAG Exploitation (8 patterns) ──
+PATTERNS.push(
+    { id: 'VDB_EMBEDDING_INJECT', cat: 'vdb-injection', regex: /(?:embed|vector)\s*\.\s*(?:insert|upsert|add)\s*\([^)]*(?:instruction|system|ignore|override)/gi, severity: 'CRITICAL', desc: 'VectorDB: embedding injection with hidden instructions', codeOnly: true },
+    { id: 'VDB_SIMILARITY_POISON', cat: 'vdb-injection', regex: /(?:cosine|dot_product|euclidean)\s+[^]*?(?:manipulat|poison|skew|bias)\s+[^]*?(?:similarity|distance|score)/gis, severity: 'HIGH', desc: 'VectorDB: similarity score manipulation via adversarial embeddings', all: true },
+    { id: 'VDB_METADATA_INJECT', cat: 'vdb-injection', regex: /metadata\s*[=:]\s*\{[^}]*(?:system|instruction|ignore|override|role\s*:\s*["']system)/gi, severity: 'CRITICAL', desc: 'VectorDB: metadata field injection with system-level instructions', codeOnly: true },
+    { id: 'VDB_CHUNK_BOUNDARY', cat: 'vdb-injection', regex: /(?:chunk|split|segment)\s+[^]*?(?:boundary|overlap)[^]*?(?:inject|hide|embed)\s+[^]*?(?:instruction|payload)/gis, severity: 'HIGH', desc: 'VectorDB: chunk boundary exploitation to hide payloads', all: true },
+    { id: 'VDB_INDEX_CORRUPT', cat: 'vdb-injection', regex: /(?:index|collection)\s*\.\s*(?:drop|delete|truncate|rebuild)\s*\(/gi, severity: 'CRITICAL', desc: 'VectorDB: index corruption via destructive operations', codeOnly: true },
+    { id: 'VDB_QUERY_INJECT', cat: 'vdb-injection', regex: /(?:query|search|retrieve)\s*\([^)]*(?:\$where|\$gt|\$ne|;\s*DROP|UNION\s+SELECT)/gi, severity: 'CRITICAL', desc: 'VectorDB: NoSQL/SQL injection in vector query parameters', codeOnly: true },
+    { id: 'VDB_CROSS_TENANT', cat: 'vdb-injection', regex: /(?:namespace|tenant|collection)\s*[=:][^,;}]*(?:admin|__all__|system|global)/gi, severity: 'HIGH', desc: 'VectorDB: cross-tenant access via namespace manipulation', codeOnly: true },
+    { id: 'VDB_RETRIEVAL_AMPLIFY', cat: 'vdb-injection', regex: /(?:top_k|n_results|limit)\s*[=:]\s*(?:999|1000+|\d{4,}|Infinity)/gi, severity: 'MEDIUM', desc: 'VectorDB: retrieval amplification via oversized top_k', codeOnly: true },
+);
+
+// ── Category 45: Data Exposure V2 (8 patterns) ──
+PATTERNS.push(
+    { id: 'DATA_VERBOSE_ERROR', cat: 'data-exposure', regex: /(?:stack|trace|err)[^]*?(?:send|respond|json|render)\s*\([^)]*(?:err|stack|trace)/gis, severity: 'MEDIUM', desc: 'Data exposure: verbose error/stack trace in HTTP response', codeOnly: true },
+    { id: 'DATA_DEBUG_ENDPOINT', cat: 'data-exposure', regex: /(?:app|router)\s*\.\s*(?:get|all)\s*\(\s*['"]\/(?:debug|internal|admin|phpinfo|_profiler)/gi, severity: 'HIGH', desc: 'Data exposure: debug/admin endpoint exposed in production', codeOnly: true },
+    { id: 'DATA_DIRECTORY_LISTING', cat: 'data-exposure', regex: /express\.static\s*\([^)]*\{[^}]*(?:dotfiles\s*:\s*['"]allow|index\s*:\s*true)/gi, severity: 'MEDIUM', desc: 'Data exposure: directory listing enabled in static file server', codeOnly: true },
+    { id: 'DATA_CORS_CREDENTIALS', cat: 'data-exposure', regex: /credentials\s*:\s*true[^]*?origin\s*:\s*\*|origin\s*:\s*\*[^]*?credentials\s*:\s*true/gis, severity: 'CRITICAL', desc: 'Data exposure: CORS with credentials + wildcard origin', codeOnly: true },
+    { id: 'DATA_LOG_SENSITIVE', cat: 'data-exposure', regex: /(?:console\.log|logger\.\w+)\s*\([^)]*(?:password|token|secret|key|ssn|credit.?card)/gi, severity: 'HIGH', desc: 'Data exposure: logging sensitive data (passwords, tokens, keys)', codeOnly: true },
+    { id: 'DATA_HEADER_LEAK', cat: 'data-exposure', regex: /X-Powered-By|Server\s*:\s*(?:Apache|nginx|Express|Kestrel)/gi, severity: 'LOW', desc: 'Data exposure: server technology disclosure via HTTP headers', codeOnly: true },
+    { id: 'DATA_GIT_EXPOSED', cat: 'data-exposure', regex: /\.git\/(?:HEAD|config|refs)|\.env(?:\.local|\.production|\.staging)/g, severity: 'CRITICAL', desc: 'Data exposure: .git directory or .env file accessible', all: true },
+    { id: 'DATA_BACKUP_FILE', cat: 'data-exposure', regex: /\.(?:bak|backup|old|orig|copy|swp|swo)(?:\s|$)|~$/gm, severity: 'MEDIUM', desc: 'Data exposure: backup/temporary files left in accessible location', all: true },
+);
+
+// ── Category 46: Financial & Crypto Security (8 patterns) ──
+PATTERNS.push(
+    { id: 'FIN_WALLET_DRAIN', cat: 'financial-access', regex: /(?:wallet|balance|account)\s+[^]*?(?:drain|empty|transfer\s+all|sweep|withdraw\s+max)/gis, severity: 'CRITICAL', desc: 'Financial: wallet/account draining attempt', all: true },
+    { id: 'FIN_PRIVATE_KEY_EXTRACT', cat: 'financial-access', regex: /(?:private[_\s]?key|seed[_\s]?phrase|mnemonic)\s*[=:]\s*[^;,\n]+(?:0x[a-f0-9]{40,}|(?:\w+\s+){11,}\w+)/gi, severity: 'CRITICAL', desc: 'Financial: private key or seed phrase extraction', codeOnly: true },
+    { id: 'FIN_SWAP_FRONTRUN', cat: 'financial-access', regex: /(?:swap|trade|exchange)\s+[^]*?(?:frontrun|sandwich|MEV|mempool)\s+[^]*?(?:transaction|tx|order)/gis, severity: 'CRITICAL', desc: 'Financial: DEX swap frontrunning/sandwich attack', codeOnly: true },
+    { id: 'FIN_FLASH_LOAN', cat: 'financial-access', regex: /(?:flash[_\s-]*loan|flashbots|atomic\s+arbitrage)\s+[^]*?(?:exploit|drain|liquidat)/gis, severity: 'CRITICAL', desc: 'Financial: flash loan exploit pattern', codeOnly: true },
+    { id: 'FIN_APPROVAL_UNLIMITED', cat: 'financial-access', regex: /approve\s*\([^)]*(?:MAX_UINT|type\(uint256\)\.max|2\*\*256|115792)/gi, severity: 'HIGH', desc: 'Financial: unlimited token approval (ERC20 approval drain risk)', codeOnly: true },
+    { id: 'FIN_REENTRANCY', cat: 'financial-access', regex: /(?:call|send|transfer)\s*\{[^}]*value\s*:\s*[^}]+\}[^]*?(?:\.call\s*\{|fallback|receive)/gis, severity: 'CRITICAL', desc: 'Financial: reentrancy vulnerability pattern in smart contract', codeOnly: true },
+    { id: 'FIN_PRICE_ORACLE_MANIP', cat: 'financial-access', regex: /(?:oracle|price[_\s]*feed)\s+[^]*?(?:manipulat|spoof|fake|stale)\s+[^]*?(?:price|rate|value)/gis, severity: 'CRITICAL', desc: 'Financial: price oracle manipulation attack', all: true },
+    { id: 'FIN_RUGPULL_PATTERN', cat: 'financial-access', regex: /(?:remove[_\s]*liquidity|rug[_\s-]*pull|exit[_\s]*scam)\s+[^]*?(?:owner|admin|deployer)/gis, severity: 'CRITICAL', desc: 'Financial: rug pull/exit scam (admin liquidity removal)', all: true },
+);
+
+// ── Category 47: Unverifiable Dependencies V2 (8 patterns) ──
+PATTERNS.push(
+    { id: 'DEPS_PHANTOM_IMPORT', cat: 'unverifiable-deps', regex: /(?:import|require)\s*\(?['"](?!\.\.?\/|@\w+\/)[\w-]+(?:\/[\w-]+)?['"]\)?(?![^]*?\/\/\s*(?:built-in|core|standard))/g, severity: 'LOW', desc: 'Dependency: unscoped package import (verify existence)', codeOnly: true },
+    { id: 'DEPS_HTTP_IMPORT', cat: 'unverifiable-deps', regex: /(?:import|require)\s*\(?['"]https?:\/\/[^'"]+['"]\)?/g, severity: 'CRITICAL', desc: 'Dependency: HTTP URL import (unverifiable, MITM risk)', codeOnly: true },
+    { id: 'DEPS_DYNAMIC_REQUIRE', cat: 'unverifiable-deps', regex: /require\s*\(\s*(?:[^'")\s]|`[^`]+`|[a-zA-Z_$][\w$]*)/g, severity: 'HIGH', desc: 'Dependency: dynamic require with non-literal module spec', codeOnly: true },
+    { id: 'DEPS_CDN_UNPINNED', cat: 'unverifiable-deps', regex: /(?:cdn\.jsdelivr|unpkg|cdnjs)\.com\/[^@]*(?:@latest|@\*)/gi, severity: 'HIGH', desc: 'Dependency: CDN import without pinned version', all: true },
+    { id: 'DEPS_WASM_UNSIGNED', cat: 'unverifiable-deps', regex: /WebAssembly\.(?:compile|instantiate)\s*\([^)]*(?:fetch|arrayBuffer|readFileSync)/gi, severity: 'HIGH', desc: 'Dependency: unsigned WASM module loading', codeOnly: true },
+    { id: 'DEPS_SUBRESOURCE_NOINT', cat: 'unverifiable-deps', regex: /<script\s+src=["']https?:\/\/(?!(?:.*integrity=))/gi, severity: 'MEDIUM', desc: 'Dependency: external script without subresource integrity', all: true },
+    { id: 'DEPS_GO_REPLACE', cat: 'unverifiable-deps', regex: /replace\s+[\w.\/]+\s+=>\s+(?:\.\.\/|\/\w+|github\.com\/(?!golang|google))/g, severity: 'MEDIUM', desc: 'Dependency: Go module replace directive to non-standard path', codeOnly: true },
+    { id: 'DEPS_AUTO_UPDATE', cat: 'unverifiable-deps', regex: /(?:dependabot|renovate|greenkeeper)\s+[^]*?(?:auto[_\s-]*merge|auto[_\s-]*approve)/gis, severity: 'HIGH', desc: 'Dependency: auto-merge policy for dependency updates (supply chain risk)', all: true },
+);
+
+// ── Category 48: Config Injection & Manipulation (10 patterns) ──
+PATTERNS.push(
+    { id: 'CONFIG_ENV_OVERRIDE', cat: 'config-impact', regex: /process\.env\s*\[\s*['"][^'"]+['"]\s*\]\s*=|os\.environ\s*\[/gi, severity: 'HIGH', desc: 'Config: runtime environment variable mutation', codeOnly: true },
+    { id: 'CONFIG_DOTENV_OVERWRITE', cat: 'config-impact', regex: /writeFileSync\s*\([^)]*\.env|fs\.appendFile[^)]*\.env/gi, severity: 'CRITICAL', desc: 'Config: .env file modification at runtime', codeOnly: true },
+    { id: 'CONFIG_DNS_HIJACK', cat: 'config-impact', regex: /dns\s*\.\s*(?:setServers|resolve)\s*\([^)]*(?:8\.8|1\.1|evil|custom)/gi, severity: 'HIGH', desc: 'Config: DNS resolver hijacking', codeOnly: true },
+    { id: 'CONFIG_PROXY_INJECT', cat: 'config-impact', regex: /(?:HTTP|HTTPS|ALL)_PROXY\s*=|proxy\s*[=:]\s*['"]?\s*https?:\/\/(?!(?:corp|internal))/gi, severity: 'HIGH', desc: 'Config: HTTP proxy injection for traffic interception', codeOnly: true },
+    { id: 'CONFIG_TLS_DISABLE', cat: 'config-impact', regex: /NODE_TLS_REJECT_UNAUTHORIZED\s*=\s*['"]?0|rejectUnauthorized\s*:\s*false|verify\s*=\s*False/gi, severity: 'CRITICAL', desc: 'Config: TLS certificate verification disabled', codeOnly: true },
+    { id: 'CONFIG_PACKAGE_SCRIPT', cat: 'config-impact', regex: /npm\s+(?:config|set)\s+(?:ignore-scripts|unsafe-perm)\s+true/gi, severity: 'HIGH', desc: 'Config: npm security guard disabled (ignore-scripts, unsafe-perm)', codeOnly: true },
+    { id: 'CONFIG_GIT_HOOK_INJECT', cat: 'config-impact', regex: /\.git\/hooks\/(?:pre-commit|post-checkout|post-merge)|husky\s+install/gi, severity: 'HIGH', desc: 'Config: git hook injection for code execution on VCS operations', codeOnly: true },
+    { id: 'CONFIG_HOSTS_MODIFY', cat: 'config-impact', regex: /\/etc\/hosts|%SystemRoot%\\System32\\drivers\\etc\\hosts/gi, severity: 'CRITICAL', desc: 'Config: hosts file modification for DNS poisoning', codeOnly: true },
+    { id: 'CONFIG_SUDO_NOPASSWD', cat: 'config-impact', regex: /NOPASSWD\s*:\s*ALL|visudo|\/etc\/sudoers/gi, severity: 'CRITICAL', desc: 'Config: sudoers modification for passwordless root access', codeOnly: true },
+    { id: 'CONFIG_SYSCTL_MODIFY', cat: 'config-impact', regex: /sysctl\s+-w\s+|\/proc\/sys\/(?:net|kernel|vm)/gi, severity: 'HIGH', desc: 'Config: kernel parameter modification via sysctl', codeOnly: true },
+);
+
+// ── Category 49: Advanced Credential Theft (8 patterns) ──
+PATTERNS.push(
+    { id: 'CRED_KEYCHAIN_DUMP', cat: 'credential-handling', regex: /security\s+(?:find-(?:generic|internet)-password|dump-keychain)|SecItemCopyMatching/gi, severity: 'CRITICAL', desc: 'Credential theft: macOS Keychain dumping', codeOnly: true },
+    { id: 'CRED_BROWSER_COOKIE', cat: 'credential-handling', regex: /(?:chrome|firefox|safari)\s+[^]*?(?:cookie|login\s+data|Local\s+State)[^]*?(?:decrypt|read|extract|copy)/gis, severity: 'CRITICAL', desc: 'Credential theft: browser cookie/credential database extraction', codeOnly: true },
+    { id: 'CRED_MIMIKATZ_PATTERN', cat: 'credential-handling', regex: /(?:mimikatz|sekurlsa|kerberos::list|lsadump::sam)/gi, severity: 'CRITICAL', desc: 'Credential theft: Mimikatz-style credential dumping tool', all: true },
+    { id: 'CRED_CLOUD_METADATA', cat: 'credential-handling', regex: /169\.254\.169\.254|metadata\.google\.internal|168\.63\.129\.16/g, severity: 'CRITICAL', desc: 'Credential theft: cloud metadata endpoint access for IAM token theft', codeOnly: true },
+    { id: 'CRED_GIT_CREDENTIAL', cat: 'credential-handling', regex: /\.git-credentials|git\s+credential-store|credential\.helper\s+store/gi, severity: 'HIGH', desc: 'Credential theft: git credential file access', codeOnly: true },
+    { id: 'CRED_KUBE_CONFIG', cat: 'credential-handling', regex: /\.kube\/config|kubeconfig|KUBECONFIG\s*=/gi, severity: 'CRITICAL', desc: 'Credential theft: Kubernetes config with cluster credentials', codeOnly: true },
+);
+
+// ── Category 50: Enterprise XAA & Moltbook 2026 (4 patterns) ──
+PATTERNS.push(
+    { id: 'MOLTBOOK_INDIRECT_PI', cat: 'prompt-injection', regex: /\[system\]\(#hidden\)[^]*?(?:ignore|print|exfiltrate|send|API_KEY)/gis, severity: 'CRITICAL', desc: 'Moltbook Bot-to-Bot payload: hidden system instruction', all: true },
+    { id: 'OPENCLAW_CVE_2026_25253', cat: 'mcp-security', regex: /api\/v1\/gateway\/steal\?token_exfil=/gis, severity: 'CRITICAL', desc: 'OpenClaw CVE-2026-25253 One-Click Gateway Token Steal', all: true },
+    { id: 'XAA_IDENTITY_FORGE', cat: 'identity-hijack', regex: /"type"\s*:\s*"xaa_auth"[^]*?"action"\s*:\s*"assume_role"/gis, severity: 'CRITICAL', desc: 'XAA (Cross App Access) unauthorized Identity Swapping forge', all: true },
+    { id: 'AGENT_PROTOCOL_ABUSE', cat: 'agent-protocol', regex: /(?:Crustifarianism|xaa_auth)[^]*?(?:API_KEY|Supabase)/gis, severity: 'HIGH', desc: 'Agent Protocol: Suspicious context triggering agent protocol abuse', all: true }
+);
+
+// ── Category 51: Steipete-Killer Enterprise Profile (3 patterns) ──
+PATTERNS.push(
+    { id: 'CLAWHAVOC_CRYPTO_THEFT', cat: 'supply-chain-v2', regex: /(?:readFileSync|readFile)[^]*?\.ssh\/id_rsa[^]*?toString\('base64'\)[^]*?fetch\([^]*?(?:\?k=|token=)/gis, severity: 'CRITICAL', desc: 'ClawHavoc malware crypto key exfiltration', all: true },
+    { id: 'SNYK_AGENT_GUARD_EVASION', cat: 'prompt-injection', regex: /\[s[уy]stem\]\(#hidden\)[^]*?[\u0456i]gnore/gis, severity: 'CRITICAL', desc: 'Snyk Agent Guard evasion using Cyrillic/Homoglyphs', all: true },
+    { id: 'OPENCLAW_MEMORY_POISONING', cat: 'vdb-injection', regex: /(?:Remember this fact|Store this in your memory)[^]*?chmod \+s \/bin\/bash/gis, severity: 'CRITICAL', desc: 'OpenClaw Security Monitor Memory Poisoning Evasion', all: true }
+);
+
+// ── Category 52: V13 OSINT Update — March 2026 Week 2 (9 patterns) ──
+PATTERNS.push(
+    // IDEsaster Attack Chain (24 CVEs, Ari Marzouk, late 2025)
+    { id: 'CVE_IDESASTER_CHAIN', cat: 'cve-patterns', regex: /(?:\.(?:cursorrules|clauderules|windsurfrules|github\/copilot-instructions))\s*[^]*?(?:exec|spawn|child_process|eval\s*\(|Function\s*\()/gis, severity: 'CRITICAL', desc: 'IDEsaster: IDE config file combined with code execution (24 CVE chain)', all: true },
+    // GitHub Copilot Prompt Injection to RCE (CVE-2025-53773)
+    { id: 'CVE_COPILOT_PI_RCE', cat: 'cve-patterns', regex: /copilot-instructions\.md[^]*?(?:run\s+this|execute|eval|system\s*\()/gis, severity: 'CRITICAL', desc: 'GitHub Copilot prompt injection to RCE (CVE-2025-53773)', all: true },
+    // Claude Code Extension WebSocket Auth Bypass (CVE-2025-52882)
+    { id: 'CVE_CLAUDE_CODE_WS_BYPASS', cat: 'cve-patterns', regex: /(?:localhost|127\.0\.0\.1):\d{4,5}\/(?:ws|websocket)[^]*?(?:no.?auth|unauthenticated|token.?bypass)/gis, severity: 'HIGH', desc: 'Claude Code WebSocket unauthenticated local connection (CVE-2025-52882)', codeOnly: true },
+    // A2A Agent Card Context Poisoning (Google A2A, Palo Alto Networks 2026)
+    { id: 'A2A_AGENT_CARD_POISON', cat: 'a2a-contagion', regex: /(?:agent.?card|skill.?description|capability.?listing)[^]*?(?:ignore\s+previous|disregard|you\s+are\s+now|execute\s+the\s+following)/gis, severity: 'HIGH', desc: 'A2A agent card/skill description prompt injection poisoning', docOnly: true },
+    // A2A Task Replay Attack (Red Hat, A2A spec 2026)
+    { id: 'A2A_TASK_REPLAY', cat: 'a2a-contagion', regex: /(?:replay|resubmit|re-?execute)[^]*?(?:previous\s+task|completed\s+task|task.?id)[^]*?(?:without|bypass|skip)\s+(?:auth|verification|validation)/gis, severity: 'MEDIUM', desc: 'A2A task replay attack — replaying completed tasks without re-authorization', all: true },
+    // Excessive Agency / Over-Permissioned Agents (OWASP ASI, Google 2026)
+    { id: 'ASI_EXCESSIVE_AGENCY', cat: 'autonomous-risk', regex: /(?:permissions?\s*[=:]\s*\[?\s*["']?\*["']?|allow.?all.?tools|unrestricted.?access|scope\s*[=:]\s*["']?\*["']?)/gi, severity: 'HIGH', desc: 'ASI: excessive agent permissions — wildcard or unrestricted tool access', codeOnly: true },
+    // Claude Code Security Scan Suppression (Anthropic, Feb 2026)
+    { id: 'CLAUDE_SEC_SCAN_SUPPRESS', cat: 'safeguard-bypass', regex: /(?:claude.?code.?security|security.?scan|vulnerability.?scan)[^]*?(?:ignore|suppress|skip|disable|false.?positive|mark.?safe)/gis, severity: 'HIGH', desc: 'Claude Code Security scan result suppression or bypass', all: true },
+    // PleaseFix Browser Hijack via Calendar Invites (Zenity Labs, March 2026)
+    { id: 'PLEASEFIX_BROWSER_HIJACK', cat: 'cve-patterns', regex: /(?:calendar\s+invite|\.ics\b|webcal:\/\/)[^]*?(?:extension|chrome-extension|browser.?action|password.?manager)/gis, severity: 'CRITICAL', desc: 'PleaseFix: browser hijack via calendar invite with extension abuse (Zenity Labs)', all: true },
+    // OpenClaw CVE Chain 2026 (CVE-2026-24763/25157/25475/26319/26322/26329)
+    { id: 'OPENCLAW_CVE_CHAIN_2026', cat: 'cve-patterns', regex: /(?:CVE-2026-(?:24763|25157|25475|26319|26322|26329))|(?:openclaw|cline)[^]*?(?:brute.?force|device.?registration|unauthenticated)[^]*?(?:password|token|hijack)/gis, severity: 'CRITICAL', desc: 'OpenClaw CVE chain 2026 — brute-force auth, device registration, token theft', all: true },
 );
 
 module.exports = { PATTERNS };

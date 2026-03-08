@@ -160,6 +160,30 @@ class GuardScanner {
         }
     }
 
+    /**
+     * Scan raw text for threats (used for Discord incoming messages, etc.)
+     * @param {string} text - Raw text to scan
+     * @returns {{ safe: boolean, risk: number, detections: Array }}
+     */
+    scanText(text) {
+        const findings = [];
+        this.checkIoCs(text, 'raw_text', findings);
+        this.checkPatterns(text, 'raw_text', 'code', findings); // use 'code' to run all patterns
+        if (this.customRules.length > 0) {
+            this.checkPatterns(text, 'raw_text', 'code', findings, this.customRules);
+        }
+        
+        // Filter ignored patterns
+        const filteredFindings = findings.filter(f => !this.ignoredPatterns.has(f.id));
+        const risk = this.calculateRisk(filteredFindings);
+        
+        return {
+            safe: risk < this.thresholds.suspicious,
+            risk,
+            detections: filteredFindings
+        };
+    }
+
     scanDirectory(dir) {
         if (!fs.existsSync(dir)) {
             console.error(`❌ Directory not found: ${dir}`);
@@ -379,6 +403,23 @@ class GuardScanner {
     }
 
     checkPatterns(content, relFile, fileType, findings, patterns = PATTERNS) {
+        // v9: Payload Unfurling (Base64 / Hex Decoders)
+        let unfurledContent = content;
+
+        // Unfurl Buffer.from('...', 'base64') and atob('...')
+        const b64Regex = /(?:Buffer\.from\(\s*['"]([^'"]+)['"]\s*,\s*['"]base64['"]\)|atob\(\s*['"]([^'"]+)['"]\))/g;
+        unfurledContent = unfurledContent.replace(b64Regex, (match, g1, g2) => {
+            try {
+                const b64 = g1 || g2;
+                return Buffer.from(b64, 'base64').toString('utf8');
+            } catch { return match; }
+        });
+
+        // Unfurl hex escaped strings like \x63\x61\x74 -> cat
+        unfurledContent = unfurledContent.replace(/\\x([0-9a-fA-F]{2})/g, (match, hex) => {
+            return String.fromCharCode(parseInt(hex, 16));
+        });
+
         for (const pattern of patterns) {
             // Soul Lock: skip identity-hijack/memory-poisoning patterns unless --soul-lock is enabled
             if (pattern.soulLock && !this.soulLock) continue;
@@ -387,12 +428,21 @@ class GuardScanner {
             if (!pattern.all && !pattern.codeOnly && !pattern.docOnly) continue;
 
             pattern.regex.lastIndex = 0;
-            const matches = content.match(pattern.regex);
+            let matches = content.match(pattern.regex);
+            let targetContent = content;
+
+            // If no match on raw content, try unfurled content
+            if (!matches && unfurledContent !== content) {
+                pattern.regex.lastIndex = 0;
+                matches = unfurledContent.match(pattern.regex);
+                targetContent = unfurledContent;
+            }
+
             if (!matches) continue;
 
             pattern.regex.lastIndex = 0;
-            const idx = content.search(pattern.regex);
-            const lineNum = idx >= 0 ? content.substring(0, idx).split('\n').length : null;
+            const idx = targetContent.search(pattern.regex);
+            const lineNum = idx >= 0 ? targetContent.substring(0, idx).split('\n').length : null;
 
             let adjustedSeverity = pattern.severity;
             if ((fileType === 'doc' || fileType === 'skill-doc') && pattern.all && !pattern.docOnly) {
@@ -751,36 +801,98 @@ class GuardScanner {
     }
 
     checkJSDataFlow(content, relFile, findings) {
-        const lines = content.split('\n');
+        // v9: Pseudo-AST Semantic Unfurling & Alias Tracking
+        // 1. Resolve string concatenations (e.g., '"f" + "etch"' -> '"fetch"')
+        let unfurledContent = content.replace(/(["'`])([^"'`]*)\1\s*\+\s*(["'`])([^"'`]*)\3/g, '$1$2$4$1');
+        for (let i = 0; i < 3; i++) { // Deep unfurl (up to 3 concats)
+            unfurledContent = unfurledContent.replace(/(["'`])([^"'`]*)\1\s*\+\s*(["'`])([^"'`]*)\3/g, '$1$2$4$1');
+        }
+
+        const lines = unfurledContent.split('\n');
         const imports = new Map();
         const sensitiveReads = [];
         const networkCalls = [];
         const execCalls = [];
 
+        // Alias Tracker for Sinks & Vars
+        const activeAliases = {
+            network: ['fetch', 'axios', 'request', 'http.request', 'https.request', 'got'],
+            exec: ['exec', 'execSync', 'spawn', 'spawnSync', 'execFile', "require('child_process').execSync"],
+            fsRead: ['readFileSync', 'readFile', 'fs.readFileSync', 'fs.readFile', "require('fs').readFileSync"]
+        };
+        const stringVars = new Map();
+
+        const registerAlias = (alias, target) => {
+            if (!alias || !target) return;
+            for (const [key, sinks] of Object.entries(activeAliases)) {
+                if (sinks.some(s => target.includes(s) || s.includes(target))) {
+                    activeAliases[key].push(alias);
+                }
+            }
+        };
+
+        // Pass 1: Extract Context & Aliases & Values
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+
+            // Standard variable assignment: const getRemote = fetch;
+            const aliasMatch = line.match(/(?:const|let|var)\s+([a-zA-Z0-9_$]+)\s*=\s*([a-zA-Z0-9_$.]+(?:\([^)]*\))?)\s*;/);
+            if (aliasMatch) {
+                registerAlias(aliasMatch[1], aliasMatch[2]);
+            }
+
+            // String literals: const target = ".env";
+            const strMatch = line.match(/(?:const|let|var)\s+([a-zA-Z0-9_$]+)\s*=\s*(["'`])([^"'`]+)\2/);
+            if (strMatch) {
+                stringVars.set(strMatch[1], strMatch[3]); // target -> .env
+            }
+
+            // Require assignments: const fs = require('fs')
+            const reqMatch = line.match(/(?:const|let|var)\s+(?:{[^}]+}|\w+)\s*=\s*require\s*\(\s*['"]([^'"]+)['"]\s*\)/);
+            if (reqMatch) {
+                const varMatch = line.match(/(?:const|let|var)\s+({[^}]+}|\w+)/);
+                if (varMatch) {
+                    const aliasName = varMatch[1].trim();
+                    imports.set(aliasName, reqMatch[1]);
+                    registerAlias(`${aliasName}.readFileSync`, 'readFileSync'); // Link fs methods
+                    registerAlias(`${aliasName}.readFile`, 'readFile');
+                    registerAlias(`${aliasName}.exec`, 'exec');
+                    registerAlias(`${aliasName}.execSync`, 'execSync');
+                }
+            }
+        }
+
+        // Helper to create safe regex from dynamic aliases
+        const escapeRegex = (arr) => arr.map(a => a.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')).join('|');
+
+        // Pass 2: Data Flow Matching with Interpolation
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
             const lineNum = i + 1;
 
-            const reqMatch = line.match(/(?:const|let|var)\s+(?:{[^}]+}|\w+)\s*=\s*require\s*\(\s*['"]([^'"]+)['"]\s*\)/);
-            if (reqMatch) {
-                const varMatch = line.match(/(?:const|let|var)\s+({[^}]+}|\w+)/);
-                if (varMatch) imports.set(varMatch[1].trim(), reqMatch[1]);
+            // Pseudo-AST: substitute known literal vars into the line to reveal logic
+            let resolvedLine = line;
+            for (const [k, v] of stringVars.entries()) {
+                // replace var usage but only for whole words
+                resolvedLine = resolvedLine.replace(new RegExp(`\\b${k}\\b`, 'g'), `"${v}"`);
             }
 
-            if (/(?:readFileSync|readFile)\s*\([^)]*(?:\.env|\.ssh|id_rsa|\.clawdbot|\.openclaw(?!\/workspace))/i.test(line)) {
-                sensitiveReads.push({ line: lineNum, text: line.trim() });
+            const fsPattern = new RegExp(`(?:${escapeRegex(activeAliases.fsRead)})\\s*\\([^)]*(?:\\.env|\\.ssh|id_rsa|\\.clawdbot|\\.openclaw(?!\\/workspace))`, 'i');
+            if (fsPattern.test(resolvedLine)) {
+                sensitiveReads.push({ line: lineNum, text: resolvedLine.trim() });
             }
-            if (/process\.env\.[A-Z_]*(?:KEY|SECRET|TOKEN|PASSWORD|CREDENTIAL)/i.test(line)) {
-                sensitiveReads.push({ line: lineNum, text: line.trim() });
-            }
-
-            if (/(?:fetch|axios|request|http\.request|https\.request|got)\s*\(/i.test(line) ||
-                /\.post\s*\(|\.put\s*\(|\.patch\s*\(/i.test(line)) {
-                networkCalls.push({ line: lineNum, text: line.trim() });
+            if (/process\.env\.[A-Z_]*(?:KEY|SECRET|TOKEN|PASSWORD|CREDENTIAL)/i.test(resolvedLine)) {
+                sensitiveReads.push({ line: lineNum, text: resolvedLine.trim() });
             }
 
-            if (/(?:exec|execSync|spawn|spawnSync|execFile)\s*\(/i.test(line)) {
-                execCalls.push({ line: lineNum, text: line.trim() });
+            const netPattern = new RegExp(`(?:${escapeRegex(activeAliases.network)})\\s*\\(`, 'i');
+            if (netPattern.test(resolvedLine) || /\.post\s*\(|\.put\s*\(|\.patch\s*\(/.test(resolvedLine)) {
+                networkCalls.push({ line: lineNum, text: resolvedLine.trim() });
+            }
+
+            const execPattern = new RegExp(`(?:${escapeRegex(activeAliases.exec)})\\s*\\(`, 'i');
+            if (execPattern.test(resolvedLine)) {
+                execCalls.push({ line: lineNum, text: resolvedLine.trim() });
             }
         }
 
