@@ -47,28 +47,54 @@ const SUSPICIOUS_NAME_PATTERNS = [
     /(?:\d{6,})/,                          // long number sequences
 ];
 
-// ── Fetch all skills ──
-console.log('📡 Fetching ClawHub registry...');
+// ── Fetch all skills (6 sorts + keyword searches) ──
+console.log('📡 Fetching ClawHub registry (full coverage mode)...');
 const startTime = Date.now();
 let allSkills = [];
+const slugSet = new Set();
 
-// Fetch from multiple sort orders to maximize coverage
-for (const s of ['newest', 'installs', 'downloads', 'trending']) {
+function addSkills(items) {
+    for (const item of items) {
+        if (!slugSet.has(item.slug)) {
+            slugSet.add(item.slug);
+            allSkills.push(item);
+        }
+    }
+}
+
+// Phase 1: All 6 explore sort orders
+const SORTS = ['newest', 'downloads', 'rating', 'installs', 'installsAllTime', 'trending'];
+for (const s of SORTS) {
     try {
         const raw = execSync(`clawhub explore --limit ${limit} --sort ${s} --json 2>/dev/null`, {
             encoding: 'utf-8', timeout: 30000,
         });
         const data = JSON.parse(raw);
-        const items = data.items || [];
-        for (const item of items) {
-            if (!allSkills.find(sk => sk.slug === item.slug)) {
-                allSkills.push(item);
-            }
-        }
-    } catch { /* skip failed sort */ }
+        addSkills(data.items || []);
+        process.stdout.write(`\r   explore/${s}: ${(data.items || []).length} fetched → ${allSkills.length} unique`);
+    } catch { /* skip */ }
+}
+console.log('');
+
+// Phase 2: Search queries for skills not in top-200 of any sort
+const SEARCH_QUERIES = [
+    'security', 'database', 'api', 'file', 'web', 'image', 'audio',
+    'email', 'calendar', 'chat', 'code', 'deploy', 'test', 'monitor',
+    'ai', 'llm', 'agent', 'tool', 'browser', 'search', 'data',
+    'automation', 'workflow', 'devops', 'cloud', 'docker', 'kubernetes',
+];
+for (const q of SEARCH_QUERIES) {
+    try {
+        const raw = execSync(`clawhub search "${q}" --limit 50 --json 2>/dev/null`, {
+            encoding: 'utf-8', timeout: 15000,
+        });
+        const data = JSON.parse(raw);
+        const items = data.items || data.results || (Array.isArray(data) ? data : []);
+        addSkills(items);
+    } catch { /* skip */ }
 }
 
-console.log(`   Unique skills: ${allSkills.length}\n`);
+console.log(`   Total unique skills: ${allSkills.length}\n`);
 
 // ── Analyze each skill ──
 const results = [];
