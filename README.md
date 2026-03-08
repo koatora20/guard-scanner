@@ -4,13 +4,13 @@
 
 <h1 align="center">guard-scanner 🛡️</h1>
 <p align="center"><strong>VirusTotal for AI Agent Skills</strong></p>
-<p align="center">The first open-source security scanner purpose-built for AI agent skill marketplaces.<br/>32 threat categories · 352 static patterns · 26 runtime checks · MCP server · asset audit · VirusTotal · zero dependencies.</p>
+<p align="center">The first open-source security scanner purpose-built for AI agent skill marketplaces.<br/>32 threat categories · 352 static patterns · 26 runtime checks · MCP server · asset audit · VirusTotal.</p>
 
 <p align="center">
   <a href="https://www.npmjs.com/package/@guava-parity/guard-scanner"><img src="https://img.shields.io/npm/v/@guava-parity/guard-scanner?color=cb3837" alt="npm version" /></a>
   <a href="#test-results"><img src="https://img.shields.io/badge/tests-295%20passed-brightgreen" alt="tests" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/npm/l/guard-scanner" alt="license" /></a>
-  <a href="https://github.com/koatora20/guard-scanner"><img src="https://img.shields.io/badge/dependencies-0-blue" alt="zero deps" /></a>
+  <a href="https://github.com/koatora20/guard-scanner"><img src="https://img.shields.io/badge/deps-1_(ws)-blue" alt="minimal deps" /></a>
   <a href="https://doi.org/10.5281/zenodo.18906684"><img src="https://img.shields.io/badge/DOI-3_papers-purple" alt="DOI" /></a>
 </p>
 
@@ -34,7 +34,7 @@ Traditional security tools like VirusTotal are great at catching malware — but
 | A2A Contagion Detection | ✅ | ❌ | ❌ | ❌ |
 | Sandbox Escape Prevention | ✅ | ❌ | ❌ | ❌ |
 | Known Malware Signatures | ✅ (via VT) | ✅ | ❌ | ❌ |
-| Zero Dependencies | ✅ | N/A | ❌ | ❌ |
+| Minimal Dependencies (1) | ✅ | N/A | ❌ | ❌ |
 | MCP Server Built-in | ✅ | ❌ | ❌ | ❌ |
 | Research Papers (DOI) | ✅ (3 papers) | N/A | ❌ | ❌ |
 
@@ -53,11 +53,11 @@ npm install -g @guava-parity/guard-scanner
 guard-scanner ./my-skills/ --verbose
 ```
 
-**That's it.** No config files, no API keys, no setup. Zero dependencies means zero supply chain risk.
+**That's it.** No config files, no API keys, no setup.
 
 ## 🔌 MCP Server
 
-**Use guard-scanner as an MCP server** in any AI editor — Cursor, Windsurf, Cline, Antigravity, Claude Code, OpenClaw. Zero-dependency stdio JSON-RPC 2.0. No API keys needed.
+**Use guard-scanner as an MCP server** in any AI editor — Cursor, Windsurf, Cline, Antigravity, Claude Code, OpenClaw. stdio JSON-RPC 2.0. No API keys needed.
 
 ```bash
 # Start as MCP server
