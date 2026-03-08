@@ -1,6 +1,6 @@
 ---
 name: guard-scanner
-description: "Security policy and analysis layer for AI agents. 352 static patterns (32 categories) + 28 runtime checks (5 layers) + npm/GitHub/ClawHub asset audit + VirusTotal integration + real-time file watch. Lightweight (1 runtime dependency: ws), 0.016ms/scan."
+description: "Security policy and analysis layer for AI agents. 352 static patterns (32 categories) + 26 runtime checks (5 layers) + npm/GitHub/ClawHub asset audit + VirusTotal integration + real-time file watch. Lightweight (1 runtime dependency: ws), 0.016ms/scan."
 metadata:
   clawdbot:
     homepage: "https://github.com/koatora20/guard-scanner"
@@ -16,7 +16,7 @@ files:
 
 # guard-scanner 🛡️
 
-352 static patterns + 28 runtime checks (5 layers), 32 threat categories + asset audit + VirusTotal + real-time watch. Lightweight (1 runtime dependency: `ws`), MIT licensed.
+352 static patterns + 26 runtime checks (5 layers), 32 threat categories + asset audit + VirusTotal + real-time watch. Lightweight (1 runtime dependency: `ws`), MIT licensed.
 
 ## When To Use
 
@@ -74,7 +74,19 @@ Free tier: 4 req/min, 500/day, 15,500/month. VT is **optional** — guard-scanne
 | `enforce` (default) | Block CRITICAL |
 | `strict` | Block HIGH + CRITICAL |
 
-## 32 Threat Categories
+## Finding Schema
+
+Canonical schema: [`docs/spec/finding.schema.json`](docs/spec/finding.schema.json)
+
+Every static finding / runtime detection exposes:
+- `rule_id`, `category`, `severity`, `description`
+- `rationale`, `preconditions`, `false_positive_scenarios`, `remediation_hint`
+- `validation_status` (`validated` / `heuristic-only` / `runtime-observed`)
+- `evidence` (file/line/sample or runtime tool-call context)
+
+Use this when piping JSON into CI, MCP clients, or post-processing tools. Prefer these normalized fields over legacy aliases such as `id`, `cat`, and `desc`.
+
+## 32 threat categories
 
 Prompt Injection, Malicious Code, Suspicious Downloads, Credential Handling, Secret Detection, Exfiltration, Unverifiable Deps, Financial Access, Obfuscation, Prerequisites Fraud, Leaky Skills, Memory Poisoning\*, Prompt Worm, Persistence, CVE Patterns, MCP Security, Identity Hijacking\*, Sandbox Validation, Code Complexity, Config Impact, PII Exposure, Trust Exploitation, VDB Injection, A2A Contagion, Data Exposure, Sandbox Escape, Agent Protocol, Supply Chain V2, Model Poisoning, Inference Manipulation, Autonomous Risk, API Abuse.
 
@@ -86,6 +98,6 @@ No network requests (unless `--vt-scan`). Read-only scanning. No telemetry. No e
 
 ## Trust
 
-Open source, lightweight (1 runtime dependency `ws` for MCP server), **539 tests / 8 suites** 100% pass. OWASP LLM Top 10 + Agentic Security Top 10 coverage.
+Open source, lightweight (1 runtime dependency `ws` for MCP server), **356 tests / 8 suites** 100% pass. OWASP LLM Top 10 + Agentic Security Top 10 coverage.
 
 MIT — [LICENSE](LICENSE)
