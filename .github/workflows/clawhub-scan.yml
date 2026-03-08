@@ -1,0 +1,38 @@
+name: ClawHub Security Scan
+
+on:
+  schedule:
+    # Every Sunday at 03:00 UTC (12:00 JST)
+    - cron: '0 3 * * 0'
+  workflow_dispatch: # Manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install clawhub CLI
+        run: npm install -g @anthropic-ai/clawhub
+
+      - name: Login to ClawHub
+        run: clawhub login --token "${{ secrets.CLAWHUB_TOKEN }}" --no-input
+        env:
+          CLAWHUB_TOKEN: ${{ secrets.CLAWHUB_TOKEN }}
+
+      - name: Run ClawHub scan
+        run: node scripts/clawhub-scan.js --limit 200
+
+      - name: Commit & push scan results
+        run: |
+          git config user.name "guard-scanner[bot]"
+          git config user.email "guard-scanner[bot]@guava-parity.institute"
+          git add docs/data/latest.json
+          git diff --staged --quiet || git commit -m "data: weekly ClawHub scan — $(date -u +%Y-%m-%d)" && git push
