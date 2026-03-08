@@ -4,7 +4,7 @@
 
 <h1 align="center">guard-scanner 🛡️</h1>
 <p align="center"><strong>Security policy and analysis layer for agent skills and MCP-connected workflows</strong></p>
-<p align="center">32 threat categories · 352 static patterns · 28 runtime checks · MCP server · asset audit · VirusTotal.</p>
+<p align="center">32 threat categories · 352 static patterns · 26 runtime checks · MCP server · asset audit · VirusTotal.</p>
 <p align="center"><em>Note: guard-scanner is a heuristic and policy tool, not a complete defense. Contextual validation and isolation are required for full security.</em></p>
 
 <p align="center">
@@ -238,6 +238,26 @@ Real-time `before_tool_call` hook across 5 defense layers.
 > Counts from `node --test` (Node.js built-in test runner)
 
 </details>
+
+## Finding Schema
+
+Every finding outputs a structured object with these fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `rule_id` | string | Pattern ID (e.g. `MCP_SHADOW_NAME_COLLISION`) |
+| `category` | string | Threat category |
+| `severity` | string | `CRITICAL` / `HIGH` / `MEDIUM` / `LOW` |
+| `description` | string | What the pattern detects |
+| `rationale` | string | Why this is dangerous |
+| `preconditions` | string | When this pattern applies |
+| `false_positive_scenarios` | string[] | Known false positive cases |
+| `remediation_hint` | string | How to fix |
+| `validation_status` | string | `validated` / `heuristic-only` / `runtime-observed` |
+| `evidence` | object | File, line, sample, match context |
+
+> Schema: [`docs/spec/finding.schema.json`](docs/spec/finding.schema.json)
+
 
 ## Plugin API
 
