@@ -76,22 +76,71 @@ for (const s of SORTS) {
 }
 console.log('');
 
-// Phase 2: Search queries for skills not in top-200 of any sort
+// Phase 2: Search queries (text output parsing — no --json support)
 const SEARCH_QUERIES = [
     'security', 'database', 'api', 'file', 'web', 'image', 'audio',
     'email', 'calendar', 'chat', 'code', 'deploy', 'test', 'monitor',
     'ai', 'llm', 'agent', 'tool', 'browser', 'search', 'data',
     'automation', 'workflow', 'devops', 'cloud', 'docker', 'kubernetes',
+    'slack', 'discord', 'notion', 'jira', 'aws', 'gcp', 'python',
+    'webhook', 'scraper', 'crawler', 'pdf', 'video', 'music',
+    'crypto', 'blockchain', 'payment', 'auth', 'oauth', 'sso',
+    'cms', 'wordpress', 'shopify', 'stripe', 'twilio', 'github',
 ];
+let searchAdded = 0;
 for (const q of SEARCH_QUERIES) {
     try {
-        const raw = execSync(`clawhub search "${q}" --limit 50 --json 2>/dev/null`, {
+        const raw = execSync(`clawhub search "${q}" --limit 50 2>/dev/null`, {
             encoding: 'utf-8', timeout: 15000,
         });
-        const data = JSON.parse(raw);
-        const items = data.items || data.results || (Array.isArray(data) ? data : []);
-        addSkills(items);
+        // Parse: "slug  DisplayName  (score)\n"
+        const lines = raw.split('\n').filter(l => l.includes('(') && !l.startsWith('-'));
+        for (const line of lines) {
+            const match = line.match(/^(\S+)\s+(.+?)\s+\([\d.]+\)$/);
+            if (match && !slugSet.has(match[1])) {
+                slugSet.add(match[1]);
+                allSkills.push({
+                    slug: match[1],
+                    displayName: match[2].trim(),
+                    summary: '',
+                    stats: { downloads: 0, installs: 0, installsAllTime: 0, stars: 0 },
+                });
+                searchAdded++;
+            }
+        }
     } catch { /* skip */ }
+}
+if (searchAdded > 0) console.log(`   +${searchAdded} from search queries`);
+
+// Phase 3: Direct API pagination (clawhub.ai) — free tier only
+const API_BASE = 'https://clawhub.ai/api/v1/skills';
+for (let page = 1; page <= 5; page++) {
+    try {
+        const raw = execSync(
+            `curl -s "${API_BASE}?limit=200&page=${page}&sort=newest" 2>/dev/null`,
+            { encoding: 'utf-8', timeout: 15000 }
+        );
+        if (raw.includes('Rate limit')) break;
+        const data = JSON.parse(raw);
+        const items = data.items || data.skills || [];
+        if (items.length === 0) break;
+        let added = 0;
+        for (const item of items) {
+            const sk = item.slug || item.name;
+            if (sk && !slugSet.has(sk)) {
+                slugSet.add(sk);
+                allSkills.push({
+                    slug: sk,
+                    displayName: item.displayName || item.name || sk,
+                    summary: item.summary || item.description || '',
+                    stats: item.stats || { downloads: 0, installs: 0, installsAllTime: 0, stars: 0 },
+                });
+                added++;
+            }
+        }
+        if (added > 0) console.log(`   +${added} from API page ${page}`);
+        if (items.length < 200) break; // last page
+    } catch { break; }
 }
 
 console.log(`   Total unique skills: ${allSkills.length}\n`);
