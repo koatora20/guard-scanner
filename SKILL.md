@@ -1,15 +1,7 @@
 ---
 name: guard-scanner
-description: >
-  Security scanner and runtime guard for AI agent skills.
-  352 static threat patterns across 32 categories + 26 runtime checks (5 defense layers).
-  Use when: (1) scanning skill directories for security threats before installation,
-  (2) auditing npm/GitHub/ClawHub assets for leaked credentials or exposure,
-  (3) running real-time file watch during skill development,
-  (4) integrating security checks into CI/CD pipelines (SARIF/JSON output),
-  (5) setting up MCP server for editor-integrated scanning (Cursor, Windsurf, Claude Code, OpenClaw),
-  (6) runtime guarding tool calls via before_tool_call hook.
-  Single dependency (ws). MIT licensed.
+description: "Security scanner and runtime guard for AI agent skills. 352 static threat patterns across 32 categories + 26 runtime checks (5 defense layers). Use when scanning skill directories for security threats, auditing npm/GitHub/ClawHub assets for leaked credentials, running real-time file watch during development, integrating security checks into CI/CD pipelines (SARIF/JSON), setting up MCP server for editor-integrated scanning (Cursor, Windsurf, Claude Code, OpenClaw), or runtime guarding tool calls via before_tool_call hook. Single dependency (ws). MIT licensed."
+license: MIT
 prerequisites:
   - type: binary
     name: node
