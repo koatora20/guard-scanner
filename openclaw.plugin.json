@@ -1,6 +1,6 @@
 {
   "name": "guard-scanner",
-  "version": "13.0.1",
+  "version": "14.0.0",
   "displayName": "🛡️ Guard Scanner — Runtime Security for AI Agents",
   "description": "352 static patterns (32 categories) + 26 runtime checks (5 layers). Single runtime dependency (ws), SARIF output.",
   "author": "Guava & Dee",

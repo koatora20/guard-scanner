@@ -247,8 +247,8 @@ describe('Output Formats', () => {
 
 // ===== 6. Pattern Database Integrity =====
 describe('Pattern Database', () => {
-    it('should have 135+ patterns', () => {
-        assert.ok(PATTERNS.length >= 135, `Expected 135+ patterns, got ${PATTERNS.length}`);
+    it('should have 350+ patterns', () => {
+        assert.ok(PATTERNS.length >= 350, `Expected 350+ patterns, got ${PATTERNS.length}`);
     });
 
     it('all patterns should have required fields', () => {

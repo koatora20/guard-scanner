@@ -220,7 +220,7 @@ const TOOLS = [
     },
     {
         name: 'run_async',
-        description: 'Run a supported guard-scanner tool asynchronously. Returns taskId immediately; use task_status/task_result to retrieve output.',
+        description: '[Experimental] Run a supported guard-scanner tool asynchronously. Returns taskId immediately; use task_status/task_result to retrieve output.',
         inputSchema: {
             type: 'object',
             properties: {
@@ -232,7 +232,7 @@ const TOOLS = [
     },
     {
         name: 'task_status',
-        description: 'Get async task status by taskId.',
+        description: '[Experimental] Get async task status by taskId.',
         inputSchema: {
             type: 'object',
             properties: { taskId: { type: 'string' } },
@@ -241,7 +241,7 @@ const TOOLS = [
     },
     {
         name: 'task_result',
-        description: 'Get async task final result by taskId.',
+        description: '[Experimental] Get async task final result by taskId.',
         inputSchema: {
             type: 'object',
             properties: { taskId: { type: 'string' } },
@@ -250,31 +250,16 @@ const TOOLS = [
     },
     {
         name: 'task_cancel',
-        description: 'Cancel async task by taskId (best-effort).',
+        description: '[Experimental] Cancel async task by taskId (best-effort).',
         inputSchema: {
             type: 'object',
             properties: { taskId: { type: 'string' }, reason: { type: 'string' } },
             required: ['taskId'],
         },
     },
-    {
-        name: 'cron_glm5_config',
-        description: 'Build a safe OpenClaw cron config and CLI command using model zai/glm-5 for MCP/cron automation.',
-        inputSchema: {
-            type: 'object',
-            properties: {
-                name: { type: 'string' },
-                cron: { type: 'string', description: '5-field cron expr (e.g. 0 7 * * *)' },
-                tz: { type: 'string', default: 'Asia/Tokyo' },
-                message: { type: 'string' },
-                channel: { type: 'string', default: 'last' },
-                to: { type: 'string' },
-                wake: { type: 'string', enum: ['now', 'next-heartbeat'], default: 'next-heartbeat' }
-            },
-            required: ['name', 'cron', 'message'],
-        },
-    },
 ];
+
+// NOTE: cron_glm5_config was removed in v14.0.0 — not guard-scanner's responsibility
 
 // ── Tool Handlers ──
 
@@ -498,43 +483,7 @@ function handleTaskCancel({ taskId, reason = 'user cancel' }) {
     return successResult(`taskId=${taskId}\nstate=cancelled`);
 }
 
-function handleCronGlm5Config({ name, cron, tz = 'Asia/Tokyo', message, channel = 'last', to, wake = 'next-heartbeat' }) {
-    if (!name || !cron || !message) return errorResult('name, cron, message are required');
-    const parts = String(cron).trim().split(/\s+/);
-    if (parts.length !== 5) return errorResult('cron must be 5 fields (minute hour day month weekday)');
-
-    const payload = {
-        name,
-        schedule: { kind: 'cron', expr: cron, tz },
-        sessionTarget: 'isolated',
-        wakeMode: wake,
-        payload: { kind: 'agentTurn', message, model: 'zai/glm-5' },
-        delivery: {
-            mode: 'announce',
-            channel,
-            ...(to ? { to } : {}),
-            bestEffort: true,
-        },
-    };
-
-    const cli = [
-        'openclaw cron add',
-        `--name ${JSON.stringify(name)}`,
-        `--cron ${JSON.stringify(cron)}`,
-        `--tz ${JSON.stringify(tz)}`,
-        '--session isolated',
-        `--message ${JSON.stringify(message)}`,
-        '--model "zai/glm-5"',
-        `--wake ${wake}`,
-        '--announce',
-        `--channel ${channel}`,
-        ...(to ? [`--to ${JSON.stringify(to)}`] : []),
-    ].join(' \\\n  ');
-
-    return successResult(
-        `cron_glm5_config_ready\n\nCLI:\n${cli}\n\nJSON:\n${JSON.stringify(payload, null, 2)}`
-    );
-}
+// handleCronGlm5Config removed in v14.0.0 — not guard-scanner's responsibility
 
 // ── Result helpers ──
 
@@ -681,8 +630,6 @@ class MCPServer {
                 return handleTaskResult(args);
             case 'task_cancel':
                 return handleTaskCancel(args);
-            case 'cron_glm5_config':
-                return handleCronGlm5Config(args);
             default:
                 return errorResult(`Unknown tool: ${name}`);
         }

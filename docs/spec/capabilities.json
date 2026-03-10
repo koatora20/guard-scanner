@@ -1,11 +1,10 @@
 {
-  "package_version": "13.0.1",
-  "plugin_version": "13.0.1",
+  "package_version": "14.0.0",
+  "plugin_version": "14.0.0",
   "static_pattern_count": 352,
   "threat_category_count": 32,
   "runtime_check_count": 26,
-  "test_count": 539,
-  "test_suite_count": 116,
+  "test_file_count": 19,
   "dependencies_runtime": 1,
   "dependencies_dev": 2,
   "mcp_tools": [
@@ -14,14 +13,18 @@
     "check_tool_call",
     "audit_assets",
     "get_stats",
+    "run_async",
     "task_status",
-    "task_result"
+    "task_result",
+    "task_cancel"
   ],
   "cli_commands": [
     "scan",
     "serve",
-    "monitor",
-    "audit"
+    "watch",
+    "audit",
+    "crawl",
+    "patrol"
   ],
   "supported_outputs": [
     "json",

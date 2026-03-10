@@ -9,7 +9,7 @@
 
 <p align="center">
   <a href="https://www.npmjs.com/package/@guava-parity/guard-scanner"><img src="https://img.shields.io/npm/v/@guava-parity/guard-scanner?color=cb3837" alt="npm version" /></a>
-  <a href="#test-results"><img src="https://img.shields.io/badge/tests-356%20passed-brightgreen" alt="tests" /></a>
+  <a href="#test-results"><img src="https://img.shields.io/badge/tests-336%20passed-brightgreen" alt="tests" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/npm/l/guard-scanner" alt="license" /></a>
   <a href="https://github.com/koatora20/guard-scanner"><img src="https://img.shields.io/badge/runtime_deps-1_(ws)-blue" alt="lightweight deps" /></a>
   <a href="https://doi.org/10.5281/zenodo.18906684"><img src="https://img.shields.io/badge/DOI-3_papers-purple" alt="DOI" /></a>
@@ -29,6 +29,24 @@ guard-scanner is built to be:
 - **Defense in Depth:** Provides static scanning and runtime guardrails (not a standalone sandbox).
 
 > 📄 **Backed by research**: [The Sanctuary Protocol](https://doi.org/10.5281/zenodo.18906684) — 3-paper series with Zenodo DOIs, CC BY 4.0.
+
+### Capability Status
+
+| Area | Status | Evidence |
+|------|--------|----------|
+| Static regex/policy scan | ✅ Implemented | `src/scanner.js`, `src/patterns.js` (352 patterns, 32 categories) |
+| Runtime tool-call guard | ✅ Implemented | `src/runtime-guard.js` (26 checks, 5 layers) |
+| MCP server | ✅ Implemented | `src/mcp-server.js` (9 tools) |
+| CLI scanner | ✅ Implemented | `guard-scanner scan` / `npx @guava-parity/guard-scanner` |
+| Asset audit (npm/GitHub) | ✅ Implemented | `src/audit.js` |
+| VirusTotal integration | ✅ Implemented | `src/vt.js` |
+| E2E tests (CLI, MCP, Plugin) | ✅ Implemented | `test/e2e-*.test.js` + `test/fixtures/` |
+| File watcher + CI reporters | ✅ Implemented | `src/watcher.js` |
+| Async MCP tools | ⚠️ Experimental | `run_async`, `task_status`, `task_result`, `task_cancel` |
+| AST/taint analysis | 🔲 Planned | Regex-based heuristics cover common cases; AST for FP reduction |
+| Sandbox replay | 🔲 Planned | Requires container infrastructure |
+
+> 📖 For terminology (SOUL.md, ClawHavoc, etc.) see [docs/glossary.md](docs/glossary.md).
 
 ---
 
@@ -80,13 +98,17 @@ Add to your editor's MCP config:
 
 ### MCP Tools
 
-| Tool | Description |
-|------|-------------|
-| `scan_skill` | Scan a directory — 352 patterns, 32 categories |
-| `scan_text` | Scan a code snippet inline |
-| `check_tool_call` | Runtime guard — block dangerous tool calls before execution (26 checks, 5 layers) |
-| `audit_assets` | Audit npm/GitHub assets for exposure |
-| `get_stats` | Get scanner capabilities and statistics |
+| Tool | Description | Status |
+|------|-------------|--------|
+| `scan_skill` | Scan a directory — 352 patterns, 32 categories | ✅ Stable |
+| `scan_text` | Scan a code snippet inline | ✅ Stable |
+| `check_tool_call` | Runtime guard — block dangerous tool calls (26 checks, 5 layers) | ✅ Stable |
+| `audit_assets` | Audit npm/GitHub assets for exposure | ✅ Stable |
+| `get_stats` | Get scanner capabilities and statistics | ✅ Stable |
+| `run_async` | Run any tool asynchronously, returns taskId | ⚠️ Experimental |
+| `task_status` | Get async task status | ⚠️ Experimental |
+| `task_result` | Get async task result | ⚠️ Experimental |
+| `task_cancel` | Cancel async task (best-effort) | ⚠️ Experimental |
 
 ---
 
@@ -214,30 +236,14 @@ Real-time `before_tool_call` hook across 5 defense layers.
 ## Test Results
 
 ```
-ℹ tests 356
-ℹ suites 8
-ℹ pass 356
+ℹ tests 336
+ℹ suites 80
+ℹ pass 336
 ℹ fail 0
-ℹ duration_ms ~1200
 ```
 
-<details>
-<summary>Test files (8 suites)</summary>
-
-| File | Assertions |
-|------|------------|
-| patterns.test.js | 110 ✅ |
-| scanner.test.js | 142 ✅ |
-| plugin.test.js | 72 ✅ |
-| audit.test.js | 58 ✅ |
-| vt.test.js | 51 ✅ |
-| mcp.test.js | 37 ✅ |
-| watcher.test.js | 24 ✅ |
-| quarantine.test.js | 6 ✅ |
-
-> Counts from `node --test` (Node.js built-in test runner)
-
-</details>
+> Counts from `node --test` (Node.js built-in test runner). Test files: 16.
+> Run `npm test` to verify.
 
 ## Finding Schema
 

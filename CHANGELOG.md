@@ -16,7 +16,7 @@ Major architectural alignment based on critical security review ("辛口レビ�
 - Static patterns: **352**
 - Threat categories: **32**
 - Runtime checks: **26**
-- Tests: **356** across 8 suites
+- Test files: **16**
 
 ## [5.0.5] - 2026-03-04
 

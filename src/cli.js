@@ -150,6 +150,141 @@ Examples:
       process.exit(2);
     }
   })();
+
+  // ── crawl subcommand ──────────────────────────────────────────
+} else if (args[0] === 'crawl') {
+  const { SkillCrawler } = require('./skill-crawler.js');
+  const subCmd = args[1]; // clawhub | github | url
+  const target = args[2]; // query or URL
+  const verbose = args.includes('--verbose') || args.includes('-v');
+  const formatIdx = args.indexOf('--format');
+  const formatValue = formatIdx >= 0 ? args[formatIdx + 1] : null;
+  const quiet = !!formatValue;
+  const maxIdx = args.indexOf('--max');
+  const maxSkills = maxIdx >= 0 ? parseInt(args[maxIdx + 1], 10) : 50;
+
+  if (!subCmd || subCmd === '--help' || subCmd === '-h') {
+    console.log(`
+🛡️  guard-scanner crawl — Autonomous Skill Scanner
+
+Usage:
+  guard-scanner crawl clawhub              Crawl ClawHub for all SKILL.md
+  guard-scanner crawl github <query>       Search GitHub for SKILL.md
+  guard-scanner crawl url <url>            Scan a single SKILL.md URL
+
+Options:
+  --verbose, -v       Show detection details
+  --format json       Output JSON to stdout
+  --max <n>           Max skills to scan (default: 50)
+  --help, -h          Show this help
+
+Examples:
+  guard-scanner crawl clawhub --verbose
+  guard-scanner crawl github "polymarket trader" --format json
+  guard-scanner crawl url https://raw.githubusercontent.com/.../SKILL.md
+`);
+    process.exit(0);
+  }
+
+  const crawler = new SkillCrawler({ verbose, quiet, concurrency: 5 });
+
+  (async () => {
+    try {
+      if (subCmd === 'clawhub') {
+        await crawler.crawlClawHub({ maxSkills });
+      } else if (subCmd === 'github') {
+        if (!target) { console.error('❌ Usage: guard-scanner crawl github <query>'); process.exit(2); }
+        await crawler.crawlGitHub(target, { maxResults: maxSkills });
+      } else if (subCmd === 'url') {
+        if (!target) { console.error('❌ Usage: guard-scanner crawl url <url>'); process.exit(2); }
+        await crawler.scanUrl(target, target);
+      } else {
+        console.error(`❌ Unknown crawl target: ${subCmd}. Use: clawhub, github, or url`);
+        process.exit(2);
+      }
+
+      if (formatValue === 'json') {
+        process.stdout.write(JSON.stringify(crawler.toJSON(), null, 2) + '\n');
+      } else {
+        crawler.printSummary();
+      }
+
+      const summary = crawler.getSummary();
+      process.exit(summary.unsafe > 0 ? 1 : 0);
+    } catch (e) {
+      console.error(`❌ Crawl error: ${e.message}`);
+      process.exit(2);
+    }
+  })();
+
+  // ── patrol subcommand ──────────────────────────────────────────
+} else if (args[0] === 'patrol') {
+  const { SkillCrawler } = require('./skill-crawler.js');
+  const verbose = args.includes('--verbose') || args.includes('-v');
+  const once = args.includes('--once');
+  const intervalIdx = args.indexOf('--interval');
+  const intervalSecs = intervalIdx >= 0 ? parseInt(args[intervalIdx + 1], 10) : 3600;
+  const formatIdx = args.indexOf('--format');
+  const formatValue = formatIdx >= 0 ? args[formatIdx + 1] : null;
+
+  if (args.includes('--help') || args.includes('-h')) {
+    console.log(`
+🛡️  guard-scanner patrol — Autonomous Security Patrol
+
+Usage:
+  guard-scanner patrol --once              Run one patrol cycle
+  guard-scanner patrol --interval 3600     Patrol every N seconds
+
+Options:
+  --once              Run once and exit
+  --interval <secs>   Polling interval (default: 3600 = 1 hour)
+  --verbose, -v       Show detection details
+  --format json       Output JSON
+  --help, -h          Show this help
+`);
+    process.exit(0);
+  }
+
+  async function runPatrol() {
+    const timestamp = new Date().toISOString();
+    console.log(`\n🚨 Patrol cycle starting at ${timestamp}`);
+    console.log('─'.repeat(54));
+
+    const crawler = new SkillCrawler({ verbose, quiet: !!formatValue, concurrency: 5 });
+    await crawler.crawlClawHub({ maxSkills: 50 });
+
+    if (formatValue === 'json') {
+      process.stdout.write(JSON.stringify(crawler.toJSON(), null, 2) + '\n');
+    } else {
+      crawler.printSummary();
+    }
+
+    const summary = crawler.getSummary();
+    if (summary.unsafe > 0) {
+      console.log(`\n⚠️  ${summary.unsafe} unsafe skill(s) detected!`);
+    }
+    return summary;
+  }
+
+  (async () => {
+    try {
+      if (once) {
+        const summary = await runPatrol();
+        process.exit(summary.unsafe > 0 ? 1 : 0);
+      } else {
+        console.log(`🛡️  guard-scanner patrol mode — interval: ${intervalSecs}s`);
+        console.log(`   Press Ctrl+C to stop\n`);
+        await runPatrol();
+        setInterval(async () => {
+          await runPatrol();
+        }, intervalSecs * 1000);
+      }
+    } catch (e) {
+      console.error(`❌ Patrol error: ${e.message}`);
+      process.exit(2);
+    }
+  })();
+
 } else {
   // ── existing scan logic (backward compatible) ─────────────────
 

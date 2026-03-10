@@ -110,6 +110,18 @@ for (const fileDef of filesToCheck) {
     }
 }
 
+// Verify test file count against spec
+if (spec.test_file_count !== undefined) {
+    const testDir = path.join(__dirname, '../test');
+    const testFiles = fs.readdirSync(testDir).filter(f => f.endsWith('.test.js'));
+    if (testFiles.length !== spec.test_file_count) {
+        console.error(`❌ [test/] Test file count mismatch: expected ${spec.test_file_count}, got ${testFiles.length}`);
+        errors++;
+    } else {
+        console.log(`✅ [test/] Test file count matches (${testFiles.length})`);
+    }
+}
+
 if (errors > 0) {
     console.error(`\n🚨 Verification failed with ${errors} error(s). Please update documents to match docs/spec/capabilities.json.`);
     process.exit(1);
