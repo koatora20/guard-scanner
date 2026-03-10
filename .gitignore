@@ -29,3 +29,4 @@ tsconfig.json
 ts-src/
 docs/TASKLIST_*.md
 docs/OPENCLAW_*.md
+test/fixtures/benchmark/

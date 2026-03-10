@@ -13,10 +13,10 @@
     "check_tool_call",
     "audit_assets",
     "get_stats",
-    "run_async",
-    "task_status",
-    "task_result",
-    "task_cancel"
+    "experimental.run_async",
+    "experimental.task_status",
+    "experimental.task_result",
+    "experimental.task_cancel"
   ],
   "cli_commands": [
     "scan",

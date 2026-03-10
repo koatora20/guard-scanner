@@ -9,7 +9,7 @@
 
 <p align="center">
   <a href="https://www.npmjs.com/package/@guava-parity/guard-scanner"><img src="https://img.shields.io/npm/v/@guava-parity/guard-scanner?color=cb3837" alt="npm version" /></a>
-  <a href="#test-results"><img src="https://img.shields.io/badge/tests-336%20passed-brightgreen" alt="tests" /></a>
+  <a href="#test-results"><img src="https://img.shields.io/badge/tests-337%20passed-brightgreen" alt="tests" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/npm/l/guard-scanner" alt="license" /></a>
   <a href="https://github.com/koatora20/guard-scanner"><img src="https://img.shields.io/badge/runtime_deps-1_(ws)-blue" alt="lightweight deps" /></a>
   <a href="https://doi.org/10.5281/zenodo.18906684"><img src="https://img.shields.io/badge/DOI-3_papers-purple" alt="DOI" /></a>
@@ -42,11 +42,13 @@ guard-scanner is built to be:
 | VirusTotal integration | ✅ Implemented | `src/vt.js` |
 | E2E tests (CLI, MCP, Plugin) | ✅ Implemented | `test/e2e-*.test.js` + `test/fixtures/` |
 | File watcher + CI reporters | ✅ Implemented | `src/watcher.js` |
-| Async MCP tools | ⚠️ Experimental | `run_async`, `task_status`, `task_result`, `task_cancel` |
+| Async MCP tools | ⚠️ Experimental | `experimental.run_async`, `experimental.task_status`, `experimental.task_result`, `experimental.task_cancel` |
 | AST/taint analysis | 🔲 Planned | Regex-based heuristics cover common cases; AST for FP reduction |
 | Sandbox replay | 🔲 Planned | Requires container infrastructure |
 
 > 📖 For terminology (SOUL.md, ClawHavoc, etc.) see [docs/glossary.md](docs/glossary.md).
+> 
+> 📊 **Evidence-driven metrics**: All numbers above are auto-generated from source code via [docs/EVIDENCE_DRIVEN.md](docs/EVIDENCE_DRIVEN.md). Zero tolerance for marketing-first claims.
 
 ---
 
@@ -105,10 +107,10 @@ Add to your editor's MCP config:
 | `check_tool_call` | Runtime guard — block dangerous tool calls (26 checks, 5 layers) | ✅ Stable |
 | `audit_assets` | Audit npm/GitHub assets for exposure | ✅ Stable |
 | `get_stats` | Get scanner capabilities and statistics | ✅ Stable |
-| `run_async` | Run any tool asynchronously, returns taskId | ⚠️ Experimental |
-| `task_status` | Get async task status | ⚠️ Experimental |
-| `task_result` | Get async task result | ⚠️ Experimental |
-| `task_cancel` | Cancel async task (best-effort) | ⚠️ Experimental |
+| `experimental.run_async` | Run any tool asynchronously, returns taskId | ⚠️ Experimental |
+| `experimental.task_status` | Get async task status | ⚠️ Experimental |
+| `experimental.task_result` | Get async task result | ⚠️ Experimental |
+| `experimental.task_cancel` | Cancel async task (best-effort) | ⚠️ Experimental |
 
 ---
 
@@ -236,9 +238,9 @@ Real-time `before_tool_call` hook across 5 defense layers.
 ## Test Results
 
 ```
-ℹ tests 336
+ℹ tests 337
 ℹ suites 80
-ℹ pass 336
+ℹ pass 337
 ℹ fail 0
 ```
 

@@ -219,8 +219,8 @@ const TOOLS = [
         },
     },
     {
-        name: 'run_async',
-        description: '[Experimental] Run a supported guard-scanner tool asynchronously. Returns taskId immediately; use task_status/task_result to retrieve output.',
+        name: 'experimental.run_async',
+        description: '[Experimental] Run a supported guard-scanner tool asynchronously. Returns taskId immediately; use experimental.task_status/experimental.task_result to retrieve output.',
         inputSchema: {
             type: 'object',
             properties: {
@@ -231,7 +231,7 @@ const TOOLS = [
         },
     },
     {
-        name: 'task_status',
+        name: 'experimental.task_status',
         description: '[Experimental] Get async task status by taskId.',
         inputSchema: {
             type: 'object',
@@ -240,7 +240,7 @@ const TOOLS = [
         },
     },
     {
-        name: 'task_result',
+        name: 'experimental.task_result',
         description: '[Experimental] Get async task final result by taskId.',
         inputSchema: {
             type: 'object',
@@ -249,7 +249,7 @@ const TOOLS = [
         },
     },
     {
-        name: 'task_cancel',
+        name: 'experimental.task_cancel',
         description: '[Experimental] Cancel async task by taskId (best-effort).',
         inputSchema: {
             type: 'object',
@@ -622,13 +622,13 @@ class MCPServer {
                 return await handleAuditAssets(args);
             case 'get_stats':
                 return handleGetStats();
-            case 'run_async':
+            case 'experimental.run_async':
                 return handleRunAsync(args);
-            case 'task_status':
+            case 'experimental.task_status':
                 return handleTaskStatus(args);
-            case 'task_result':
+            case 'experimental.task_result':
                 return handleTaskResult(args);
-            case 'task_cancel':
+            case 'experimental.task_cancel':
                 return handleTaskCancel(args);
             default:
                 return errorResult(`Unknown tool: ${name}`);

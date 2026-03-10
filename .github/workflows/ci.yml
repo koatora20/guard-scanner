@@ -17,7 +17,27 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm test
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Generate capabilities manifest
+        run: node scripts/generate-capabilities.js
+
+      - name: Check README metrics drift
+        run: |
+          node scripts/generate-readme-metrics.js --check
+          node scripts/generate-readme-stats.js --check
+
+      - name: Verify all capability claims
+        run: node scripts/verify-capabilities.js
+
+      - name: Run quality gate
+        run: node scripts/test-quality-gate.js
+
+      - name: Run tests
+        run: node --test test/*.test.js
+
       - name: Self-scan (advisory)
         continue-on-error: true
         run: node src/cli.js hooks/ src/ --quiet
