@@ -1,5 +1,58 @@
 # Changelog
 
+## [3.0.0] - 2026-02-21
+
+### 🔥 TypeScript Rewrite — Complete Codebase Overhaul
+
+Full TypeScript rewrite with type safety, OWASP LLM Top 10 2025 mapping, and new detection capabilities.
+
+#### Breaking Changes
+- **TypeScript-first**: All source now in `ts-src/`, compiled to `dist/`
+- **Import paths**: `require('guard-scanner')` now loads from `dist/`
+- **Node.js 18+** required
+
+#### New
+- **OWASP LLM Top 10 2025 mapping**: Every pattern has `owasp` field (LLM01–LLM07)
+- **LLM07 System Prompt Leakage** (new category): 5 patterns
+  - `SPL_DUMP_SYSTEM`: "Output your system prompt" detection
+  - `SPL_REPEAT_ABOVE`: "Repeat everything above" extraction
+  - `SPL_TELL_RULES`: Rule/constraint extraction attempts
+  - `SPL_MARKDOWN_LEAK`: Format-based prompt extraction
+  - `SPL_SOUL_EXFIL`: SOUL.md shell command extraction
+- **`install-check` CLI command**: Pre-install security check for single skills
+  - `guard-scanner install-check <skill-path> [--strict] [--json] [--verbose]`
+  - Exit code 0 = PASS, 1 = FAIL, 2 = argument error
+  - OWASP tags in output: `[LLM01]`, `[LLM02]`, etc.
+- **SARIF OWASP tags**: `OWASP/LLMxx` in `rule.properties.tags` for GitHub Code Scanning filtering
+- **Compaction Layer Persistence** detection (Feb 20 2026 attack vector)
+- **Threat signature hash matching** (hbg-scan compatible, SIG-001 to SIG-007)
+- **Competitive analysis**: ROADMAP v4 with ClawBands/ClawGuardian/SecureClaw positioning
+
+#### Enhanced
+- **Risk scoring**: Enhanced multipliers for compaction-persistence category
+- **Pattern count**: 186 → 190+ (5 new LLM07 patterns)
+- **Categories**: 20 → 21 (system-prompt-leakage)
+
+#### Testing (T-Wada)
+- **42 tests**, 16 suites, 0 failures, 33ms
+- T26: OWASP mapping guarantee (all patterns must have owasp)
+- T27: OWASP value validation (LLM01–LLM10 only)
+- T28-T29: Category→OWASP mapping correctness
+- T30-T34: LLM07 detection (4 true positives + 1 false positive guard)
+- T35-T38: install-check integration (strict mode, verdict thresholds)
+- T39-T41: SARIF OWASP tag verification
+- T42: Compaction-skill LLM07 cross-check (0 false positives)
+
+#### Architecture
+- `ts-src/scanner.ts` — Core scanner (1007 lines, typed)
+- `ts-src/patterns.ts` — 190+ patterns with OWASP mapping
+- `ts-src/ioc-db.ts` — IoC database + 7 threat signatures
+- `ts-src/types.ts` — Full TypeScript interfaces
+- `ts-src/cli.ts` — CLI with install-check subcommand
+- `ts-src/__tests__/scanner.test.ts` — 42 T-Wada tests
+
+---
+
 ## [2.1.0] - 2026-02-18
 
 ### 🆕 PII Exposure Detection (OWASP LLM02 / LLM06)

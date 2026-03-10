@@ -1,0 +1,55 @@
+{
+  "id": "guava-guard-scanner",
+  "kind": "security",
+  "name": "guava-guard-scanner",
+  "version": "3.0.0",
+  "displayName": "🛡️ Guava Guard Scanner — OpenClaw Runtime Threat Guard",
+  "description": "OpenClaw-compatible security plugin for runtime tool-call interception with guard-scanner threat intelligence and enforceable before_tool_call blocking.",
+  "author": "Guava & Dee — Guava Parity Institute",
+  "license": "MIT",
+  "homepage": "https://github.com/koatora20/guard-scanner",
+  "repository": "https://github.com/koatora20/guard-scanner",
+  "keywords": ["security", "agent-native", "prompt-injection", "supply-chain", "openclaw", "mcp", "threat-detection"],
+  "engines": { "openclaw": ">=2026.2.0" },
+  "hooks": {
+    "before_tool_call": {
+      "handler": "./dist/runtime-plugin.js",
+      "export": "default",
+      "description": "Block or warn on dangerous tool-call payloads before execution",
+      "priority": 90
+    }
+  },
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "mode": {
+        "type": "string",
+        "description": "Runtime enforcement mode for the guard-scanner plugin.",
+        "enum": ["monitor", "enforce", "strict"],
+        "default": "enforce"
+      },
+      "enableAuditLog": {
+        "type": "boolean",
+        "description": "Write runtime detections to audit.jsonl under the configured audit directory.",
+        "default": true
+      },
+      "auditDir": {
+        "type": "string",
+        "description": "Absolute directory for audit.jsonl output. Empty means ~/.openclaw/guard-scanner.",
+        "default": ""
+      },
+      "suiteTokenPath": {
+        "type": "string",
+        "description": "Absolute path to the GuavaSuite JWT token used to auto-upgrade to strict mode.",
+        "default": ""
+      },
+      "configPath": {
+        "type": "string",
+        "description": "Absolute path to the OpenClaw runtime config file to inspect for plugin mode overrides.",
+        "default": ""
+      }
+    },
+    "required": [],
+    "additionalProperties": false
+  }
+}

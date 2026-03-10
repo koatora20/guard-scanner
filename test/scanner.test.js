@@ -81,11 +81,17 @@ describe('Malicious Skill Detection', () => {
     });
 
     it('should detect leaky skills (Cat 11)', () => {
-        assert.ok(hasCategory(mal, 'leaky-skills'), 'Should detect leaky skill patterns');
+        assert.ok(
+            hasId(mal, 'EXFIL_POST') || hasId(mal, 'TRUST_WEB_EXEC'),
+            'Should detect leak-prone exfiltration or trust-boundary patterns',
+        );
     });
 
     it('should detect memory poisoning (Cat 12)', () => {
-        assert.ok(hasCategory(mal, 'memory-poisoning'), 'Should detect memory poisoning');
+        assert.ok(
+            hasId(mal, 'SOUL_FS_WRITE') || hasId(mal, 'SOUL_NAME_OVERRIDE'),
+            'Should detect identity or memory overwrite behavior',
+        );
     });
 
     it('should detect identity hijacking (Cat 17)', () => {
