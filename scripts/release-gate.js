@@ -18,10 +18,13 @@ function main() {
     assert(manifest.name === "guava-guard-scanner", `plugin name drift: ${manifest.name}`);
     assert(manifest.license === pkg.license, "license mismatch between package and plugin manifest");
     assert(manifest.hooks.before_tool_call.handler === "./dist/runtime-plugin.js", "runtime handler drift");
+    assert(!manifest.tools, "runtime plugin must stay hook-only");
+    assert(!manifest.mcpServers, "runtime plugin must not expose MCP servers");
     assert(fs.existsSync(path.join(root, "README.md")), "missing README.md");
     assert(fs.existsSync(path.join(root, "LICENSE")), "missing LICENSE");
     assert(fs.existsSync(path.join(root, "SKILL.md")), "missing SKILL.md");
     assert(fs.existsSync(path.join(root, "SECURITY.md")), "missing SECURITY.md");
+    assert(fs.existsSync(path.join(root, "docs", "public-safe-boundary.md")), "missing public-safe boundary doc");
 
     const packRaw = execFileSync("npm", ["pack", "--dry-run", "--json"], {
         cwd: root,
