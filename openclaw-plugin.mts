@@ -1,8 +1,7 @@
-import { createRequire } from "node:module";
 import type { OpenClawPluginApi } from "openclaw/plugin-sdk/core";
+import * as runtimeGuard from "./src/index.js";
 
-const require = createRequire(import.meta.url);
-const runtimeGuard = require("../src/runtime-guard.js") as {
+const runtimeGuardApi = runtimeGuard as {
     scanToolCall: (
         toolName: string,
         params: Record<string, unknown>,
@@ -54,7 +53,7 @@ function beforeToolCall(
     ctx: PluginHookToolContext,
     api: OpenClawPluginApi,
 ) {
-    const result = runtimeGuard.scanToolCall(event.toolName, event.params, {
+    const result = runtimeGuardApi.scanToolCall(event.toolName, event.params, {
         mode: resolveMode(api.pluginConfig),
         auditLog: resolveAuditLog(api.pluginConfig),
         sessionKey: ctx.sessionKey,
@@ -83,7 +82,7 @@ const plugin = {
             { priority: 90 },
         );
         api.logger.info(
-            "guard-scanner registered OpenClaw before_tool_call hook (validated for v2026.3.8).",
+            "guard-scanner registered OpenClaw before_tool_call hook (stable: v2026.3.12, regression lane: v2026.3.8).",
         );
     },
 };

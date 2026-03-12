@@ -1,5 +1,23 @@
 # Changelog
 
+## [15.0.0] - 2026-03-12
+
+### Public Surface Recovery + Release Evidence Sync
+
+#### Changed
+- Locked public release claims to the current metrics baseline: **358 patterns / 35 categories / 27 runtime checks / 332 passing tests / 85 suites**
+- Added a shared metrics source for homepage, agent card, and Sanctuary worker consumers
+- Narrowed stale public drift by aligning release evidence to the current npm package and OpenClaw-facing surfaces
+
+#### Documentation
+- Homepage and agent card now consume the shared GPI metrics baseline instead of stale v13 copy
+- Sanctuary worker release claims updated to match guard-scanner v15
+
+#### Evidence
+- npm package version: **15.0.0**
+- guard-scanner capabilities spec: **358 / 35 / 27**
+- public audit target: homepage + agent card + Sanctuary worker
+
 ## [14.0.0] - 2026-03-08
 
 ### 🛡️ P0 Spec Governance & Security Claim Rewrite

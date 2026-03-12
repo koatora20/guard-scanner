@@ -121,7 +121,7 @@ guard-scanner isn't just a static scanner — it provides a real-time **`before_
 | 4. Behavioral Analysis | No-research execution, hallucination-driven actions |
 | 5. Trust Exploitation | Authority claim attacks, creator impersonation |
 
-**27 runtime checks** across 5 layers. Validated against OpenClaw `v2026.3.8`.
+**27 runtime checks** across 5 layers. Validated against OpenClaw `v2026.3.12` with regression coverage for `v2026.3.8`.
 
 Modes: `monitor` (log only) · `enforce` (block CRITICAL, default) · `strict` (block HIGH+)
 

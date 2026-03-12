@@ -1,7 +1,8 @@
 # guard-scanner OpenClaw Compatibility Audit
 
 Date: 2026-03-12
-Target baseline: OpenClaw `v2026.3.8`
+Target stable: OpenClaw `v2026.3.12`
+Baseline regression lane: OpenClaw `v2026.3.8`
 
 ## Official upstream requirements used
 

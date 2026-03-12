@@ -6,7 +6,7 @@
   "runtime_check_count": 27,
   "test_file_count": 23,
   "dependencies_runtime": 1,
-  "dependencies_dev": 3,
+  "dependencies_dev": 5,
   "mcp_tools": [
     "scan_skill",
     "scan_text",
