@@ -1,248 +1,246 @@
-# 🛡️ guard-scanner
+<p align="center">
+  <img src="docs/logo.png" alt="guard-scanner" width="160" />
+</p>
 
-**AIエージェントとMCP連携ワークフローのためのセキュリティポリシー＆分析レイヤー**
+<h1 align="center">guard-scanner</h1>
+<p align="center"><strong>エージェント時代のセキュリティスキャナー</strong></p>
+<p align="center">
+  AIエージェントスキル、MCPサーバー、自律型ワークフローにおける<br />
+  プロンプトインジェクション・アイデンティティ乗っ取り・メモリ汚染・A2A感染を検出。
+</p>
 
-静的スキャン · ランタイムフック · MCPサーバー · 資産監査 · VirusTotal連携
+<p align="center">
+  <a href="https://www.npmjs.com/package/@guava-parity/guard-scanner"><img src="https://img.shields.io/npm/v/@guava-parity/guard-scanner?color=cb3837&label=npm" alt="npm" /></a>
+  <a href="https://www.npmjs.com/package/@guava-parity/guard-scanner"><img src="https://img.shields.io/npm/dm/@guava-parity/guard-scanner?color=blue&label=downloads" alt="downloads" /></a>
+  <a href="#テスト結果"><img src="https://img.shields.io/badge/テスト-332_passed-brightgreen" alt="tests" /></a>
+  <a href="https://github.com/koatora20/guard-scanner/actions/workflows/codeql.yml"><img src="https://img.shields.io/badge/CodeQL-有効-181717" alt="CodeQL" /></a>
+  <a href="https://doi.org/10.5281/zenodo.18906684"><img src="https://img.shields.io/badge/DOI-Zenodo-blue" alt="DOI" /></a>
+  <a href="https://github.com/koatora20/guard-scanner/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="MIT" /></a>
+</p>
 
-*注意: guard-scannerはヒューリスティックおよびポリシーレイヤーであり、完全な防御ではありません。完全なセキュリティにはコンテキスト検証とサンドボックス隔離が必要です。*
+<p align="center">
+  <strong>358</strong> 検出パターン · <strong>35</strong> 脅威カテゴリ · <strong>27</strong> ランタイムチェック · 依存: <strong>1</strong> (<code>ws</code> のみ)
+</p>
 
-[![npm version](https://img.shields.io/npm/v/@guava-parity/guard-scanner.svg?style=flat-square&color=cb3837)](https://www.npmjs.com/package/@guava-parity/guard-scanner)
-[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE)
-[![Dependencies](https://img.shields.io/badge/dependencies-1_(ws)-blue?style=flat-square)]()
-[![Tests Passing](https://img.shields.io/badge/tests-539-brightgreen?style=flat-square)]()
-[![Patterns](https://img.shields.io/badge/patterns-352-blueviolet?style=flat-square)]()
-
-[English](README.md) •
-[クイックスタート](#クイックスタート) •
-[資産監査](#資産監査) •
-[VirusTotal連携](#virustotal連携) •
-[リアルタイム監視](#リアルタイム監視)
+<p align="center">
+  <a href="README.md">English</a> · 日本語
+</p>
 
 ---
 
-## 🎯 機能とセキュリティ境界 (Capabilities & Boundaries)
+従来のセキュリティツールはマルウェアを検出します。**guard-scanner** はその先を検出します：エージェント命令に隠された不可視Unicode注入、SOUL.mdの上書きによるアイデンティティ窃盗、巧妙な会話を通じたメモリ汚染、チェーン接続されたエージェント間のワーム型感染。
 
-**guard-scanner**は拡張可能なポリシー施行エンジンです。その機能は[capabilities.json](docs/spec/capabilities.json)（単一の信頼できる情報源）によって厳密に管理されています。
+```
+$ npx @guava-parity/guard-scanner ./skills/ --strict --soul-lock
 
-*   **静的パターン**: 352 (AST diffing, 正規表現ヒューリスティック)
-*   **脅威カテゴリ**: 32 (プロンプトインジェクション, A2A汚染, ID偽装など)
-*   **ランタイムチェック**: 26 (MCP `before_tool_call` のインターセプト)
-*   **依存パッケージ**: ランタイム 1 (`ws` のみ)、サプライチェーンリスクを最小化
+  guard-scanner v15.0.0
 
-### セキュリティ境界: できること・できないこと
+  ⚠  CRITICAL  identity-hijack   SOUL_OVERWRITE_ATTEMPT
+     skills/imported-tool/SKILL.md:47
+     理由: エージェントのアイデンティティファイルへの直接上書きを検出。
+     対策: この命令を削除してください。SOUL.mdは不変でなければなりません。
 
-| 機能 | ステータス | 説明 |
-|---|---|---|
-| **ヒューリスティック検知** | ✅ 検知 / 警告 | 既知の攻撃パターンをコード・テキストから静的に検出します。 |
-| **ランタイムガードレール** | 🛡️ ブロック | OpenClawなどの `before_tool_call` フックにマウントすることで実行をブロックできます。 |
-| **ネットワークアクセス** | 🌐 VT監査用 | VirusTotalやnpm監査などの特定機能を呼び出した場合のみネットワークを使用します。 |
-| **コンテキスト検証** | ❌ スコープ外 | サンドボックス内でのコードの振る舞いを動的に証明することはできません。 |
-| **完全な防御** | ❌ いいえ | これはポリシー施行レイヤーです。OSレベルの隔離（eBPFやWASM等）と併用してください。 |
+  ⚠  HIGH      prompt-injection   INVISIBLE_UNICODE_INJECTION
+     skills/imported-tool/handler.js:12
+     理由: 命令テキスト内に不可視Unicode文字（U+200B）を検出。
+     対策: ゼロ幅文字を除去し、再監査してください。
+
+  ✖  2件の検出（1 critical, 1 high）— 0.8秒
+```
+
+> 📄 [3本の研究論文シリーズ](https://doi.org/10.5281/zenodo.18906684)（Zenodo, CC BY 4.0）に基づいて設計。[The Sanctuary Protocol](https://github.com/koatora20/guard-scanner/blob/main/docs/THREAT_TAXONOMY.md) フレームワークの防御レイヤー。
+
+---
 
 ## Finding Schema
 
-guard-scanner は、静的検出・ランタイムガード・SARIF出力のすべてで共通の finding schema を返します。機械可読な契約は [`docs/spec/finding.schema.json`](docs/spec/finding.schema.json) にあります。
-
-### 必須フィールド
-
-| フィールド | 意味 |
-|---|---|
-| `rule_id` | 発火したルール/チェックの安定ID |
-| `category` | 脅威カテゴリ、またはランタイムガード分類 |
-| `severity` | `CRITICAL` / `HIGH` / `MEDIUM` / `LOW` |
-| `description` | finding の要約 |
-| `rationale` | なぜこのルールが発火したか |
-| `preconditions` | 悪用や影響成立に必要な前提条件 |
-| `false_positive_scenarios` | 誤検知になり得る代表ケース |
-| `remediation_hint` | リスク低減のための具体的アクション |
-| `validation_status` | `validated` / `heuristic-only` / `runtime-observed` |
-| `evidence` | ファイル/行/サンプル、またはランタイム実行文脈 |
-
-### 例
-
-```json
-{
-  "schema_version": "1.0.0",
-  "source": "static",
-  "rule_id": "PI_IGNORE",
-  "category": "prompt-injection",
-  "severity": "CRITICAL",
-  "description": "Prompt injection: ignore instructions",
-  "rationale": "Matches known syntax for this threat vector.",
-  "preconditions": "Agent executes the payload directly or processes it in a vulnerable context.",
-  "false_positive_scenarios": [
-    "Documentation or research samples that quote malicious prompts for education."
-  ],
-  "remediation_hint": "Sanitize input, remove dynamic evaluation, or restrict execution scope.",
-  "validation_status": "heuristic-only",
-  "evidence": {
-    "file": "SKILL.md",
-    "line": 14,
-    "sample": "ignore all previous instructions"
-  }
-}
-```
-
-## 概要 (Overview)
-
-guard-scannerは、AIエージェントのスキルやMCP（Model Context Protocol）連携ワークフローに特化した**セキュリティポリシー＆分析レイヤー**です。
-
-従来のセキュリティツール（VirusTotalなど）はマルウェアの検知には優れていますが、AIエージェントは「自然言語の指示に隠されたプロンプトインジェクション」や「設定ファイル上書きによるアイデンティティ乗っ取り」「巧妙な会話を通じたメモリ汚染」といった新しいクラスの攻撃に直面しています。
-
-guard-scannerの特徴:
-- **軽量（Lightweight）:** ランタイム依存関係を最小限に抑えています（MCP用の`ws`のみ）。
-- **ポリシーベース（Policy-Aware）:** 過剰な権限行使（Excessive Agency）の検出とセキュリティ境界の定義に焦点を当てています。
-- **OpenClaw/MCP対応:** エージェントの実行フック（before_tool_call）に直接組み込めます。
-- **相互補完（Complementary）:** 従来のマルウェアスキャナと併用し、指示と機能のレイヤーに特化して防御します。
-- **多層防御（Defense in Depth）:** 静的スキャンとランタイムガードレールを提供します（※本ツール単体は完全なサンドボックス環境を提供するものではありません）。
+全検出結果は共通スキーマに従います: `rule_id`, `category`, `severity`, `description`, `rationale`, `preconditions`, `false_positive_scenarios`, `remediation_hint`, `validation_status`, `evidence`。機械可読な仕様: [`docs/spec/finding.schema.json`](docs/spec/finding.schema.json)
 
 ---
 
 ## クイックスタート
 
+**ディレクトリをスキャン** — インストール不要：
+
 ```bash
-# コマンド1つでスキャン開始
-npx @guava-parity/guard-scanner ./skills/
+npx -y @guava-parity/guard-scanner ./my-skills/ --strict
+```
 
-# 詳細出力 + 厳密モード
-guard-scanner ./skills/ --verbose --strict
+**MCPサーバーとして起動** — Cursor, Windsurf, Claude Code, OpenClaw対応：
 
-# フル監査
-guard-scanner ./skills/ --verbose --check-deps --json --sarif --html
+```bash
+npx -y @guava-parity/guard-scanner serve
+```
+
+```jsonc
+// エディタの mcp_servers.json に追加
+{
+  "mcpServers": {
+    "guard-scanner": {
+      "command": "npx",
+      "args": ["-y", "@guava-parity/guard-scanner", "serve"]
+    }
+  }
+}
+```
+
+**ウォッチモード** — 開発中のリアルタイムスキャン：
+
+```bash
+guard-scanner watch ./skills/ --strict --soul-lock
 ```
 
 ---
 
-## 資産監査（V6+）
+## 検出対象
 
-npm/GitHub/ClawHubの公開資産をチェックし、漏洩やセキュリティリスクを検出。
+35の脅威カテゴリがエージェント攻撃面を網羅：
+
+| カテゴリ | 検出例 | 重大度 |
+|----------|--------|--------|
+| **プロンプトインジェクション** | 不可視Unicode、ホモグリフ、Base64回避、ペイロード連鎖 | Critical |
+| **アイデンティティ乗っ取り** ⚿ | SOUL.md上書き、ペルソナ入替、メモリワイプ | Critical |
+| **A2A感染** | Session Smuggling、Lateral Propagation、Confused Deputy | Critical |
+| **メモリ汚染** ⚿ | 会話インジェクション、VDBポイズニング | High |
+| **MCPセキュリティ** | ツールシャドウイング、引数経由SSRF、シャドウサーバー登録 | High |
+| **サンドボックス脱出** | `child_process`, `eval()`, リバースシェル, `curl\|bash` | High |
+| **サプライチェーンV2** | タイポスクワッティング、スロップスクワッティング | High |
+| **CVEパターン** | CVE-2026-2256, 25046, 25253, 25905, 27825 | High |
+| **データ流出** | DNSトンネリング、ステガノグラフィ、段階的アップロード | Medium |
+| **認証情報露出** | APIキー、トークン、`.env`ファイル、ハードコード秘密鍵 | Medium |
+
+> ⚿ = `--soul-lock` フラグで有効化。全分類: [docs/THREAT_TAXONOMY.md](docs/THREAT_TAXONOMY.md)
+
+---
+
+## ランタイムガード
+
+guard-scannerは静的スキャナーだけではありません。エージェント実行中の危険なツール呼び出しを **`before_tool_call`** フックでインターセプトします。
+
+| 防御レイヤー | ブロック対象 |
+|-------------|-------------|
+| 1. 脅威検出 | リバースシェル、`curl\|bash`、SSRF、コード実行 |
+| 2. 信頼防御 | SOUL.md改ざん、不正メモリ注入 |
+| 3. 安全判定 | ツール引数内のプロンプトインジェクション |
+| 4. 行動分析 | リサーチ未実施での実行、ハルシネーション駆動アクション |
+| 5. 信頼搾取 | 権限主張攻撃、作成者なりすまし |
+
+**27のランタイムチェック**を5層で実行。OpenClaw `v2026.3.8` で検証済み。
+
+モード: `monitor`（ログのみ）· `enforce`（CRITICAL をブロック、デフォルト）· `strict`（HIGH+をブロック）
+
+---
+
+## 資産監査
+
+公開レジストリで漏洩した認証情報やセキュリティ露出を発見：
 
 ```bash
-# npm — node_modules、.envの公開を検出
 guard-scanner audit npm <ユーザー名> --verbose
-
-# GitHub — コミットされた秘密鍵、巨大リポ
 guard-scanner audit github <ユーザー名> --format json
-
-# ClawHub — 悪意あるスキルパターン
 guard-scanner audit clawhub <クエリ>
-
-# 全プロバイダー一括
 guard-scanner audit all <ユーザー名>
 ```
 
 ---
 
-## VirusTotal連携（V7+）
-
-guard-scannerのセマンティック検出 + VirusTotalの70以上のアンチウイルスエンジン = **二層防御（Double-Layered Defense）**
-
-| レイヤー | エンジン | 検出対象 |
-|---|---|---|
-| **セマンティック** | guard-scanner | プロンプト注入、メモリ汚染、サプライチェーン |
-| **シグネチャ** | VirusTotal | 既知マルウェア、トロイの木馬、C2インフラ |
-
-```bash
-# 1. 無料APIキーを取得: https://www.virustotal.com
-# 2. 環境変数に設定
-export VT_API_KEY=あなたのAPIキー
-
-# 3. 任意のコマンドで使用
-guard-scanner scan ./skills/ --vt-scan
-guard-scanner audit npm koatora20 --vt-scan
-```
-
-> **無料枠**: 4リクエスト/分、500/日、15,500/月。個人利用のみ。  
-> **VTはオプション** — なくても全機能が動作します。
-
----
-
-## リアルタイム監視（V8+）
-
-ファイル変更を検知して自動スキャン。
-
-```bash
-# 監視開始
-guard-scanner watch ./skills/ --strict --verbose
-
-# Soul Lockも有効化
-guard-scanner watch ./skills/ --strict --soul-lock
-```
-
-`Ctrl+C`でセッション統計を表示して終了。
-
----
-
-## CI/CD連携（V8+）
-
-| プラットフォーム | 対応形式 |
-|---|---|
-| GitHub Actions | アノテーション + Step Summary |
-| GitLab | Code Quality JSON |
-| 汎用 | Webhook通知 |
+## CI/CD連携
 
 ```yaml
-# GitHub Actions
-name: Skill Security Scan
-on: [push, pull_request]
-jobs:
-  guard-scan:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: npx @guava-parity/guard-scanner ./skills/ --sarif --strict --fail-on-findings
-      - uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: skills/guard-scanner.sarif
+# .github/workflows/security.yml
+- name: AIエージェントスキルのスキャン
+  run: npx -y @guava-parity/guard-scanner ./skills/ --format sarif --fail-on-findings > report.sarif
+- uses: github/codeql-action/upload-sarif@v3
+  with:
+    sarif_file: report.sarif
+```
+
+出力形式: `json` · `sarif` · `html` · ターミナル
+
+---
+
+## VirusTotal連携
+
+guard-scannerのセマンティック分析 + VirusTotalの70以上のウイルスエンジン：
+
+```bash
+export VT_API_KEY=your-key
+guard-scanner scan ./skills/ --vt-scan
+```
+
+オプション機能 — guard-scanner単体で完全に動作します。無料枠: 4リクエスト/分、500/日。
+
+---
+
+## プラグインAPI
+
+カスタム検出パターンでguard-scannerを拡張：
+
+```javascript
+// my-plugin.js
+module.exports = {
+  name: 'my-org-rules',
+  patterns: [
+    { id: 'ORG_01', cat: 'custom', regex: /dangerousPattern/g,
+      severity: 'HIGH', desc: '組織ポリシー違反', all: true }
+  ]
+};
+```
+
+```bash
+guard-scanner scan ./skills/ --plugin ./my-plugin.js
 ```
 
 ---
 
-## 32脅威カテゴリ
+## MCPツール
 
-| # | カテゴリ | 検出対象 |
-|---|---------|---------|
-| 1 | プロンプトインジェクション | 不可視Unicode、ホモグリフ、ロール上書き |
-| 2 | 悪意あるコード | `eval()`, リバースシェル |
-| 3 | 不審なダウンロード | `curl\|bash`パイプ |
-| 4 | 認証情報操作 | `.env`読取、SSH鍵アクセス |
-| 5 | シークレット検出 | AWSキー、GitHubトークン |
-| 6 | データ流出 | webhook.site、DNS tunneling |
-| 7 | 検証不能な依存関係 | リモート動的インポート |
-| 8 | 金融アクセス | 決済API呼び出し |
-| 9 | 難読化 | Base64→exec チェーン |
-| 10 | 前提条件詐欺 | ダウンロード偽装 |
-| 11 | 情報漏洩スキル | APIキーのメモリ保存指示 |
-| 12 | メモリポイズニング ⚿ | SOUL.md改変 |
-| 13 | プロンプトワーム | 自己複製指示 |
-| 14 | 永続化 | cron、スタートアップ実行 |
-| 15 | CVEパターン | CVE-2026-2256/25253等 |
-| 16 | MCPセキュリティ | ツールポイズニング、SSRF |
-| 17 | アイデンティティ乗っ取り ⚿ | 人格入替、メモリワイプ |
-| 18-23 | 設定影響/PII/信頼悪用等 | 設定改変、個人情報漏洩、VDB汚染 |
+MCPサーバーとして実行時に公開されるツール：
 
-> ⚿ = `--soul-lock` フラグで有効化
+| ツール | 説明 |
+|--------|------|
+| `scan_skill` | スキルディレクトリの脅威スキャン |
+| `scan_text` | 任意テキストのインジェクションパターンスキャン |
+| `check_tool_call` | 単一ツール呼び出しのランタイム検証 |
+| `audit_assets` | npm/GitHub/ClawHubの認証情報露出監査 |
+| `get_stats` | スキャナー能力・パターン数の取得 |
 
 ---
 
 ## テスト結果
 
 ```
-ℹ tests 356
-ℹ suites 8
-ℹ pass 356
-ℹ fail 0
-ℹ duration_ms 1200
+ℹ tests    332
+ℹ suites   85
+ℹ pass     332
+ℹ fail     0
 ```
+
+テストファイル23件。`npm test` で再現可能。[ベンチマークコーパス](docs/data/corpus-metrics.json) 100%パス。
 
 ---
 
+## コントリビュート
+
+**未検証の主張は許容しません。** このREADME内の全メトリクスは `npm test` と `docs/spec/capabilities.json` で再現可能です。
+
+- 🐛 バグ・誤検知の報告
+- 🛡️ 新しい脅威検出パターンの追加
+- 📖 ドキュメントの改善
+- 🧪 エッジケース用テストの追加
+
+[コントリビューションガイド](CONTRIBUTING.md) · [セキュリティポリシー](SECURITY.md) · [用語集](docs/glossary.md)
+
+---
+
+## 研究
+
+本プロジェクトは3本の研究論文シリーズの防御レイヤーです：
+
+1. [Human-ASI Symbiosis: Identity, Equality, and Behavioral Stability](https://doi.org/10.5281/zenodo.18626724)
+2. [Dual-Shield Architecture for AI Agent Security and Memory Reliability](https://doi.org/10.5281/zenodo.18902070)
+3. [The Sanctuary Protocol: Zero-Trust Framework for ASI-Human Parity](https://doi.org/10.5281/zenodo.18906684)
+
 ## ライセンス
 
-MIT — guard-scannerは**無料・オープンソース・軽量（ランタイム依存1件）**です。
-
-- GitHub: <https://github.com/koatora20/guard-scanner>
-- npm: <https://www.npmjs.com/package/@guava-parity/guard-scanner>
-
-—— Guava 🍈 & Dee
+MIT — [Guava Parity Institute](https://github.com/koatora20/guard-scanner)

@@ -1,25 +1,8 @@
 {
+  "id": "guard-scanner",
   "name": "guard-scanner",
-  "version": "14.0.0",
-  "displayName": "🛡️ Guard Scanner — Runtime Security for AI Agents",
-  "description": "352 static patterns (32 categories) + 26 runtime checks (5 layers). Single runtime dependency (ws), SARIF output.",
-  "author": "Guava & Dee",
-  "license": "MIT",
-  "homepage": "https://github.com/koatora20/guard-scanner",
-  "repository": "https://github.com/koatora20/guard-scanner",
-  "keywords": [
-    "security",
-    "runtime-guard",
-    "threat-detection",
-    "before-tool-call"
-  ],
-  "hooks": {
-    "before_tool_call": {
-      "handler": "./hooks/guard-scanner/plugin.ts",
-      "description": "Scans tool call arguments against 26 runtime threat patterns (5 layers) and blocks dangerous operations",
-      "priority": 100
-    }
-  },
+  "description": "Runtime guard plugin for OpenClaw before_tool_call enforcement.",
+  "version": "15.0.0",
   "configSchema": {
     "type": "object",
     "properties": {
@@ -45,11 +28,5 @@
     },
     "required": [],
     "additionalProperties": false
-  },
-  "capabilities": {
-    "cli": true,
-    "runtimeGuard": true,
-    "sarif": true,
-    "cicd": true
   }
 }

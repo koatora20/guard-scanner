@@ -112,13 +112,13 @@ This addresses key criticisms of pattern-based guardrails (Cambridge/MIT AI Agen
 
 ## [3.1.0] - 2026-02-23
 
-### 🛡️ OpenClaw Community Plugin — Full Compatibility
+### 🛡️ OpenClaw Community Plugin — Initial Packaging Milestone
 
-guard-scanner is now a fully OpenClaw-compatible community plugin with `openclaw.plugin.json` manifest and `before_tool_call` hook integration.
+guard-scanner introduced an early OpenClaw community plugin package with `openclaw.plugin.json` and `before_tool_call` integration. This historical entry predates the later `v2026.3.8` compatibility audit and should be read as the first packaging milestone, not as a blanket compatibility guarantee.
 
 #### New
 - **`openclaw.plugin.json`**: Full plugin manifest with hooks, configSchema, and GuavaSuite ecosystem reference
-- **`package.json` `openclaw.extensions`**: Plugin auto-discovery by OpenClaw
+- **`package.json` discovery metadata**: Early plugin auto-discovery wiring
 - **7 new runtime patterns** (Layer 2: Trust Defense + Layer 3: Safety Judge)
   - `RT_MEM_WRITE` (HIGH): Direct memory file write bypass
   - `RT_MEM_INJECT` (CRITICAL): Memory poisoning via episode injection
@@ -325,4 +325,3 @@ Extracted from GuavaGuard v9.0.0 as the open-source component.
 - `src/patterns.js` — Threat pattern database
 - `src/ioc-db.js` — Indicators of Compromise
 - `src/cli.js` — CLI entry point
-

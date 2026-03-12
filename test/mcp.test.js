@@ -35,11 +35,37 @@ describe('MCP Tool Definitions', () => {
         assert.ok(names.includes('check_tool_call'));
         assert.ok(names.includes('audit_assets'));
         assert.ok(names.includes('get_stats'));
-        assert.ok(names.includes('run_async'));
-        assert.ok(names.includes('task_status'));
-        assert.ok(names.includes('task_result'));
-        assert.ok(names.includes('task_cancel'));
+        assert.ok(names.includes('experimental.run_async'));
+        assert.ok(names.includes('experimental.task_status'));
+        assert.ok(names.includes('experimental.task_result'));
+        assert.ok(names.includes('experimental.task_cancel'));
         // cron_glm5_config removed in v14.0.0 — not guard-scanner's responsibility
+    });
+
+    it('should namespace experimental tools correctly', () => {
+        const stableTools = ['scan_skill', 'scan_text', 'check_tool_call', 'audit_assets', 'get_stats'];
+        const experimentalTools = TOOLS.filter(t => t.name.startsWith('experimental.'));
+        const nonExperimentalTools = TOOLS.filter(t => !t.name.startsWith('experimental.'));
+
+        // All non-experimental tools should be in the stable list
+        for (const tool of nonExperimentalTools) {
+            assert.ok(stableTools.includes(tool.name), `Unexpected non-experimental tool: ${tool.name}`);
+        }
+
+        // Experimental tools should be namespaced
+        assert.equal(experimentalTools.length, 4, 'Should have exactly 4 experimental tools');
+        const experimentalNames = experimentalTools.map(t => t.name);
+        assert.ok(experimentalNames.includes('experimental.run_async'));
+        assert.ok(experimentalNames.includes('experimental.task_status'));
+        assert.ok(experimentalNames.includes('experimental.task_result'));
+        assert.ok(experimentalNames.includes('experimental.task_cancel'));
+
+        // No non-namespaced experimental tool names should exist
+        for (const tool of TOOLS) {
+            if (tool.name.includes('run_async') || tool.name.includes('task_')) {
+                assert.ok(tool.name.startsWith('experimental.'), `Experimental tool not namespaced: ${tool.name}`);
+            }
+        }
     });
 });
 
@@ -349,7 +375,7 @@ describe('MCP Tool: async task flow', () => {
             id: 90,
             method: 'tools/call',
             params: {
-                name: 'run_async',
+                name: 'experimental.run_async',
                 arguments: { tool: 'get_stats', args: {} },
             },
         });
@@ -370,7 +396,7 @@ describe('MCP Tool: async task flow', () => {
             jsonrpc: '2.0',
             id: 91,
             method: 'tools/call',
-            params: { name: 'task_status', arguments: { taskId } },
+            params: { name: 'experimental.task_status', arguments: { taskId } },
         });
 
         assert.equal(responses.length, 2);

@@ -10,6 +10,13 @@ If you discover a security vulnerability in guard-scanner itself, please report 
 
 We will respond within 48 hours and provide a fix within 7 days for critical issues.
 
+## Supported Versions
+
+| Version | Status |
+|---------|--------|
+| Latest major (`14.x`) | ✅ Supported |
+| Older releases | ⚠️ Best effort only |
+
 ## Scope
 
 guard-scanner is a **static analysis tool** — it reads files but never executes them. It does not:
@@ -22,11 +29,12 @@ The only files guard-scanner writes are output reports (`--json`, `--sarif`, `--
 
 ## Supply Chain Security
 
-guard-scanner itself has **zero runtime dependencies**. This is a deliberate design choice:
-- Nothing to audit
-- No transitive dependency risks
+guard-scanner itself keeps runtime dependencies intentionally small. As of `14.0.0`, it ships with **one runtime dependency** (`ws`) to support the MCP server.
+
+- Small runtime surface area
 - No `postinstall` scripts
-- Pure Node.js stdlib
+- SBOM generated in CI/release
+- Provenance-enabled npm publish
 
 ## Pattern Updates
 

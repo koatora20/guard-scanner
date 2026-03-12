@@ -17,6 +17,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
+      - run: npm install
+      - run: npm run build:plugin
       - run: npm test
       - name: Self-scan (advisory)
         continue-on-error: true

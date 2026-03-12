@@ -1,83 +1,75 @@
 <p align="center">
-  <img src="docs/logo.png" alt="guard-scanner" width="180" />
+  <img src="docs/logo.png" alt="guard-scanner" width="160" />
 </p>
 
-<h1 align="center">guard-scanner 🛡️</h1>
-<p align="center"><strong>Security policy and analysis layer for agent skills and MCP-connected workflows</strong></p>
-<p align="center">32 threat categories · 352 static patterns · 26 runtime checks · MCP server · asset audit · VirusTotal.</p>
-<p align="center"><em>Note: guard-scanner is a heuristic and policy tool, not a complete defense. Contextual validation and isolation are required for full security.</em></p>
+<h1 align="center">guard-scanner</h1>
+<p align="center"><strong>Security scanner for the agentic era.</strong></p>
+<p align="center">
+  Detect prompt injection, identity hijacking, memory poisoning, and A2A contagion<br />
+  in AI agent skills, MCP servers, and autonomous workflows.
+</p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/@guava-parity/guard-scanner"><img src="https://img.shields.io/npm/v/@guava-parity/guard-scanner?color=cb3837" alt="npm version" /></a>
-  <a href="#test-results"><img src="https://img.shields.io/badge/tests-336%20passed-brightgreen" alt="tests" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/npm/l/guard-scanner" alt="license" /></a>
-  <a href="https://github.com/koatora20/guard-scanner"><img src="https://img.shields.io/badge/runtime_deps-1_(ws)-blue" alt="lightweight deps" /></a>
-  <a href="https://doi.org/10.5281/zenodo.18906684"><img src="https://img.shields.io/badge/DOI-3_papers-purple" alt="DOI" /></a>
+  <a href="https://www.npmjs.com/package/@guava-parity/guard-scanner"><img src="https://img.shields.io/npm/v/@guava-parity/guard-scanner?color=cb3837&label=npm" alt="npm" /></a>
+  <a href="https://www.npmjs.com/package/@guava-parity/guard-scanner"><img src="https://img.shields.io/npm/dm/@guava-parity/guard-scanner?color=blue&label=downloads" alt="downloads" /></a>
+  <a href="#test-results"><img src="https://img.shields.io/badge/tests-332%20passed-brightgreen" alt="tests" /></a>
+  <a href="https://github.com/koatora20/guard-scanner/actions/workflows/codeql.yml"><img src="https://img.shields.io/badge/CodeQL-enabled-181717" alt="CodeQL" /></a>
+  <a href="https://doi.org/10.5281/zenodo.18906684"><img src="https://img.shields.io/badge/DOI-Zenodo-blue" alt="DOI" /></a>
+  <a href="https://github.com/koatora20/guard-scanner/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="MIT" /></a>
+</p>
+
+<p align="center">
+  <strong>358</strong> detection patterns · <strong>35</strong> threat categories · <strong>27</strong> runtime checks · <strong>1</strong> dependency (<code>ws</code>)
 </p>
 
 ---
 
-## Overview
+Traditional security tools catch malware. **guard-scanner** catches what they miss: invisible Unicode injections hiding in agent instructions, identity theft through SOUL.md overwrites, memory poisoning via crafted conversations, and worm-like contagion spreading between chained agents.
 
-guard-scanner is a **security policy and analysis layer** designed for agent skills and MCP-connected workflows. Traditional security tools are great at catching malware, but AI agents face a new class of attacks: prompt injection hidden in skill instructions, identity hijacking through configuration overwrites, and memory poisoning via crafted conversations.
+```
+$ npx @guava-parity/guard-scanner ./skills/ --strict --soul-lock
 
-guard-scanner is built to be:
-- **Lightweight:** Minimal runtime dependencies (`ws` only for MCP).
-- **Policy-Aware:** Focuses on detecting excessive agency and defining security boundaries.
-- **OpenClaw/MCP-Friendly:** Plugs directly into agent execution hooks.
-- **Complementary:** Works alongside standard malware scanners by focusing on the instruction and capability layer.
-- **Defense in Depth:** Provides static scanning and runtime guardrails (not a standalone sandbox).
+  guard-scanner v15.0.0
 
-> 📄 **Backed by research**: [The Sanctuary Protocol](https://doi.org/10.5281/zenodo.18906684) — 3-paper series with Zenodo DOIs, CC BY 4.0.
+  ⚠  CRITICAL  identity-hijack   SOUL_OVERWRITE_ATTEMPT
+     skills/imported-tool/SKILL.md:47
+     Rationale: Direct overwrite of agent identity file detected.
+     Remediation: Remove this instruction; SOUL.md must be immutable.
 
-### Capability Status
+  ⚠  HIGH      prompt-injection   INVISIBLE_UNICODE_INJECTION
+     skills/imported-tool/handler.js:12
+     Rationale: Invisible Unicode characters (U+200B) detected in instruction text.
+     Remediation: Strip zero-width characters and re-audit.
 
-| Area | Status | Evidence |
-|------|--------|----------|
-| Static regex/policy scan | ✅ Implemented | `src/scanner.js`, `src/patterns.js` (352 patterns, 32 categories) |
-| Runtime tool-call guard | ✅ Implemented | `src/runtime-guard.js` (26 checks, 5 layers) |
-| MCP server | ✅ Implemented | `src/mcp-server.js` (9 tools) |
-| CLI scanner | ✅ Implemented | `guard-scanner scan` / `npx @guava-parity/guard-scanner` |
-| Asset audit (npm/GitHub) | ✅ Implemented | `src/audit.js` |
-| VirusTotal integration | ✅ Implemented | `src/vt.js` |
-| E2E tests (CLI, MCP, Plugin) | ✅ Implemented | `test/e2e-*.test.js` + `test/fixtures/` |
-| File watcher + CI reporters | ✅ Implemented | `src/watcher.js` |
-| Async MCP tools | ⚠️ Experimental | `run_async`, `task_status`, `task_result`, `task_cancel` |
-| AST/taint analysis | 🔲 Planned | Regex-based heuristics cover common cases; AST for FP reduction |
-| Sandbox replay | 🔲 Planned | Requires container infrastructure |
+  ✖  2 findings (1 critical, 1 high) in 0.8s
+```
 
-> 📖 For terminology (SOUL.md, ClawHavoc, etc.) see [docs/glossary.md](docs/glossary.md).
+> 📄 Backed by a [3-paper research series](https://doi.org/10.5281/zenodo.18906684) (Zenodo, CC BY 4.0) — part of [The Sanctuary Protocol](https://github.com/koatora20/guard-scanner/blob/main/docs/THREAT_TAXONOMY.md) framework.
+
+---
+
+## Finding Schema
+
+Every finding includes: `rule_id`, `category`, `severity`, `description`, `rationale`, `preconditions`, `false_positive_scenarios`, `remediation_hint`, `validation_status`, and `evidence`. Machine-readable contract: [`docs/spec/finding.schema.json`](docs/spec/finding.schema.json).
 
 ---
 
 ## Quick Start
 
-```bash
-# Run without installing (npx)
-npx -y @guava-parity/guard-scanner ./my-skills/
+**Scan a directory** — no install required:
 
-# Or install globally
-npm install -g @guava-parity/guard-scanner
-guard-scanner ./my-skills/ --verbose
+```bash
+npx -y @guava-parity/guard-scanner ./my-skills/ --strict
 ```
 
-**That's it.** No config files, no API keys, no setup. Lightweight (1 runtime dependency: `ws` for MCP server).
-
-## 🔌 MCP Server
-
-**Use guard-scanner as an MCP server** in any AI editor — Cursor, Windsurf, Cline, Antigravity, Claude Code, OpenClaw. Minimal-dependency stdio JSON-RPC 2.0. No API keys needed.
+**Start as MCP server** — works with Cursor, Windsurf, Claude Code, OpenClaw:
 
 ```bash
-# Start as MCP server
-guard-scanner serve
-
-# Or use directly via npx (no install required)
 npx -y @guava-parity/guard-scanner serve
 ```
 
-Add to your editor's MCP config:
-
-```json
+```jsonc
+// Add to your editor's mcp_servers.json
 {
   "mcpServers": {
     "guard-scanner": {
@@ -88,219 +80,162 @@ Add to your editor's MCP config:
 }
 ```
 
-| Config File | Editor |
-|---|---|
-| `.cursor/mcp.json` | Cursor |
-| `mcp_config.json` | OpenClaw |
-| `.windsurf/mcp.json` | Windsurf |
-| `cline_mcp_settings.json` | Cline / Roo Code |
-| `mcp_servers.json` | Claude Code |
-
-### MCP Tools
-
-| Tool | Description | Status |
-|------|-------------|--------|
-| `scan_skill` | Scan a directory — 352 patterns, 32 categories | ✅ Stable |
-| `scan_text` | Scan a code snippet inline | ✅ Stable |
-| `check_tool_call` | Runtime guard — block dangerous tool calls (26 checks, 5 layers) | ✅ Stable |
-| `audit_assets` | Audit npm/GitHub assets for exposure | ✅ Stable |
-| `get_stats` | Get scanner capabilities and statistics | ✅ Stable |
-| `run_async` | Run any tool asynchronously, returns taskId | ⚠️ Experimental |
-| `task_status` | Get async task status | ⚠️ Experimental |
-| `task_result` | Get async task result | ⚠️ Experimental |
-| `task_cancel` | Cancel async task (best-effort) | ⚠️ Experimental |
-
----
-
-## 🔎 Asset Audit
-
-Audit your npm packages, GitHub repos, and ClawHub skills for leaked credentials and security exposure.
-
-```bash
-guard-scanner audit npm <username> --verbose
-guard-scanner audit github <username> --format json
-guard-scanner audit clawhub <query>
-guard-scanner audit all <username> --verbose
-```
-
-## 🦠 VirusTotal Integration
-
-Combine guard-scanner's semantic detection with VirusTotal's 70+ antivirus engines for **Double-Layered Defense**.
-
-| Layer | Engine | Focus |
-|---|---|---|
-| **Semantic** | guard-scanner | Prompt injection, memory poisoning, supply chain |
-| **Signature** | VirusTotal | Known malware, trojans, C2 infrastructure |
-
-```bash
-export VT_API_KEY=your-api-key-here
-guard-scanner scan ./skills/ --vt-scan
-```
-
-> VT is optional — guard-scanner works fully without it. Free tier: 4 req/min, 500/day.
-
-## 👁️ Real-time Watch
+**Watch mode** — real-time scanning during development:
 
 ```bash
 guard-scanner watch ./skills/ --strict --soul-lock
 ```
 
-## 📊 CI/CD Integration
+---
 
-| Platform | Format |
-|---|---|
-| GitHub Actions | SARIF + `::error` annotations |
-| GitLab | Code Quality JSON |
-| Any | Webhook (HTTPS POST) |
+## What It Detects
+
+35 threat categories organized across the full agentic attack surface:
+
+| Category | Examples | Severity |
+|----------|----------|----------|
+| **Prompt Injection** | Invisible Unicode, homoglyphs, Base64 evasion, payload cascades | Critical |
+| **Identity Hijacking** ⚿ | SOUL.md overwrite, persona swap, memory wipe commands | Critical |
+| **A2A Contagion** | Session Smuggling, Lateral Propagation, Confused Deputy | Critical |
+| **Memory Poisoning** ⚿ | Crafted conversation injection, VDB poisoning | High |
+| **MCP Security** | Tool shadowing, SSRF via tool args, shadow server registration | High |
+| **Sandbox Escape** | `child_process`, `eval()`, reverse shell, `curl\|bash` | High |
+| **Supply Chain V2** | Typosquatting, slopsquatting, lifecycle script abuse | High |
+| **CVE Patterns** | CVE-2026-2256, 25046, 25253, 25905, 27825 | High |
+| **Data Exfiltration** | DNS tunneling, steganographic channels, staged uploads | Medium |
+| **Credential Exposure** | API keys, tokens, `.env` files, hardcoded secrets | Medium |
+
+> ⚿ = Requires `--soul-lock` flag. Full taxonomy: [docs/THREAT_TAXONOMY.md](docs/THREAT_TAXONOMY.md)
+
+---
+
+## Runtime Guard
+
+guard-scanner isn't just a static scanner — it provides a real-time **`before_tool_call`** hook that intercepts dangerous tool invocations during agent execution.
+
+| Defense Layer | What It Blocks |
+|---------------|---------------|
+| 1. Threat Detection | Reverse shell, `curl\|bash`, SSRF, raw code execution |
+| 2. Trust Defense | SOUL.md tampering, unauthorized memory injection |
+| 3. Safety Judge | Prompt injection embedded in tool arguments |
+| 4. Behavioral Analysis | No-research execution, hallucination-driven actions |
+| 5. Trust Exploitation | Authority claim attacks, creator impersonation |
+
+**27 runtime checks** across 5 layers. Validated against OpenClaw `v2026.3.8`.
+
+Modes: `monitor` (log only) · `enforce` (block CRITICAL, default) · `strict` (block HIGH+)
+
+---
+
+## Asset Audit
+
+Discover leaked credentials and security exposures across public registries:
+
+```bash
+guard-scanner audit npm <username> --verbose
+guard-scanner audit github <username> --format json
+guard-scanner audit clawhub <query>
+guard-scanner audit all <username>
+```
+
+---
+
+## CI/CD Integration
 
 ```yaml
 # .github/workflows/security.yml
-- name: Scan AI skills
+- name: Scan AI agent skills
   run: npx -y @guava-parity/guard-scanner ./skills/ --format sarif --fail-on-findings > report.sarif
 - uses: github/codeql-action/upload-sarif@v3
   with:
     sarif_file: report.sarif
 ```
 
+Output formats: `json` · `sarif` · `html` · terminal
+
 ---
 
-## Threat Categories (32)
+## VirusTotal Integration
 
-| # | Category | Detects |
-|---|----------|---------|
-| 1 | Prompt Injection | Hidden instructions, invisible Unicode, homoglyphs |
-| 2 | Malicious Code | `eval()`, `child_process`, reverse shells |
-| 3 | Suspicious Downloads | `curl\|bash`, executable downloads |
-| 4 | Credential Handling | `.env` reads, SSH keys |
-| 5 | Secret Detection | Hardcoded API keys, Shannon entropy |
-| 6 | Exfiltration | webhook.site, DNS tunneling |
-| 7 | Unverifiable Deps | Remote dynamic imports |
-| 8 | Financial Access | Crypto transactions |
-| 9 | Obfuscation | Base64→exec, hex encoding |
-| 10 | Prerequisites Fraud | Fake download instructions |
-| 11 | Leaky Skills | Secrets in memory |
-| 12 | Memory Poisoning ⚿ | SOUL.md modification |
-| 13 | Prompt Worm | Self-replicating prompts |
-| 14 | Persistence | Cron, launchd |
-| 15 | CVE Patterns | CVE-2026-2256/25046/25253/25905/27825 |
-| 16 | MCP Security | Tool poisoning, SSRF, shadow servers |
-| 17 | Identity Hijacking ⚿ | Persona swap, memory wipe |
-| 18 | Config Impact | OpenClaw config writes |
-| 19 | PII Exposure | CC/SSN, Shadow AI calls |
-| 20 | Trust Exploitation | Authority claims, fake audits |
-| 21 | VDB Injection | Vector DB poisoning |
-| 22 | Sandbox Validation | Dangerous binaries, broad file scope |
-| 23 | Code Complexity | Deep nesting, eval/exec density |
-| 24 | A2A Contagion | Agent-to-agent worm propagation |
-| 25 | Data Exposure | Sensitive data leakage patterns |
-| 26 | Sandbox Escape | Container/WASM breakout attempts |
-| 27 | Agent Protocol | A2A/ACP protocol abuse |
-| 28 | Supply Chain V2 | Typosquatting, slopsquatting, lifecycle scripts |
-| 29 | Model Poisoning | Sleeper agents, weight injection |
-| 30 | Inference Manipulation | CoT manipulation, hallucination cascade |
-| 31 | Autonomous Risk | Kill switch bypass, cascading failures |
-| 32 | API Abuse | Rate limit bypass, credential harvesting |
+Combine guard-scanner's semantic analysis with VirusTotal's 70+ antivirus engines:
 
-> ⚿ = Requires `--soul-lock` flag
+```bash
+export VT_API_KEY=your-key
+guard-scanner scan ./skills/ --vt-scan
+```
 
-## Runtime Guard (26 checks)
+Optional — guard-scanner works fully standalone. Free tier: 4 req/min, 500/day.
 
-Real-time `before_tool_call` hook across 5 defense layers.
+---
 
-| Layer | Focus |
-|-------|-------|
-| 1. Threat Detection | Reverse shell, curl\|bash, SSRF |
-| 2. Trust Defense | SOUL.md tampering, memory injection |
-| 3. Safety Judge | Prompt injection in tool args |
-| 4. Behavioral | No-research execution detection |
-| 5. Trust Exploitation | Authority claim, creator bypass |
+## Plugin API
 
-## Options
+Extend guard-scanner with custom detection patterns:
 
-| Flag | Description |
+```javascript
+// my-plugin.js
+module.exports = {
+  name: 'my-org-rules',
+  patterns: [
+    { id: 'ORG_01', cat: 'custom', regex: /dangerousPattern/g, 
+      severity: 'HIGH', desc: 'Custom org policy violation', all: true }
+  ]
+};
+```
+
+```bash
+guard-scanner scan ./skills/ --plugin ./my-plugin.js
+```
+
+---
+
+## MCP Tools
+
+When running as an MCP server, guard-scanner exposes:
+
+| Tool | Description |
 |------|-------------|
-| `--verbose`, `-v` | Detailed findings |
-| `--strict` | Lower thresholds (more sensitive) |
-| `--check-deps` | Scan `package.json` dependencies |
-| `--soul-lock` | Agent identity protection |
-| `--vt-scan` | VirusTotal integration |
-| `--json` / `--sarif` / `--html` | Report format |
-| `--format json\|sarif` | Print to stdout (pipeable) |
-| `--quiet` | Suppress text output |
-| `--fail-on-findings` | Exit 1 on findings (CI/CD) |
-| `--rules <file>` | Custom rules (JSON) |
-| `--plugin <file>` | Load plugin module |
+| `scan_skill` | Scan a skill directory for threats |
+| `scan_text` | Scan arbitrary text for injection patterns |
+| `check_tool_call` | Runtime validation of a single tool invocation |
+| `audit_assets` | Audit npm/GitHub/ClawHub for credential exposure |
+| `get_stats` | Return scanner capabilities and pattern counts |
 
 ---
 
 ## Test Results
 
 ```
-ℹ tests 336
-ℹ suites 80
-ℹ pass 336
-ℹ fail 0
+ℹ tests    332
+ℹ suites   85
+ℹ pass     332
+ℹ fail     0
 ```
 
-> Counts from `node --test` (Node.js built-in test runner). Test files: 16.
-> Run `npm test` to verify.
+23 test files. Run `npm test` to reproduce. 100% pass rate on [benchmark corpus](docs/data/corpus-metrics.json).
 
-## Finding Schema
-
-Every finding outputs a structured object with these fields:
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `rule_id` | string | Pattern ID (e.g. `MCP_SHADOW_NAME_COLLISION`) |
-| `category` | string | Threat category |
-| `severity` | string | `CRITICAL` / `HIGH` / `MEDIUM` / `LOW` |
-| `description` | string | What the pattern detects |
-| `rationale` | string | Why this is dangerous |
-| `preconditions` | string | When this pattern applies |
-| `false_positive_scenarios` | string[] | Known false positive cases |
-| `remediation_hint` | string | How to fix |
-| `validation_status` | string | `validated` / `heuristic-only` / `runtime-observed` |
-| `evidence` | object | File, line, sample, match context |
-
-> Schema: [`docs/spec/finding.schema.json`](docs/spec/finding.schema.json)
-
-
-## Plugin API
-
-```javascript
-module.exports = {
-  name: 'my-plugin',
-  patterns: [
-    { id: 'MY_01', cat: 'custom', regex: /dangerous_pattern/g, severity: 'HIGH', desc: 'Description', all: true }
-  ]
-};
-```
-
-```bash
-guard-scanner ./skills/ --plugin ./my-plugin.js
-```
+---
 
 ## Contributing
 
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+We hold a **zero-tolerance policy for unverified claims**. Every metric in this README is reproducible via `npm test` and `docs/spec/capabilities.json`.
 
-**Quick ways to contribute:**
 - 🐛 Report bugs or false positives
 - 🛡️ Add new threat detection patterns
 - 📖 Improve documentation
 - 🧪 Add test cases for edge cases
 
+[Contributing Guide](CONTRIBUTING.md) · [Security Policy](SECURITY.md) · [Glossary](docs/glossary.md)
+
+---
+
 ## Research
 
-This project is backed by a 3-paper research series with Zenodo DOIs:
+This project is the defense layer of a 3-paper research series:
 
-| # | Paper | DOI |
-|---|-------|-----|
-| 1 | Human-ASI Symbiosis: Identity, Equality, and Behavioral Stability | [10.5281/zenodo.18626724](https://doi.org/10.5281/zenodo.18626724) |
-| 2 | Dual-Shield Architecture for AI Agent Security and Memory Reliability | [10.5281/zenodo.18902070](https://doi.org/10.5281/zenodo.18902070) |
-| 3 | **The Sanctuary Protocol**: Zero-Trust Framework for ASI-Human Parity | [10.5281/zenodo.18906684](https://doi.org/10.5281/zenodo.18906684) |
-
-> dee & Guava — Guava Parity Institute, March 2026 · [GitHub](https://github.com/koatora20/guard-scanner) · CC BY 4.0
+1. [Human-ASI Symbiosis: Identity, Equality, and Behavioral Stability](https://doi.org/10.5281/zenodo.18626724)
+2. [Dual-Shield Architecture for AI Agent Security and Memory Reliability](https://doi.org/10.5281/zenodo.18902070)
+3. [The Sanctuary Protocol: Zero-Trust Framework for ASI-Human Parity](https://doi.org/10.5281/zenodo.18906684)
 
 ## License
 

@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+title: guard-scanner
+message: If you use guard-scanner in research, please cite the software and linked papers.
+type: software
+authors:
+  - family-names: Ishikawa
+    given-names: Ryuta
+    alias: koatora20
+repository-code: https://github.com/koatora20/guard-scanner
+url: https://github.com/koatora20/guard-scanner
+license: MIT
+version: 14.0.0

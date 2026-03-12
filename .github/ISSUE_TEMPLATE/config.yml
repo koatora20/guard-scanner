@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/koatora20/guard-scanner/security/advisories/new
+    about: Please report vulnerabilities privately through GitHub Security Advisories.
+  - name: Documentation and usage questions
+    url: https://github.com/koatora20/guard-scanner/blob/main/README.md
+    about: Check the README, SECURITY.md, and CONTRIBUTING.md first.

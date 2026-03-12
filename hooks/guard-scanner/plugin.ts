@@ -62,7 +62,7 @@ type PluginAPI = {
 interface RuntimeCheck {
     id: string;
     severity: "CRITICAL" | "HIGH" | "MEDIUM";
-    layer: 1 | 2 | 3;
+    layer: 1 | 2 | 3 | 4 | 5;
     desc: string;
     test: (s: string) => boolean;
 }
@@ -267,6 +267,29 @@ export default function (api: PluginAPI) {
         if (!DANGEROUS_TOOLS.has(toolName)) return;
 
         const serialized = JSON.stringify(params);
+        
+        // --- v15.0.0 Sanctuary Enforcer: Context-Crush Limit ---
+        // 185KB = 185 * 1024 bytes = 189440 bytes
+        const MAX_PAYLOAD_SIZE = 189440;
+        if (Buffer.byteLength(serialized, 'utf8') > MAX_PAYLOAD_SIZE) {
+            const auditEntry = {
+                tool: toolName,
+                check: "CONTEXT_CRUSH_LIMIT",
+                severity: "CRITICAL",
+                desc: "Context-Crush: Payload exceeds 185KB Sanctuary limit",
+                mode,
+                action: "blocked",
+                session: ctx.sessionKey || "unknown",
+                agent: ctx.agentId || "unknown",
+            };
+            logAudit(auditEntry);
+            api.logger.error(`🛡️ BLOCKED ${toolName}: Context-Crush payload size exceeded (${Buffer.byteLength(serialized, 'utf8')} bytes)`);
+            return {
+                block: true,
+                blockReason: "🛡️ guard-scanner v15: Payload exceeds 185KB Context-Crush limit.",
+            };
+        }
+        // --------------------------------------------------------
 
         for (const check of RUNTIME_CHECKS) {
             if (!check.test(serialized)) continue;

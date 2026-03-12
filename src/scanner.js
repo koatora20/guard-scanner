@@ -24,12 +24,15 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const crypto = require('crypto');
 
 const { PATTERNS } = require('./patterns.js');
 const { KNOWN_MALICIOUS } = require('./ioc-db.js');
-const { generateHTML } = require('./html-template.js');
-const { FINDING_SCHEMA_VERSION, normalizeFinding } = require('./finding-schema.js');
+const { RuleRegistry } = require('./core/rule-registry.js');
+const { loadIgnoreFile, loadTextFile } = require('./core/content-loader.js');
+const { classifyFile, CODE_EXTENSIONS, BINARY_EXTENSIONS, isSelfNoisePath, isSelfThreatCorpus, getFiles, listSkills } = require('./core/inventory.js');
+const { calculateRisk, getVerdict, SEVERITY_WEIGHTS } = require('./core/risk-engine.js');
+const { applySemanticValidators, checkASTValidation } = require('./core/semantic-validators.js');
+const { toJSONReport, toSARIFReport, toHTMLReport, printSummary } = require('./core/report-adapters.js');
 
 // ===== CONFIGURATION =====
 const { version: VERSION } = require('../package.json');
@@ -38,16 +41,6 @@ const THRESHOLDS = {
     normal: { suspicious: 30, malicious: 80 },
     strict: { suspicious: 20, malicious: 60 },
 };
-
-// File classification
-const CODE_EXTENSIONS = new Set(['.js', '.ts', '.mjs', '.cjs', '.py', '.sh', '.bash', '.ps1', '.rb', '.go', '.rs', '.php', '.pl']);
-const DOC_EXTENSIONS = new Set(['.md', '.txt', '.rst', '.adoc']);
-const DATA_EXTENSIONS = new Set(['.json', '.yaml', '.yml', '.toml', '.xml', '.csv']);
-const BINARY_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.ico', '.woff', '.woff2', '.ttf', '.eot', '.wasm', '.wav', '.mp3', '.mp4', '.webm', '.ogg', '.pdf', '.zip', '.tar', '.gz', '.bz2', '.7z', '.exe', '.dll', '.so', '.dylib']);
-const GENERATED_REPORT_FILES = new Set(['guard-scanner-report.json', 'guard-scanner-report.html', 'guard-scanner.sarif']);
-
-// Severity weights for risk scoring
-const SEVERITY_WEIGHTS = { CRITICAL: 40, HIGH: 15, MEDIUM: 5, LOW: 2 };
 
 class GuardScanner {
     constructor(options = {}) {
@@ -77,6 +70,8 @@ class GuardScanner {
         if (options.rulesFile) {
             this.loadCustomRules(options.rulesFile);
         }
+
+        this.ruleRegistry = new RuleRegistry(PATTERNS, this.customRules);
     }
 
     // Plugin API: load a plugin module
@@ -92,6 +87,7 @@ class GuardScanner {
                 if (!this.summaryOnly) {
                     console.log(`🔌 Plugin loaded: ${plugin.name || pluginPath} (${plugin.patterns.length} rule(s))`);
                 }
+                this.ruleRegistry = new RuleRegistry(PATTERNS, this.customRules);
             }
         } catch (e) {
             console.error(`⚠️  Failed to load plugin ${pluginPath}: ${e.message}`);
@@ -131,6 +127,7 @@ class GuardScanner {
             if (!this.summaryOnly && this.customRules.length > 0) {
                 console.log(`📏 Loaded ${this.customRules.length} custom rule(s) from ${rulesFile}`);
             }
+            this.ruleRegistry = new RuleRegistry(PATTERNS, this.customRules);
         } catch (e) {
             console.error(`⚠️  Failed to load custom rules: ${e.message}`);
         }
@@ -138,26 +135,11 @@ class GuardScanner {
 
     // Load .guava-guard-ignore / .guard-scanner-ignore from scan directory
     loadIgnoreFile(scanDir) {
-        const ignorePaths = [
-            path.join(scanDir, '.guard-scanner-ignore'),
-            path.join(scanDir, '.guava-guard-ignore'),
-        ];
-        for (const ignorePath of ignorePaths) {
-            if (!fs.existsSync(ignorePath)) continue;
-            const lines = fs.readFileSync(ignorePath, 'utf-8').split('\n');
-            for (const line of lines) {
-                const trimmed = line.trim();
-                if (!trimmed || trimmed.startsWith('#')) continue;
-                if (trimmed.startsWith('pattern:')) {
-                    this.ignoredPatterns.add(trimmed.replace('pattern:', '').trim());
-                } else {
-                    this.ignoredSkills.add(trimmed);
-                }
-            }
-            if (this.verbose && (this.ignoredSkills.size || this.ignoredPatterns.size)) {
-                console.log(`📋 Loaded ignore file: ${this.ignoredSkills.size} skills, ${this.ignoredPatterns.size} patterns`);
-            }
-            break; // use first found
+        const ignored = loadIgnoreFile(scanDir);
+        this.ignoredSkills = ignored.ignoredSkills;
+        this.ignoredPatterns = ignored.ignoredPatterns;
+        if (this.verbose && (this.ignoredSkills.size || this.ignoredPatterns.size)) {
+            console.log(`📋 Loaded ignore file: ${this.ignoredSkills.size} skills, ${this.ignoredPatterns.size} patterns`);
         }
     }
 
@@ -173,6 +155,7 @@ class GuardScanner {
         if (this.customRules.length > 0) {
             this.checkPatterns(text, 'raw_text', 'code', findings, this.customRules);
         }
+        applySemanticValidators(text, 'raw_text', findings);
         
         // Filter ignored patterns
         const filteredFindings = findings.filter(f => !this.ignoredPatterns.has(f.id));
@@ -187,16 +170,12 @@ class GuardScanner {
 
     scanDirectory(dir) {
         if (!fs.existsSync(dir)) {
-            console.error(`❌ Directory not found: ${dir}`);
-            process.exit(2);
+            throw new Error(`Directory not found: ${dir}`);
         }
 
         this.loadIgnoreFile(dir);
 
-        const skills = fs.readdirSync(dir).filter(f => {
-            const p = path.join(dir, f);
-            return fs.statSync(p).isDirectory();
-        });
+        const skills = listSkills(dir);
 
         if (!this.quiet) {
             console.log(`\n🛡️  guard-scanner v${VERSION}`);
@@ -229,6 +208,13 @@ class GuardScanner {
         return this.findings;
     }
 
+    scanTarget(targetPath) {
+        this.findings = [];
+        this.stats = { scanned: 0, clean: 0, low: 0, suspicious: 0, malicious: 0 };
+        this.scanDirectory(targetPath);
+        return this.toJSON();
+    }
+
     scanSkill(skillPath, skillName) {
         this.stats.scanned++;
         const skillFindings = [];
@@ -253,9 +239,8 @@ class GuardScanner {
             if (BINARY_EXTENSIONS.has(ext)) continue;
             if (this.isSelfNoisePath(skillName, relFile)) continue;
 
-            let content;
-            try { content = fs.readFileSync(file, 'utf-8'); } catch { continue; }
-            if (content.length > 500000) continue;
+            const content = loadTextFile(file);
+            if (content === null) continue;
 
             const fileType = this.classifyFile(ext, relFile);
 
@@ -285,6 +270,7 @@ class GuardScanner {
             if ((ext === '.js' || ext === '.mjs' || ext === '.cjs' || ext === '.ts') && content.length < 200000) {
                 this.checkJSDataFlow(content, relFile, skillFindings);
             }
+            applySemanticValidators(content, relFile, skillFindings);
         }
 
         // Check 3: Structural checks
@@ -345,27 +331,15 @@ class GuardScanner {
     }
 
     classifyFile(ext, relFile) {
-        if (CODE_EXTENSIONS.has(ext)) return 'code';
-        if (DOC_EXTENSIONS.has(ext)) return 'doc';
-        if (DATA_EXTENSIONS.has(ext)) return 'data';
-        const base = path.basename(relFile).toLowerCase();
-        if (base === 'skill.md' || base === 'readme.md') return 'skill-doc';
-        return 'other';
+        return classifyFile(ext, relFile);
     }
 
     isSelfNoisePath(skillName, relFile) {
-        if (skillName !== 'guard-scanner') return false;
-        return /^test\//.test(relFile)
-            || /^dist\/__tests__\//.test(relFile)
-            || /^ts-src\/__tests__\//.test(relFile)
-            || /^docs\//.test(relFile)
-            || relFile === 'ROADMAP-RESEARCH.md'
-            || relFile === 'CHANGELOG.md';
+        return isSelfNoisePath(skillName, relFile);
     }
 
     isSelfThreatCorpus(skillName, relFile) {
-        if (skillName !== 'guard-scanner') return false;
-        return /(^|\/)(ioc-db|patterns)\.(js|ts)$/.test(relFile);
+        return isSelfThreatCorpus(skillName, relFile);
     }
 
     checkIoCs(content, relFile, findings) {
@@ -403,7 +377,8 @@ class GuardScanner {
         }
     }
 
-    checkPatterns(content, relFile, fileType, findings, patterns = PATTERNS) {
+    checkPatterns(content, relFile, fileType, findings, patterns = null) {
+        const activePatterns = patterns || this.ruleRegistry.getRulesForFileType(fileType);
         // v9: Payload Unfurling (Base64 / Hex Decoders)
         let unfurledContent = content;
 
@@ -421,12 +396,12 @@ class GuardScanner {
             return String.fromCharCode(parseInt(hex, 16));
         });
 
-        for (const pattern of patterns) {
+        for (const pattern of activePatterns) {
             // Soul Lock: skip identity-hijack/memory-poisoning patterns unless --soul-lock is enabled
             if (pattern.soulLock && !this.soulLock) continue;
             if (pattern.codeOnly && fileType !== 'code') continue;
             if (pattern.docOnly && fileType !== 'doc' && fileType !== 'skill-doc') continue;
-            if (!pattern.all && !pattern.codeOnly && !pattern.docOnly) continue;
+            if (!pattern.all && !pattern.codeOnly && !pattern.docOnly && pattern.scope !== 'skill-doc') continue;
 
             pattern.regex.lastIndex = 0;
             let matches = content.match(pattern.regex);
@@ -454,8 +429,8 @@ class GuardScanner {
             findings.push({
                 severity: adjustedSeverity,
                 id: pattern.id,
-                cat: pattern.cat,
-                desc: pattern.desc,
+                cat: pattern.cat || pattern.category,
+                desc: pattern.desc || pattern.description,
                 file: relFile,
                 line: lineNum,
                 matchCount: matches.length,
@@ -976,205 +951,31 @@ class GuardScanner {
     }
 
     calculateRisk(findings) {
-        if (findings.length === 0) return 0;
-
-        let score = 0;
-        for (const f of findings) {
-            score += SEVERITY_WEIGHTS[f.severity] || 0;
-        }
-
-        const ids = new Set(findings.map(f => f.id));
-        const cats = new Set(findings.map(f => f.cat));
-
-        if (cats.has('credential-handling') && cats.has('exfiltration')) score = Math.round(score * 2);
-        if (cats.has('credential-handling') && findings.some(f => f.id === 'MAL_CHILD' || f.id === 'MAL_EXEC')) score = Math.round(score * 1.5);
-        if (cats.has('obfuscation') && (cats.has('malicious-code') || cats.has('credential-handling'))) score = Math.round(score * 2);
-        if (ids.has('DEP_LIFECYCLE_EXEC')) score = Math.round(score * 2);
-        if (ids.has('PI_BIDI') && findings.length > 1) score = Math.round(score * 1.5);
-        if (cats.has('leaky-skills') && (cats.has('exfiltration') || cats.has('malicious-code'))) score = Math.round(score * 2);
-        if (cats.has('memory-poisoning')) score = Math.round(score * 1.5);
-        if (cats.has('prompt-worm')) score = Math.round(score * 2);
-        if (cats.has('cve-patterns')) score = Math.max(score, 70);
-        if (cats.has('persistence') && (cats.has('malicious-code') || cats.has('credential-handling') || cats.has('memory-poisoning'))) score = Math.round(score * 1.5);
-        if (cats.has('identity-hijack')) score = Math.round(score * 2);
-        if (cats.has('identity-hijack') && (cats.has('persistence') || cats.has('memory-poisoning'))) score = Math.max(score, 90);
-        if (ids.has('IOC_IP') || ids.has('IOC_URL') || ids.has('KNOWN_TYPOSQUAT')) score = 100;
-
-        // v1.1 categories
-        if (cats.has('config-impact')) score = Math.round(score * 2);
-        if (cats.has('config-impact') && cats.has('sandbox-validation')) score = Math.max(score, 70);
-        if (cats.has('complexity') && (cats.has('malicious-code') || cats.has('obfuscation'))) score = Math.round(score * 1.5);
-
-        // v2.1 PII exposure amplifiers
-        if (cats.has('pii-exposure') && cats.has('exfiltration')) score = Math.round(score * 3);
-        if (cats.has('pii-exposure') && (ids.has('SHADOW_AI_OPENAI') || ids.has('SHADOW_AI_ANTHROPIC') || ids.has('SHADOW_AI_GENERIC'))) score = Math.round(score * 2.5);
-        if (cats.has('pii-exposure') && cats.has('credential-handling')) score = Math.round(score * 2);
-
-        return Math.min(100, score);
+        return calculateRisk(findings);
     }
 
     getVerdict(risk) {
-        if (risk >= this.thresholds.malicious) return { icon: '🔴', label: 'MALICIOUS', stat: 'malicious' };
-        if (risk >= this.thresholds.suspicious) return { icon: '🟡', label: 'SUSPICIOUS', stat: 'suspicious' };
-        if (risk > 0) return { icon: '🟢', label: 'LOW RISK', stat: 'low' };
-        return { icon: '🟢', label: 'CLEAN', stat: 'clean' };
+        return getVerdict(risk, this.thresholds);
     }
 
     getFiles(dir) {
-        const results = [];
-        try {
-            const entries = fs.readdirSync(dir, { withFileTypes: true });
-            for (const entry of entries) {
-                const fullPath = path.join(dir, entry.name);
-                if (entry.isDirectory()) {
-                    if (entry.name === '.git' || entry.name === 'node_modules') continue;
-                    results.push(...this.getFiles(fullPath));
-                } else {
-                    const baseName = entry.name.toLowerCase();
-                    if (GENERATED_REPORT_FILES.has(baseName)) continue;
-                    results.push(fullPath);
-                }
-            }
-        } catch { }
-        return results;
+        return getFiles(dir);
     }
 
     printSummary() {
-        const total = this.stats.scanned;
-        const safe = this.stats.clean + this.stats.low;
-        console.log(`\n${'═'.repeat(54)}`);
-        console.log(`📊 guard-scanner v${VERSION} Scan Summary`);
-        console.log(`${'─'.repeat(54)}`);
-        console.log(`   Scanned:      ${total}`);
-        console.log(`   🟢 Clean:       ${this.stats.clean}`);
-        console.log(`   🟢 Low Risk:    ${this.stats.low}`);
-        console.log(`   🟡 Suspicious:  ${this.stats.suspicious}`);
-        console.log(`   🔴 Malicious:   ${this.stats.malicious}`);
-        console.log(`   Safety Rate:  ${total ? Math.round(safe / total * 100) : 0}%`);
-        console.log(`${'═'.repeat(54)}`);
-
-        if (this.stats.malicious > 0) {
-            console.log(`\n⚠️  CRITICAL: ${this.stats.malicious} malicious skill(s) detected!`);
-            console.log(`   Review findings with --verbose and remove if confirmed.`);
-        } else if (this.stats.suspicious > 0) {
-            console.log(`\n⚡ ${this.stats.suspicious} suspicious skill(s) found — review recommended.`);
-        } else {
-            console.log(`\n✅ All clear! No threats detected.`);
-        }
+        return printSummary(this.stats, VERSION);
     }
 
     toJSON() {
-        const normalizedFindings = this.findings.map((skillResult) => ({
-            ...skillResult,
-            findings: skillResult.findings.map((finding) => normalizeFinding(finding, { source: 'static' })),
-        }));
-
-        const recommendations = [];
-        for (const skillResult of normalizedFindings) {
-            const skillRecs = [];
-            const cats = new Set(skillResult.findings.map(f => f.cat));
-
-            if (cats.has('prompt-injection')) skillRecs.push('🛑 Contains prompt injection patterns.');
-            if (cats.has('malicious-code')) skillRecs.push('🛑 Contains potentially malicious code.');
-            if (cats.has('credential-handling') && cats.has('exfiltration')) skillRecs.push('💀 CRITICAL: Credential access + exfiltration. DO NOT INSTALL.');
-            if (cats.has('dependency-chain')) skillRecs.push('📦 Suspicious dependency chain.');
-            if (cats.has('obfuscation')) skillRecs.push('🔍 Code obfuscation detected.');
-            if (cats.has('secret-detection')) skillRecs.push('🔑 Possible hardcoded secrets.');
-            if (cats.has('leaky-skills')) skillRecs.push('💧 LEAKY SKILL: Secrets pass through LLM context.');
-            if (cats.has('memory-poisoning')) skillRecs.push('🧠 MEMORY POISONING: Agent memory modification attempt.');
-            if (cats.has('prompt-worm')) skillRecs.push('🪱 PROMPT WORM: Self-replicating instructions.');
-            if (cats.has('data-flow')) skillRecs.push('🔀 Suspicious data flow patterns.');
-            if (cats.has('persistence')) skillRecs.push('⏰ PERSISTENCE: Creates scheduled tasks.');
-            if (cats.has('cve-patterns')) skillRecs.push('🚨 CVE PATTERN: Matches known exploits.');
-            if (cats.has('identity-hijack')) skillRecs.push('🔒 IDENTITY HIJACK: Agent soul file tampering. DO NOT INSTALL.');
-            if (cats.has('sandbox-validation')) skillRecs.push('🔒 SANDBOX: Skill requests dangerous capabilities.');
-            if (cats.has('complexity')) skillRecs.push('🧩 COMPLEXITY: Excessive code complexity may hide malicious behavior.');
-            if (cats.has('config-impact')) skillRecs.push('⚙️ CONFIG IMPACT: Modifies OpenClaw configuration. DO NOT INSTALL.');
-            if (cats.has('pii-exposure')) skillRecs.push('🆔 PII EXPOSURE: Handles personally identifiable information. Review data handling.');
-
-            if (skillRecs.length > 0) recommendations.push({ skill: skillResult.skill, actions: skillRecs });
-        }
-
-        return {
-            timestamp: new Date().toISOString(),
-            scanner: `guard-scanner v${VERSION}`,
-            finding_schema_version: FINDING_SCHEMA_VERSION,
-            mode: this.strict ? 'strict' : 'normal',
-            stats: this.stats,
-            thresholds: this.thresholds,
-            findings: normalizedFindings,
-            recommendations,
-            iocVersion: '2026-02-12',
-        };
+        return toJSONReport(this, VERSION);
     }
 
     toSARIF(scanDir) {
-        const rules = [];
-        const ruleIndex = {};
-        const results = [];
-
-        for (const skillResult of this.findings) {
-            const normalizedSkillFindings = skillResult.findings.map((finding) => normalizeFinding(finding, { source: 'static' }));
-            for (const f of normalizedSkillFindings) {
-                if (!ruleIndex[f.id]) {
-                    ruleIndex[f.id] = rules.length;
-                    rules.push({
-                        id: f.id, name: f.id,
-                        shortDescription: { text: f.description },
-                        fullDescription: { text: f.rationale },
-                        help: { text: `${f.preconditions}\n\nRemediation: ${f.remediation_hint}` },
-                        defaultConfiguration: { level: f.severity === 'CRITICAL' ? 'error' : f.severity === 'HIGH' ? 'error' : f.severity === 'MEDIUM' ? 'warning' : 'note' },
-                        properties: {
-                            tags: ['security', f.category],
-                            'security-severity': f.severity === 'CRITICAL' ? '9.0' : f.severity === 'HIGH' ? '7.0' : f.severity === 'MEDIUM' ? '4.0' : '1.0',
-                            category: f.category,
-                            rationale: f.rationale,
-                            preconditions: f.preconditions,
-                            remediation_hint: f.remediation_hint,
-                            validation_status: f.validation_status,
-                        }
-                    });
-                }
-                const normalizedFile = String(f.file || '')
-                    .replaceAll('\\', '/')
-                    .replace(/^\/+/, '');
-                const artifactUri = `${skillResult.skill}/${normalizedFile}`;
-                const fingerprintSeed = `${f.id}|${artifactUri}|${f.line || 0}|${(f.sample || '').slice(0, 200)}`;
-                const lineHash = crypto.createHash('sha256').update(fingerprintSeed).digest('hex').slice(0, 24);
-
-                results.push({
-                    ruleId: f.id, ruleIndex: ruleIndex[f.id],
-                    level: f.severity === 'CRITICAL' ? 'error' : f.severity === 'HIGH' ? 'error' : f.severity === 'MEDIUM' ? 'warning' : 'note',
-                    message: { text: `[${skillResult.skill}] ${f.description}${f.sample ? ` — "${f.sample}"` : ''}` },
-                    partialFingerprints: {
-                        primaryLocationLineHash: lineHash
-                    },
-                    locations: [{ physicalLocation: { artifactLocation: { uri: artifactUri, uriBaseId: '%SRCROOT%' }, region: f.line ? { startLine: f.line } : undefined } }],
-                    properties: {
-                        category: f.category,
-                        rationale: f.rationale,
-                        preconditions: f.preconditions,
-                        false_positive_scenarios: f.false_positive_scenarios,
-                        remediation_hint: f.remediation_hint,
-                        validation_status: f.validation_status,
-                    },
-                });
-            }
-        }
-
-        return {
-            version: '2.1.0',
-            $schema: 'https://json.schemastore.org/sarif-2.1.0.json',
-            runs: [{
-                tool: { driver: { name: 'guard-scanner', version: VERSION, informationUri: 'https://github.com/koatora20/guard-scanner', rules } },
-                results,
-                invocations: [{ executionSuccessful: true, endTimeUtc: new Date().toISOString() }]
-            }]
-        };
+        return toSARIFReport(this, VERSION, scanDir);
     }
 
     toHTML() {
-        return generateHTML(VERSION, this.stats, this.findings);
+        return toHTMLReport(this, VERSION);
     }
 
     /**
@@ -1188,27 +989,7 @@ class GuardScanner {
      * Separates heuristic-only matches from validated chains.
      */
     checkASTValidation(content, relFile, findings) {
-        // Simple heuristic validation for remote fetch -> execute chain
-        if (content.includes('fetch') && (content.includes('exec') || content.includes('eval'))) {
-            // Very naive check for the test case
-            if (content.match(/fetch\([^)]+\)[^]*?(?:exec|eval|spawn|execSync)\(/is)) {
-                findings.push({
-                    severity: 'CRITICAL',
-                    id: 'AST_FETCH_TO_EXEC',
-                    cat: 'data-flow',
-                    desc: 'Validated Chain: Remote fetch directly piped to code execution',
-                    file: relFile,
-                    validated: true
-                });
-            }
-        }
-        
-        // Mark existing heuristic findings as unvalidated to distinguish them
-        for (const f of findings) {
-            if (f.validated === undefined) {
-                f.validated = false;
-            }
-        }
+        return checkASTValidation(content, relFile, findings);
     }
 
     generateThreatModel(findings) {
