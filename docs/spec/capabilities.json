@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "product": {
+    "name": "guard-scanner",
+    "version": "16.0.0",
+    "positioning": "Platform for Agent Security Evidence",
+    "summary": "Static and runtime-oriented security scanner for AI agent skills, MCP workflows, and local agent repos."
+  },
+  "capabilities": {
+    "pattern_count": 50,
+    "category_count": 15,
+    "ioc_count": 41,
+    "signature_count": 7,
+    "runtime_check_count": 12,
+    "output_formats": [
+      "terminal",
+      "json",
+      "sarif"
+    ],
+    "scan_modes": [
+      "auto",
+      "skills",
+      "repo"
+    ],
+    "subcommands": [
+      "install-check",
+      "benchmark",
+      "audit-baseline",
+      "capabilities"
+    ],
+    "ecosystems": [
+      "OpenClaw",
+      "ClawHub",
+      "local agent repos"
+    ]
+  },
+  "interfaces": {
+    "finding_extensions": [
+      "source_layer",
+      "evidence_class",
+      "confidence",
+      "fp_suspected",
+      "explainability",
+      "suppression_reason"
+    ],
+    "plugin_contract": {
+      "before_tool_call": {
+        "supports_block": true,
+        "modes": [
+          "monitor",
+          "enforce",
+          "strict"
+        ]
+      }
+    }
+  },
+  "competitive_landscape": {
+    "direct": [
+      "hbg-scan",
+      "snyk/agent-scan"
+    ],
+    "adjacent": [
+      "agentic-radar",
+      "promptfoo",
+      "garak"
+    ],
+    "perimeter": [
+      "modelscan"
+    ],
+    "axes": [
+      "discovery_coverage",
+      "runtime_enforcement",
+      "false_positive_control",
+      "reportability",
+      "mcp_skill_awareness",
+      "local_offline_operability",
+      "evidence_reproducibility"
+    ]
+  },
+  "source_of_truth": {
+    "generated_from_code": false,
+    "notes": [
+      "This file is the release-facing source of truth for versioned claims.",
+      "Counts reflect the current codebase, not historical roadmap numbers."
+    ]
+  }
+}

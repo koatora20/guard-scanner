@@ -1,17 +1,16 @@
 <p align="center">
   <h1 align="center">🛡️ guard-scanner</h1>
   <p align="center">
-    <strong>Static security scanner for AI agent skills</strong><br>
-    Detect prompt injection, credential theft, exfiltration, PII exposure, Shadow AI, and 17 more threat categories.<br>
-    <sub>🆕 v2.1 — PII Exposure Detection + Shadow AI + Plugin Hook blocking via <code>block</code>/<code>blockReason</code> API</sub>
+    <strong>Platform for Agent Security Evidence</strong><br>
+    Static scanning, runtime guard hooks, baseline audits, and benchmarkable findings for AI agent skills and MCP workflows.<br>
+    <sub>v16 local line: hybrid TypeScript + Rust-core scoring, evidence-aware false-positive control, and source-of-truth driven release claims</sub>
   </p>
   <p align="center">
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
     <img src="https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen" alt="Node.js 18+">
-    <img src="https://img.shields.io/badge/dependencies-0-success" alt="Zero Dependencies">
-    <img src="https://img.shields.io/badge/tests-99%2F99-brightgreen" alt="Tests Passing">
-    <img src="https://img.shields.io/badge/patterns-129-orange" alt="129 Patterns">
-    <img src="https://img.shields.io/badge/categories-21-blueviolet" alt="21 Categories">
+    <img src="https://img.shields.io/badge/runtime-checks-12-orange" alt="12 Runtime Checks">
+    <img src="https://img.shields.io/badge/scan-modes-auto%7Cskills%7Crepo-blue" alt="Scan Modes">
+    <img src="https://img.shields.io/badge/source%20of%20truth-capabilities.json-blueviolet" alt="Source of Truth">
   </p>
 </p>
 
@@ -20,6 +19,8 @@
   <br>
   <em>Dark Glassmorphism Dashboard — Risk gauges, severity distribution, interactive skill cards</em>
 </p>
+
+> Source of truth: `docs/spec/capabilities.json`. Versioned claims in this README must match that file.
 
 ---
 
@@ -40,8 +41,8 @@ The AI agent skill ecosystem has the same supply-chain security problem that npm
 
 | Feature | Description |
 |---|---|
-| **21 Threat Categories** | Snyk ToxicSkills + OWASP MCP Top 10 + Identity Hijacking + Sandbox/Complexity/Config + PII |
-| **129 Detection Patterns** | Regex-based static analysis covering code, docs, and data files |
+| **Versioned Claims** | Published through `guard-scanner capabilities` and `docs/spec/capabilities.json` |
+| **Evidence-Aware Findings** | Findings carry source layer, evidence class, confidence, and false-positive hints |
 | **IoC Database** | Known malicious IPs, domains, URLs, usernames, and typosquat names |
 | **Data Flow Analysis** | Lightweight JS analysis: secret reads → network calls → exec chains |
 | **Cross-File Analysis** | Phantom references, base64 fragment assembly, multi-file exfil detection |
@@ -53,7 +54,7 @@ The AI agent skill ecosystem has the same supply-chain security problem that npm
 | **4 Output Formats** | Terminal (with colors), JSON, [SARIF 2.1.0](https://sarifweb.azurewebsites.net), HTML dashboard |
 | **Plugin API** | Extend with custom detection rules via JS modules |
 | **Ignore Files** | Whitelist trusted skills and patterns via `.guard-scanner-ignore` |
-| **Zero Dependencies** | Pure Node.js stdlib. Nothing to install, nothing to audit. |
+| **Hybrid Core** | TypeScript scanner with optional Rust scoring core for parity/benchmark work |
 | **CI/CD Ready** | `--fail-on-findings` exit code + SARIF for GitHub Code Scanning |
 
 ---
@@ -573,7 +574,7 @@ OpenClaw's official [`THREAT-MODEL-ATLAS.md`](https://github.com/openclaw/opencl
 
 | Gap (from ATLAS / Source Code) | OpenClaw Status | guard-scanner |
 |---|---|---|
-| _"Simple regex easily bypassed"_ — ClawHub moderation | ⚠️ Basic `FLAG_RULES` | ✅ 129 patterns, 21 categories |
+| _"Simple regex easily bypassed"_ — ClawHub moderation | ⚠️ Basic `FLAG_RULES` | ✅ Source-of-truth governed capability set (`guard-scanner capabilities`) |
 | _"Does not analyze actual skill code content"_ | ❌ Not implemented | ✅ Full code + doc + data flow analysis |
 | No SOUL.md / IDENTITY.md integrity verification | ❌ Not implemented | ✅ Identity hijacking detection (Cat 17) |
 | `skill:before_install` hook | ❌ Not implemented | 🔜 Proposed ([Issue #18677](https://github.com/openclaw/openclaw/issues/18677)) |
@@ -682,7 +683,7 @@ clawhub install guava-suite
 
 | | guard-scanner (Free) | GuavaSuite ($GUAVA) |
 |---|---|---|
-| Static scan (129 patterns, 21 categories) | ✅ | ✅ |
+| Static scan (versioned capability set) | ✅ | ✅ |
 | Runtime Guard — `enforce` (block CRITICAL) | ✅ | ✅ |
 | **Runtime Guard — `strict` (block HIGH + CRITICAL)** | ❌ | ✅ |
 | **Soul Lock** (SOUL.md integrity + auto-rollback) | ❌ | ✅ |

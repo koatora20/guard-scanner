@@ -3,8 +3,9 @@
  * Re-exports all public types and the scanner class.
  */
 
-export { GuardScanner, VERSION } from './scanner.js';
+export { GuardScanner, VERSION, THRESHOLDS } from './scanner.js';
 export { default as runtimeGuardPlugin } from './runtime-plugin.js';
+export { CAPABILITIES, getCapabilitySummary } from './capabilities.js';
 export type { RuntimePluginConfig } from './runtime-plugin.js';
 export type {
     Severity, Finding, SkillResult, PatternRule, CustomRuleInput,

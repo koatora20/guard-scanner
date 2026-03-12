@@ -5,3 +5,5 @@ guard-scanner-report.json
 guard-scanner-report.html
 guard-scanner.sarif
 .DS_Store
+*.skill
+rust/guard-scan-core/target/

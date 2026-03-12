@@ -247,6 +247,7 @@ describe('Output Formats', () => {
     });
 });
 
+
 // ===== 6. Pattern Database Integrity =====
 describe('Pattern Database', () => {
     it('should have 125+ patterns', () => {

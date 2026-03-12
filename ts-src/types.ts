@@ -21,6 +21,8 @@ export interface Verdict {
 export type FileType = 'code' | 'doc' | 'data' | 'skill-doc' | 'other';
 export type ScanMode = 'auto' | 'skills' | 'repo';
 export type ScanTargetKind = 'skill' | 'repo';
+export type SourceLayer = 'static' | 'runtime' | 'benchmark';
+export type EvidenceClass = 'code' | 'doc-example' | 'fixture' | 'generated';
 
 // ── Findings ────────────────────────────────────────────────────────────────
 
@@ -33,6 +35,12 @@ export interface Finding {
     line?: number;
     matchCount?: number;
     sample?: string;
+    source_layer?: SourceLayer;
+    evidence_class?: EvidenceClass;
+    confidence?: number;
+    fp_suspected?: boolean;
+    explainability?: string;
+    suppression_reason?: string;
 }
 
 export interface SkillResult {

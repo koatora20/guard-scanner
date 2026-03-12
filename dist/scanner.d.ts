@@ -6,8 +6,9 @@
  *
  * Zero dependencies. MIT License.
  */
-import type { SkillResult, ScannerOptions, ScanStats, Thresholds, JSONReport, SARIFReport, ScanMode } from './types.js';
-export declare const VERSION = "3.0.0";
+import type { Finding, SkillResult, ScannerOptions, ScanStats, Thresholds, JSONReport, SARIFReport, ScanMode } from './types.js';
+export declare const VERSION: string;
+export declare const THRESHOLDS: Record<string, Thresholds>;
 export declare class GuardScanner {
     readonly verbose: boolean;
     readonly selfExclude: boolean;
@@ -30,6 +31,7 @@ export declare class GuardScanner {
     scanSkill(skillPath: string, skillName: string): void;
     private scanTarget;
     private calibrateFinding;
+    private enrichFinding;
     private resolveTargets;
     private safeReadDirs;
     private isSkillDir;
@@ -56,10 +58,15 @@ export declare class GuardScanner {
     private isRepoMetadataEmailContext;
     private isBenignPromptContext;
     private isPatternCatalogContext;
+    private isFirstPartyEvidenceContext;
     private isSchemaFieldContext;
     private isBenignSecretContext;
     private isBenignBase64Fragment;
     private calculateRisk;
+    scoreFindings(findings: Finding[]): {
+        risk: number;
+        engine: 'ts' | 'rust';
+    };
     private getVerdict;
     private getFiles;
     printSummary(): void;

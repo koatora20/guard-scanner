@@ -45,12 +45,18 @@ const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 const scanner_js_1 = require("./scanner.js");
 const patterns_js_1 = require("./patterns.js");
+const capabilities_js_1 = require("./capabilities.js");
+const node_child_process_1 = require("node:child_process");
 const args = process.argv.slice(2);
 if (args.includes('--help') || args.includes('-h')) {
     console.log(`
 🛡️  guard-scanner v${scanner_js_1.VERSION} — Agent Skill Security Scanner (TypeScript)
+${(0, capabilities_js_1.getCapabilitySummary)()}
 
 Usage: guard-scanner [scan-dir] [options]
+       guard-scanner capabilities
+       guard-scanner audit-baseline
+       guard-scanner benchmark [scan-dir]
 
 Options:
   --verbose, -v       Detailed findings with categories and samples
@@ -81,6 +87,30 @@ Examples:
   guard-scanner ./skills/ --strict --json --sarif --check-deps
   guard-scanner ./skills/ --fail-on-findings
 `);
+    process.exit(0);
+}
+if (args[0] === 'capabilities') {
+    console.log(JSON.stringify(capabilities_js_1.CAPABILITIES, null, 2));
+    process.exit(0);
+}
+if (args[0] === 'audit-baseline') {
+    const out = (0, node_child_process_1.execFileSync)(process.execPath, [path.join(process.cwd(), 'scripts', 'audit-baseline.js')], {
+        cwd: process.cwd(),
+        encoding: 'utf8',
+    });
+    process.stdout.write(out);
+    process.exit(0);
+}
+if (args[0] === 'benchmark') {
+    const target = args[1];
+    const cmdArgs = [path.join(process.cwd(), 'scripts', 'benchmark.js')];
+    if (target)
+        cmdArgs.push(target);
+    const out = (0, node_child_process_1.execFileSync)(process.execPath, cmdArgs, {
+        cwd: process.cwd(),
+        encoding: 'utf8',
+    });
+    process.stdout.write(out);
     process.exit(0);
 }
 // ── install-check subcommand ─────────────────────────────────────────────

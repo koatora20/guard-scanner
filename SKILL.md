@@ -4,7 +4,7 @@ description: >
   Security scanner for AI agent skills. Use BEFORE installing or running any new skill
   from ClawHub or external sources. Detects prompt injection, credential theft,
   exfiltration, identity hijacking, sandbox violations, code complexity, config impact,
-  and 17 more threat categories.
+  and runtime abuse patterns.
   Includes a Runtime Guard hook that blocks dangerous tool calls in real-time.
 homepage: https://github.com/koatora20/guard-scanner
 metadata:
@@ -29,7 +29,7 @@ metadata:
 # guard-scanner 🛡️
 
 Static + runtime security scanner for AI agent skills.
-**186+ threat patterns** across **20 categories** — zero dependencies.
+Source of truth: `docs/spec/capabilities.json`.
 
 ## When To Use This Skill
 

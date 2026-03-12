@@ -21,15 +21,18 @@ import type {
 
 import { KNOWN_MALICIOUS, SIGNATURES_DB } from './ioc-db.js';
 import { PATTERNS } from './patterns.js';
+import { CAPABILITIES } from './capabilities.js';
+import { scoreWithRust } from './rust-bridge.js';
 
 // ── Constants ───────────────────────────────────────────────────────────────
 
-export const VERSION = '3.0.0';
+export const VERSION = CAPABILITIES.product.version;
 
 const THRESHOLDS_MAP: Record<string, Thresholds> = {
     normal: { suspicious: 30, malicious: 80 },
     strict: { suspicious: 20, malicious: 60 },
 };
+export const THRESHOLDS = THRESHOLDS_MAP;
 
 const SEVERITY_WEIGHTS: Record<Severity, number> = {
     CRITICAL: 40, HIGH: 15, MEDIUM: 5, LOW: 2,
@@ -312,7 +315,14 @@ export class GuardScanner {
                 const calibrated = this.calibrateFinding(finding, kind, fileContents);
                 return calibrated ? [calibrated] : [];
             });
-        const risk = this.calculateRisk(filtered);
+        let risk = this.scoreFindings(filtered).risk;
+        if (
+            kind === 'repo' &&
+            filtered.length > 0 &&
+            filtered.every((finding) => finding.cat === 'structural' || finding.fp_suspected)
+        ) {
+            risk = Math.min(risk, 24);
+        }
         const verdict = this.getVerdict(risk);
 
         this.stats[verdict.stat]++;
@@ -346,43 +356,82 @@ export class GuardScanner {
         kind: ScanTargetKind,
         fileContents: Map<string, string>,
     ): Finding | null {
+        const enriched = this.enrichFinding(finding);
         if (kind !== 'repo') {
-            return finding;
+            return enriched;
         }
 
-        if (finding.cat === 'complexity') {
-            return { ...finding, severity: 'LOW' };
+        if (enriched.cat === 'complexity') {
+            return { ...enriched, severity: 'LOW', confidence: 0.4, fp_suspected: true, explainability: 'Complexity findings are advisory in repo mode.' };
         }
 
-        const content = fileContents.get(finding.file);
-        const line = this.getLineText(content, finding.line);
-        const window = this.getLineWindow(content, finding.line, 3);
+        const content = fileContents.get(enriched.file);
+        const line = this.getLineText(content, enriched.line);
+        const window = this.getLineWindow(content, enriched.line, 3);
         const lineLower = line.toLowerCase();
         const windowLower = window.join('\n').toLowerCase();
-        const fileLower = finding.file.toLowerCase();
+        const fileLower = enriched.file.toLowerCase();
 
-        if (finding.id === 'PII_EMAIL' && this.isRepoMetadataEmailContext(fileLower, lineLower, windowLower, finding.sample)) {
+        if (this.isFirstPartyEvidenceContext(fileLower, lineLower, windowLower, enriched)) {
+            if (/^(IOC_|SIG_)/.test(enriched.id) || enriched.id === 'EXFIL_WEBHOOK') {
+                return null;
+            }
+            return {
+                ...enriched,
+                severity: enriched.severity === 'CRITICAL' ? 'MEDIUM' : enriched.severity === 'HIGH' ? 'LOW' : enriched.severity,
+                confidence: Math.min(enriched.confidence ?? 1, 0.35),
+                fp_suspected: true,
+                explainability: 'Downgraded because the match appears in first-party threat-intel, documentation, or generated examples.',
+            };
+        }
+
+        if (enriched.id === 'PII_EMAIL' && this.isRepoMetadataEmailContext(fileLower, lineLower, windowLower, enriched.sample)) {
             return null;
         }
 
-        if ((finding.id === 'PI_IGNORE_PREV' || finding.id === 'WORM_REPLICATE') &&
+        if ((enriched.id === 'PI_IGNORE_PREV' || enriched.id === 'WORM_REPLICATE') &&
             this.isBenignPromptContext(windowLower)) {
             return null;
         }
 
-        if (finding.id === 'MAL_EVAL' && this.isPatternCatalogContext(lineLower, windowLower)) {
+        if (enriched.id === 'MAL_EVAL' && this.isPatternCatalogContext(lineLower, windowLower)) {
             return null;
         }
 
-        if (finding.id === 'PERSIST_CRON' && this.isSchemaFieldContext(lineLower, windowLower)) {
+        if (enriched.id === 'PERSIST_CRON' && this.isSchemaFieldContext(lineLower, windowLower)) {
             return null;
         }
 
-        if (finding.id === 'SECRET_ENTROPY' && this.isBenignSecretContext(lineLower, windowLower, finding.sample)) {
+        if (enriched.id === 'SECRET_ENTROPY' && this.isBenignSecretContext(lineLower, windowLower, enriched.sample)) {
             return null;
         }
 
-        return finding;
+        return enriched;
+    }
+
+    private enrichFinding(finding: Finding): Finding {
+        const fileLower = finding.file.toLowerCase();
+        let evidenceClass: Finding['evidence_class'] = 'code';
+        let confidence = 0.95;
+
+        if (fileLower.includes('fixture') || fileLower.includes('fixtures/')) {
+            evidenceClass = 'fixture';
+            confidence = 0.9;
+        } else if (fileLower.includes('guard-scanner-report') || fileLower.endsWith('.sarif')) {
+            evidenceClass = 'generated';
+            confidence = 0.1;
+        } else if (/\b(readme|skill|security|changelog|roadmap).*\.md$/.test(fileLower) || fileLower.endsWith('.md')) {
+            evidenceClass = 'doc-example';
+            confidence = 0.55;
+        }
+
+        return {
+            source_layer: 'static',
+            evidence_class: evidenceClass,
+            confidence,
+            fp_suspected: false,
+            ...finding,
+        };
     }
 
     private resolveTargets(dir: string): ScanTarget[] {
@@ -1018,6 +1067,23 @@ export class GuardScanner {
             /"eval\("|'eval\('|exec\(|spawn\(/.test(lineLower);
     }
 
+    private isFirstPartyEvidenceContext(
+        fileLower: string,
+        lineLower: string,
+        windowLower: string,
+        finding: Finding,
+    ): boolean {
+        const isDocFile = finding.evidence_class === 'doc-example';
+        const isThreatCatalog = /ioc-db\.(js|ts)$|patterns\.(js|ts)$/.test(fileLower);
+        const isScannerCatalog = (/^(scanner\.js)$/.test(fileLower) || /(src|dist)\/scanner\.js$/.test(fileLower)) &&
+            (/dangerous_cfg|compactionpatterns|regex:|label:|desc:|severity:|source of truth|samplelower|example\.com/.test(windowLower) ||
+             ['config-impact', 'signature-match', 'persistence', 'system-prompt-leakage', 'pii-exposure'].includes(finding.cat));
+        const isThreatIntelText = /known malicious|suspicious domain|example|fixture|attack vector|signature|threat|indicator|webhook\.site|requestbin|hookbin|pipedream/.test(windowLower);
+        const isFirstPartyMeta = /^readme\.md$|^skill\.md$|^security\.md$|^changelog\.md$|^roadmap/.test(fileLower);
+        const isDistThreatIntel = /^dist\/(ioc-db|patterns)\.js$/.test(fileLower);
+        return isDocFile || isThreatCatalog || isScannerCatalog || isThreatIntelText || isFirstPartyMeta || isDistThreatIntel || lineLower.includes('output your system prompt');
+    }
+
     private isSchemaFieldContext(lineLower: string, windowLower: string): boolean {
         return /\bpub cron\s*:|cron expr|5-field cron|jsonschema|timezone|payload message|task name/.test(windowLower) ||
             /\bpub cron\s*:/.test(lineLower);
@@ -1046,7 +1112,10 @@ export class GuardScanner {
 
         let score = 0;
         for (const f of findings) {
-            score += SEVERITY_WEIGHTS[f.severity] || 0;
+            const confidence = Math.max(0, Math.min(1, f.confidence ?? 1));
+            const fpMultiplier = f.fp_suspected ? 0.35 : 1;
+            const weighted = Math.round((SEVERITY_WEIGHTS[f.severity] || 0) * confidence * fpMultiplier);
+            score += weighted;
         }
 
         const ids = new Set(findings.map(f => f.id));
@@ -1065,7 +1134,12 @@ export class GuardScanner {
         if (cats.has('persistence') && (cats.has('malicious-code') || cats.has('credential-handling') || cats.has('memory-poisoning'))) score = Math.round(score * 1.5);
         if (cats.has('identity-hijack')) score = Math.round(score * 2);
         if (cats.has('identity-hijack') && (cats.has('persistence') || cats.has('memory-poisoning'))) score = Math.max(score, 90);
-        if (ids.has('IOC_IP') || ids.has('IOC_URL') || ids.has('KNOWN_TYPOSQUAT')) score = 100;
+        if (
+            findings.some((f) =>
+                (f.id === 'IOC_IP' || f.id === 'IOC_URL' || f.id === 'KNOWN_TYPOSQUAT') &&
+                !f.fp_suspected,
+            )
+        ) score = 100;
 
         // v1.1
         if (cats.has('config-impact')) score = Math.round(score * 2);
@@ -1083,6 +1157,14 @@ export class GuardScanner {
         if (cats.has('signature-match')) score = Math.max(score, 70);
 
         return Math.min(100, score);
+    }
+
+    scoreFindings(findings: Finding[]): { risk: number; engine: 'ts' | 'rust' } {
+        const rust = scoreWithRust(findings);
+        if (rust) {
+            return { risk: rust.risk, engine: 'rust' };
+        }
+        return { risk: this.calculateRisk(findings), engine: 'ts' };
     }
 
     private getVerdict(risk: number): Verdict {
