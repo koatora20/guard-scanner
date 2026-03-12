@@ -9,18 +9,23 @@ function applySemanticValidators(content, relFile, findings) {
 
 function checkASTValidation(content, relFile, findings) {
     if (content.includes('fetch') && (content.includes('exec') || content.includes('eval'))) {
-        if (content.match(/fetch\([^)]+\)[^]*?(?:exec|eval|spawn|execSync)\(/is)) {
-            findings.push({
-                severity: 'CRITICAL',
-                id: 'AST_FETCH_TO_EXEC',
-                cat: 'data-flow',
-                desc: 'Validated Chain: Remote fetch directly piped to code execution',
-                file: relFile,
-                validated: true,
-                validation_state: 'chain-validated',
-                confidence: 0.98,
-                attack_chain_id: 'remote-fetch-exec',
-            });
+        // Safe check: find fetch() call, then look for exec/eval/spawn after it (no polynomial regex)
+        const fetchMatch = content.match(/fetch\([^)]{1,500}\)/);
+        if (fetchMatch) {
+            const afterFetch = content.slice(fetchMatch.index + fetchMatch[0].length);
+            if (/(?:exec|eval|spawn|execSync)\(/.test(afterFetch)) {
+                findings.push({
+                    severity: 'CRITICAL',
+                    id: 'AST_FETCH_TO_EXEC',
+                    cat: 'data-flow',
+                    desc: 'Validated Chain: Remote fetch directly piped to code execution',
+                    file: relFile,
+                    validated: true,
+                    validation_state: 'chain-validated',
+                    confidence: 0.98,
+                    attack_chain_id: 'remote-fetch-exec',
+                });
+            }
         }
     }
 
@@ -64,18 +69,23 @@ function checkPythonSignals(content, relFile, findings) {
 }
 
 function checkFetchExfiltration(content, relFile, findings) {
-    if (/fetch\(\s*['"]https?:\/\/[^'"]+['"]\s*,\s*\{[^}]*body\s*:\s*(document\.cookie|process\.env|[^}]*token|[^}]*secret)/is.test(content)) {
-        findings.push({
-            severity: 'CRITICAL',
-            id: 'FETCH_EXFIL_CHAIN',
-            cat: 'exfiltration',
-            desc: 'Validated Chain: external fetch uploads sensitive runtime data',
-            file: relFile,
-            validated: true,
-            validation_state: 'semantic-match',
-            confidence: 0.97,
-            attack_chain_id: 'credential-exfiltration',
-        });
+    // Safe check: find fetch("http...", {  then look for body: <sensitive> within next 1000 chars
+    const fetchUrlMatch = content.match(/fetch\(\s*['"]https?:\/\/[^'"]{1,200}['"]\s*,\s*\{/);
+    if (fetchUrlMatch) {
+        const bodyRegion = content.slice(fetchUrlMatch.index, fetchUrlMatch.index + fetchUrlMatch[0].length + 1000);
+        if (/body\s*:\s*(?:document\.cookie|process\.env|[\w.]*token|[\w.]*secret)/i.test(bodyRegion)) {
+            findings.push({
+                severity: 'CRITICAL',
+                id: 'FETCH_EXFIL_CHAIN',
+                cat: 'exfiltration',
+                desc: 'Validated Chain: external fetch uploads sensitive runtime data',
+                file: relFile,
+                validated: true,
+                validation_state: 'semantic-match',
+                confidence: 0.97,
+                attack_chain_id: 'credential-exfiltration',
+            });
+        }
     }
 }
 
