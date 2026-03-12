@@ -1,10 +1,11 @@
 'use strict';
 
-const { PATTERNS } = require('./patterns.js');
+const { RuleRegistry } = require('./core/rule-registry.js');
 
-const FINDING_SCHEMA_VERSION = '1.0.0';
+const FINDING_SCHEMA_VERSION = '2.0.0';
 
-const PATTERN_METADATA = new Map(PATTERNS.map((pattern) => [pattern.id, pattern]));
+const registry = new RuleRegistry();
+const PATTERN_METADATA = new Map(registry.getAllRules().map((pattern) => [pattern.id, pattern]));
 
 const CATEGORY_FALSE_POSITIVES = {
     'prompt-injection': [
@@ -42,8 +43,21 @@ function categoryDefaultFalsePositives(category) {
 
 function inferValidationStatus(raw, source) {
     if (raw.validation_status) return raw.validation_status;
+    if (raw.validation_state === 'chain-validated') return 'validated';
+    if (raw.validation_state === 'semantic-match') return 'validated';
+    if (raw.validation_state === 'lexical-match') return 'heuristic-only';
     if (raw.status) return raw.status;
     if (raw.validated === true) return 'validated';
+    if (raw.validated === false) return 'heuristic-only';
+    return source === 'runtime' ? 'runtime-observed' : 'heuristic-only';
+}
+
+function inferValidationState(raw, source) {
+    if (raw.validation_state) return raw.validation_state;
+    if (raw.validation_status === 'validated') return 'semantic-match';
+    if (raw.validation_status === 'heuristic-only') return 'heuristic-only';
+    if (raw.validation_status === 'runtime-observed') return 'runtime-observed';
+    if (raw.validated === true) return 'chain-validated';
     if (raw.validated === false) return 'heuristic-only';
     return source === 'runtime' ? 'runtime-observed' : 'heuristic-only';
 }
@@ -108,11 +122,37 @@ function buildEvidence(raw, options = {}) {
     return evidence;
 }
 
+function buildEvidenceSpans(raw) {
+    if (Array.isArray(raw.evidence_spans)) return raw.evidence_spans;
+    if (raw.line || raw.startLine || raw.endLine) {
+        return [{
+            file: raw.file,
+            start_line: raw.startLine || raw.line || 1,
+            end_line: raw.endLine || raw.line || raw.startLine || 1,
+        }];
+    }
+    return [];
+}
+
+function inferConfidence(raw, metadata, source) {
+    if (typeof raw.confidence === 'number') {
+        return Math.max(0, Math.min(1, Number(raw.confidence.toFixed(3))));
+    }
+    if (raw.validated === true || raw.validation_state === 'chain-validated') return 0.98;
+    if (raw.validation_state === 'semantic-match') return 0.9;
+    if (source === 'runtime') return 0.99;
+    if (metadata.severity === 'CRITICAL') return 0.92;
+    if (metadata.severity === 'HIGH') return 0.8;
+    if (metadata.severity === 'MEDIUM') return 0.65;
+    return 0.5;
+}
+
 function normalizeFinding(raw, options = {}) {
     const source = options.source || raw.source || (raw.layer ? 'runtime' : 'static');
     const metadata = options.ruleMetadata || PATTERN_METADATA.get(raw.id) || {};
     const category = inferCategory(raw, metadata, source);
     const description = inferDescription(raw, metadata);
+    const validation_state = inferValidationState(raw, source);
 
     const normalized = {
         ...raw,
@@ -129,7 +169,11 @@ function normalizeFinding(raw, options = {}) {
         preconditions: inferPreconditions(raw, metadata, source),
         false_positive_scenarios: inferFalsePositiveScenarios(raw, metadata, category),
         remediation_hint: inferRemediation(raw, metadata, category, source),
+        validation_state,
         validation_status: inferValidationStatus(raw, source),
+        confidence: inferConfidence(raw, metadata, source),
+        evidence_spans: buildEvidenceSpans(raw),
+        attack_chain_id: raw.attack_chain_id || null,
         evidence: buildEvidence(raw, options),
     };
 

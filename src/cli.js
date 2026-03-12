@@ -384,46 +384,51 @@ Examples:
     !plugins.includes(a)
   ) || process.cwd();
 
-  const scanner = new GuardScanner({
-    verbose, selfExclude, strict, summaryOnly, checkDeps, soulLock, rulesFile, plugins,
-    quiet: quietMode || !!formatValue,
-  });
+  try {
+    const scanner = new GuardScanner({
+      verbose, selfExclude, strict, summaryOnly, checkDeps, soulLock, rulesFile, plugins,
+      quiet: quietMode || !!formatValue,
+    });
 
-  scanner.scanDirectory(scanDir);
+    scanner.scanDirectory(scanDir);
 
-  // Output reports (file-based, backward compatible)
-  if (jsonOutput) {
-    const report = scanner.toJSON();
-    const outPath = path.join(scanDir, 'guard-scanner-report.json');
-    fs.writeFileSync(outPath, JSON.stringify(report, null, 2));
-    if (!quietMode && !formatValue) console.log(`\n📄 JSON report: ${outPath}`);
-  }
+    // Output reports (file-based, backward compatible)
+    if (jsonOutput) {
+      const report = scanner.toJSON();
+      const outPath = path.join(scanDir, 'guard-scanner-report.json');
+      fs.writeFileSync(outPath, JSON.stringify(report, null, 2));
+      if (!quietMode && !formatValue) console.log(`\n📄 JSON report: ${outPath}`);
+    }
 
-  if (sarifOutput) {
-    const outPath = path.join(scanDir, 'guard-scanner.sarif');
-    fs.writeFileSync(outPath, JSON.stringify(scanner.toSARIF(scanDir), null, 2));
-    if (!quietMode && !formatValue) console.log(`\n📄 SARIF report: ${outPath}`);
-  }
+    if (sarifOutput) {
+      const outPath = path.join(scanDir, 'guard-scanner.sarif');
+      fs.writeFileSync(outPath, JSON.stringify(scanner.toSARIF(scanDir), null, 2));
+      if (!quietMode && !formatValue) console.log(`\n📄 SARIF report: ${outPath}`);
+    }
 
-  if (htmlOutput) {
-    const outPath = path.join(scanDir, 'guard-scanner-report.html');
-    fs.writeFileSync(outPath, scanner.toHTML());
-    if (!quietMode && !formatValue) console.log(`\n📄 HTML report: ${outPath}`);
-  }
+    if (htmlOutput) {
+      const outPath = path.join(scanDir, 'guard-scanner-report.html');
+      fs.writeFileSync(outPath, scanner.toHTML());
+      if (!quietMode && !formatValue) console.log(`\n📄 HTML report: ${outPath}`);
+    }
 
-  // --format stdout output (v3.2.0)
-  if (formatValue === 'json') {
-    process.stdout.write(JSON.stringify(scanner.toJSON(), null, 2) + '\n');
-  } else if (formatValue === 'sarif') {
-    process.stdout.write(JSON.stringify(scanner.toSARIF(scanDir), null, 2) + '\n');
-  } else if (formatValue) {
-    console.error(`❌ Unknown format: ${formatValue}. Use 'json' or 'sarif'.`);
+    // --format stdout output (v3.2.0)
+    if (formatValue === 'json') {
+      process.stdout.write(JSON.stringify(scanner.toJSON(), null, 2) + '\n');
+    } else if (formatValue === 'sarif') {
+      process.stdout.write(JSON.stringify(scanner.toSARIF(scanDir), null, 2) + '\n');
+    } else if (formatValue) {
+      console.error(`❌ Unknown format: ${formatValue}. Use 'json' or 'sarif'.`);
+      process.exit(2);
+    }
+
+    // Exit codes
+    if (scanner.stats.malicious > 0) process.exit(1);
+    if (failOnFindings && scanner.findings.length > 0) process.exit(1);
+    process.exit(0);
+  } catch (error) {
+    console.error(`❌ ${error.message}`);
     process.exit(2);
   }
-
-  // Exit codes
-  if (scanner.stats.malicious > 0) process.exit(1);
-  if (failOnFindings && scanner.findings.length > 0) process.exit(1);
-  process.exit(0);
 
 } // end else (scan mode)

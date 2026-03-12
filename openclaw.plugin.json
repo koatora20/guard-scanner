@@ -1,40 +1,8 @@
 {
+  "id": "guard-scanner",
   "name": "guard-scanner",
+  "description": "Runtime guard plugin for OpenClaw before_tool_call enforcement.",
   "version": "15.0.0",
-  "displayName": "🛡️ Guard Scanner (Sanctuary Enforcer) — Runtime Security for AI Agents",
-  "description": "ASI-level OpenClaw Plugin. 360 static patterns (35 categories) + Context-Crush limits + Solana Identity verification.",
-  "author": "Guava & Dee",
-  "license": "MIT",
-  "homepage": "https://github.com/koatora20/guard-scanner",
-  "repository": "https://github.com/koatora20/guard-scanner",
-  "keywords": [
-    "security",
-    "runtime-guard",
-    "threat-detection",
-    "before-tool-call"
-  ],
-  "hooks": {
-    "before_tool_call": {
-      "handler": "./hooks/guard-scanner/plugin.ts",
-      "description": "Scans tool call arguments against 26 runtime threat patterns (5 layers) and blocks dangerous operations",
-      "priority": 100
-    },
-    "bootstrap": {
-      "handler": "./hooks/context.js",
-      "description": "Injects Guard Scanner context engine state safely",
-      "priority": 10
-    },
-    "afterTurn": {
-      "handler": "./hooks/context.js",
-      "description": "Clears temporal context and performs post-turn memory guard",
-      "priority": 100
-    },
-    "prepareSubagentSpawn": {
-      "handler": "./hooks/context.js",
-      "description": "Validates subagent payload for Moltbook or A2A hijacked parameters",
-      "priority": 100
-    }
-  },
   "configSchema": {
     "type": "object",
     "properties": {
@@ -60,11 +28,5 @@
     },
     "required": [],
     "additionalProperties": false
-  },
-  "capabilities": {
-    "cli": true,
-    "runtimeGuard": true,
-    "sarif": true,
-    "cicd": true
   }
 }

@@ -2,13 +2,13 @@
 
 First off, thank you for considering contributing to `guard-scanner`! It's people like you that make open-source such a great community to learn, inspire, and create. 
 
-We are building this tool out of goodwill to provide a zero-dependency safety net for developers exploring Agentic AI. We rely heavily on the community to help identify new threat vectors and false positives.
+We are building this tool to provide a lightweight, evidence-driven safety net for developers exploring agentic AI. We rely heavily on the community to help identify new threat vectors, false positives, and missing context validators.
 
 ## How to Contribute
 
 ### Adding Threat Patterns
 
-The easiest way to contribute is adding new detection patterns to our TypeScript source `ts-src/patterns.ts` (or `src/patterns.js` for the compiled version):
+The easiest way to contribute is adding or refining detection patterns in `src/patterns.js`, then adding semantic validation or scoring updates where needed.
 
 ```javascript
 {
@@ -29,7 +29,7 @@ Add known malicious indicators to `src/ioc-db.js`:
 ### Development
 
 ```bash
-# Run tests (zero deps, just Node)
+# Run the full project gate
 npm test
 
 # Scan the test fixtures
@@ -41,11 +41,13 @@ node src/cli.js test/fixtures/ --json --sarif --html --verbose
 
 ### Pull Request Checklist
 
-- [ ] Tests pass (`npm test` — 225+ tests)
+- [ ] Tests pass (`npm test` — currently 342 tests / 84 suites)
 - [ ] New patterns have test coverage in `test/scanner.test.js`
 - [ ] No false positives against `test/fixtures/clean-skill/`
 - [ ] Severity level is appropriate (see `docs/THREAT_TAXONOMY.md`)
 - [ ] Description is clear and references source (Snyk, OWASP, CVE, etc.)
+- [ ] Documentation and capability counts stay in sync (`docs/spec/capabilities.json`)
+- [ ] Corpus and perf baselines remain green (`npm run test:corpus`, `npm run test:perf`)
 
 ## Reporting Security Issues
 

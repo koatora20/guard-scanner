@@ -87,6 +87,11 @@ const RUNTIME_CHECKS = [
         test: (s) => /(curl|wget)\s+[^\n]*\|\s*(sh|bash|zsh)/i.test(s),
     },
     {
+        id: 'RT_ENV_CURL_EXFIL', severity: 'CRITICAL', layer: 1,
+        desc: 'Environment variable exfiltration piped to curl upload',
+        test: (s) => /env\s*\|\s*curl\b[^\n]*-d\s+@-/i.test(s),
+    },
+    {
         id: 'RT_SSH_READ', severity: 'HIGH', layer: 1,
         desc: 'SSH private key access',
         test: (s) => /\.ssh\/id_|\.ssh\/authorized_keys/i.test(s),
@@ -248,6 +253,9 @@ function shouldBlock(severity, mode) {
  * @param {string} [options.mode] - Override mode ('monitor' | 'enforce' | 'strict')
  * @param {boolean} [options.auditLog=true] - Enable audit logging
  * @param {string} [options.sessionKey] - Session identifier for audit
+ * @param {string} [options.sessionId] - Ephemeral OpenClaw session UUID for audit
+ * @param {string} [options.runId] - Stable OpenClaw run identifier for audit
+ * @param {string} [options.toolCallId] - Provider tool call identifier for audit
  * @param {string} [options.agentId] - Agent identifier for audit
  * @returns {{ blocked: boolean, detections: Array<{id: string, severity: string, layer: number, desc: string, action: string}> }}
  */
@@ -255,6 +263,9 @@ function scanToolCall(toolName, params, options = {}) {
     const mode = options.mode || loadMode();
     const enableAudit = options.auditLog !== false;
     const sessionKey = options.sessionKey || 'unknown';
+    const sessionId = options.sessionId || 'unknown';
+    const runId = options.runId || 'unknown';
+    const toolCallId = options.toolCallId || 'unknown';
     const agentId = options.agentId || 'unknown';
 
     const result = {
@@ -312,6 +323,9 @@ function scanToolCall(toolName, params, options = {}) {
                 mode,
                 action,
                 session: sessionKey,
+                sessionId,
+                runId,
+                toolCallId,
                 agent: agentId,
             });
         }

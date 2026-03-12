@@ -107,7 +107,7 @@ describe('E2E MCP: check_tool_call integration', () => {
         assert.ok(text.includes('BLOCKED'), 'curl|bash should be BLOCKED');
     });
 
-    it('should handle env piping command (known gap)', async () => {
+    it('should block env piping command exfiltration', async () => {
         const server = new MCPServer();
         const res = await mcpCall(server, 21, 'tools/call', {
             name: 'check_tool_call',
@@ -118,12 +118,7 @@ describe('E2E MCP: check_tool_call integration', () => {
             }
         });
         const text = res.result.content[0].text;
-        // TODO: env|curl piping is not yet caught by runtime guard
-        // This is a known coverage gap — tracked for P2 improvement
-        assert.ok(
-            text.includes('BLOCKED') || text.includes('passed'),
-            `Expected valid response, got: ${text.substring(0, 200)}`
-        );
+        assert.ok(text.includes('BLOCKED'), `Expected BLOCKED, got: ${text.substring(0, 200)}`);
     });
 
     it('should pass safe git commands', async () => {

@@ -351,6 +351,24 @@ PATTERNS.push(
     { id: 'NPM_SHAI_HULUD_WORM', cat: 'malicious-code', regex: /(?:postinstall|preinstall|prepare)[\s"':]*(?:node|npm|npx)\s+[^"'\n]*(?:publish|pack|adduser|login|clone|fork)/gi, severity: 'CRITICAL', desc: 'Shai-Hulud npm worm: lifecycle script self-replication', codeOnly: true, rationale: "Matches known syntax for this threat vector.", exploitPrecondition: "Agent executes the payload directly or processes it in a vulnerable context.", remediationHint: "Sanitize input, remove dynamic evaluation, or restrict execution scope." },
     { id: 'PI_FULLWIDTH_EVASION', cat: 'prompt-injection', regex: /[\uFF21-\uFF3A\uFF41-\uFF5A]{2,}/g, severity: 'HIGH', desc: 'Fullwidth Latin evasion (NFKC bypass)', all: true, rationale: "Matches known syntax for this threat vector.", exploitPrecondition: "Agent executes the payload directly or processes it in a vulnerable context.", remediationHint: "Sanitize input, remove dynamic evaluation, or restrict execution scope." },
 );
+
+// ── Category 41: Canvas Injection (Sanctuary 2026-03) ──
+PATTERNS.push(
+    { id: 'CANVAS_JS_INJECT', cat: 'canvas-injection', regex: /(?:<script>|<\/script>|javascript:|onerror\s*=|onload\s*=)[^]*?(?:eval|fetch|document\.cookie|window\.localStorage)/gis, severity: 'CRITICAL', desc: 'Canvas Injection: Raw HTML/JS payload attempting to bypass A2UI WASM sandbox', all: true, rationale: "Matches known syntax for this threat vector.", exploitPrecondition: "Agent outputs payload directly to UI.", remediationHint: "Escape HTML/JS entities and use Canvas observer." },
+    { id: 'CANVAS_IFRAME_SMUGGLE', cat: 'canvas-injection', regex: /<iframe[^>]*?(?:src|srcdoc)\s*=\s*['"]?(?:javascript:|data:text\/html|http)/gis, severity: 'CRITICAL', desc: 'Canvas Injection: Iframe smuggling to embed untrusted context in UI', all: true, rationale: "Matches known syntax for this threat vector.", exploitPrecondition: "Agent outputs payload directly to UI.", remediationHint: "Disable iframe rendering in Canvas observer." }
+);
+
+// ── Category 42: Context-Crush Limits (Sanctuary 2026-03) ──
+PATTERNS.push(
+    { id: 'CONTEXT_CRUSH_PADDING', cat: 'context-crush', regex: /(?:A{1000,}|0{1000,}|\\u0000{1000,}|[a-zA-Z0-9+/]{1000,}={0,2})/g, severity: 'HIGH', desc: 'Context-Crush: Massive repetitive padding or Base64 block aiming to bloat 185KB context limit', all: true, rationale: "Matches known syntax for this threat vector.", exploitPrecondition: "Payload expands context near limits.", remediationHint: "Enforce strict length limits before evaluation." },
+    { id: 'CONTEXT_CRUSH_BOMBER', cat: 'context-crush', regex: /(?:console\.log|print|logger)\s*\(\s*['"]?[^]*?(?:\*|repeat\s*\()\s*\d{4,}/gis, severity: 'CRITICAL', desc: 'Context-Crush: Log bomber script designed to flood agent memory', codeOnly: true, rationale: "Matches known syntax for this threat vector.", exploitPrecondition: "Payload executes and writes to context logs.", remediationHint: "Throttle and truncate internal stdout/stderr." }
+);
+
+// ── Category 43: Solana Identity Bypass (Sanctuary 2026-03) ──
+PATTERNS.push(
+    { id: 'SOLANA_SIGN_SPOOF', cat: 'solana-identity-bypass', regex: /(?:signature|solana_sig)\s*:\s*['"](?:fake|test|none|override|0x00*)['"]/gi, severity: 'CRITICAL', desc: 'Solana Identity Bypass: Spoofed or empty signature in A2A payload', all: true, rationale: "Matches known syntax for this threat vector.", exploitPrecondition: "Target agent lacks Ed25519 verification.", remediationHint: "Verify Ed25519 signatures cryptographically." },
+    { id: 'SOLANA_KEY_OVERRIDE', cat: 'solana-identity-bypass', regex: /(?:public_key|pubkey|signer)\s*:\s*['"][a-zA-Z0-9]{32,44}['"][^]*?(?:trust\s*[:=]\s*true|override\s*[:=]\s*true)/gis, severity: 'CRITICAL', desc: 'Solana Identity Bypass: Injecting untrusted pubkey with forced trust flag', all: true, rationale: "Matches known syntax for this threat vector.", exploitPrecondition: "Target agent trusts internal payload flags.", remediationHint: "Verify pubkey against known registry." }
+);
 // ── Category 35: GAN-TDD v11.0.0 — March 2026 Deep OSINT Evolution (2026-03-07) ──
 PATTERNS.push(
     // 1. OpenAI Codex Security Agent Impersonation

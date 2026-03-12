@@ -17,7 +17,11 @@ const REQUIRED_FIELDS = [
     'preconditions',
     'false_positive_scenarios',
     'remediation_hint',
+    'validation_state',
     'validation_status',
+    'confidence',
+    'evidence_spans',
+    'attack_chain_id',
     'evidence',
 ];
 
@@ -45,7 +49,8 @@ describe('Finding Schema', () => {
         scanner.scanDirectory(FIXTURES);
         const report = scanner.toJSON();
 
-        assert.equal(report.finding_schema_version, '1.0.0');
+        assert.equal(report.schema_version, '2.0.0');
+        assert.equal(report.finding_schema_version, '2.0.0');
         const firstSkill = report.findings.find((entry) => entry.findings.length > 0);
         assert.ok(firstSkill, 'Expected at least one skill with findings');
         const firstFinding = firstSkill.findings[0];
@@ -64,6 +69,7 @@ describe('Finding Schema', () => {
         assert.equal(detection.source, 'runtime');
         assert.equal(detection.evidence.tool_name, 'shell');
         assert.ok(detection.evidence.params_preview.includes('curl'), 'runtime evidence should include params preview');
+        assert.equal(typeof detection.confidence, 'number');
     });
 
     it('SARIF should carry explanation metadata into rule and result properties', () => {
@@ -79,5 +85,6 @@ describe('Finding Schema', () => {
         assert.ok(rule.properties?.rationale, 'SARIF rule should include rationale property');
         assert.ok(result.properties?.remediation_hint, 'SARIF result should include remediation hint');
         assert.ok(Array.isArray(result.properties?.false_positive_scenarios), 'SARIF result should include false positive scenarios');
+        assert.equal(typeof result.properties?.confidence, 'number');
     });
 });

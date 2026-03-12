@@ -345,10 +345,11 @@ function handleCheckToolCall({ tool, args, mode = 'enforce' }) {
     if (args === undefined) return errorResult('args is required');
 
     const result = scanToolCall(tool, args, { mode, auditLog: true });
+    const runtimeCheckCount = getCheckStats().total;
 
     if (result.detections.length === 0) {
         return successResult(
-            `✅ Tool call "${tool}" passed all 26 runtime checks.\nMode: ${mode}`
+            `✅ Tool call "${tool}" passed all ${runtimeCheckCount} runtime checks.\nMode: ${mode}`
         );
     }
 

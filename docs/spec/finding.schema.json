@@ -14,7 +14,11 @@
     "preconditions",
     "false_positive_scenarios",
     "remediation_hint",
+    "validation_state",
     "validation_status",
+    "confidence",
+    "evidence_spans",
+    "attack_chain_id",
     "evidence"
   ],
   "properties": {
@@ -52,9 +56,34 @@
     "remediation_hint": {
       "type": "string"
     },
+    "validation_state": {
+      "type": "string",
+      "enum": ["heuristic-only", "semantic-match", "chain-validated", "runtime-observed"]
+    },
     "validation_status": {
       "type": "string",
       "enum": ["validated", "heuristic-only", "runtime-observed"]
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "evidence_spans": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["start_line", "end_line"],
+        "properties": {
+          "file": { "type": "string" },
+          "start_line": { "type": "integer", "minimum": 1 },
+          "end_line": { "type": "integer", "minimum": 1 }
+        },
+        "additionalProperties": true
+      }
+    },
+    "attack_chain_id": {
+      "type": ["string", "null"]
     },
     "evidence": {
       "type": "object",
