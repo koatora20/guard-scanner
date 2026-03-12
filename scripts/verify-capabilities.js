@@ -8,10 +8,10 @@ const filesToCheck = [
     {
         path: '../README.md',
         checks: [
-            { regex: /(\d+) static patterns/, expected: spec.static_pattern_count, name: "Static Pattern Count" },
-            { regex: /(\d+) threat categories/, expected: spec.threat_category_count, name: "Threat Category Count" },
-            { regex: /(\d+) runtime checks/, expected: spec.runtime_check_count, name: "Runtime Check Count" },
-            { regex: /runtime_deps-(\d+)/, expected: spec.dependencies_runtime, name: "Runtime Dependencies" }
+            { regex: /<strong>(\d+)<\/strong> detection patterns/, expected: spec.static_pattern_count, name: "Static Pattern Count" },
+            { regex: /<strong>(\d+)<\/strong> threat categories/, expected: spec.threat_category_count, name: "Threat Category Count" },
+            { regex: /<strong>(\d+)<\/strong> runtime checks/, expected: spec.runtime_check_count, name: "Runtime Check Count" },
+            { regex: /(\d+)<\/strong> dependency/, expected: spec.dependencies_runtime, name: "Runtime Dependencies" }
         ],
         banned: [
             { regex: /first open-source/i, reason: "False 'first' claim" },
@@ -21,10 +21,10 @@ const filesToCheck = [
     {
         path: '../README_ja.md',
         checks: [
-            { regex: /静的パターン\*\*: (\d+)/, expected: spec.static_pattern_count, name: "Static Pattern Count" },
-            { regex: /脅威カテゴリ\*\*: (\d+)/, expected: spec.threat_category_count, name: "Threat Category Count" },
-            { regex: /ランタイムチェック\*\*: (\d+)/, expected: spec.runtime_check_count, name: "Runtime Check Count" },
-            { regex: /依存パッケージ\*\*: ランタイム (\d+)/, expected: spec.dependencies_runtime, name: "Runtime Dependencies" }
+            { regex: /<strong>(\d+)<\/strong> 検出パターン/, expected: spec.static_pattern_count, name: "Static Pattern Count" },
+            { regex: /<strong>(\d+)<\/strong> 脅威カテゴリ/, expected: spec.threat_category_count, name: "Threat Category Count" },
+            { regex: /<strong>(\d+)<\/strong> ランタイムチェック/, expected: spec.runtime_check_count, name: "Runtime Check Count" },
+            { regex: /依存: <strong>(\d+)<\/strong>/, expected: spec.dependencies_runtime, name: "Runtime Dependencies" }
         ],
         banned: [
             { regex: /first open-source/i, reason: "False 'first' claim" },

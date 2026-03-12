@@ -42,9 +42,9 @@ console.log(`  MCP Tools: ${mcp_tools.length}`);
 let readme = fs.readFileSync(README_PATH, 'utf8');
 let changes = [];
 
-// 1. Update header metrics line: "32 threat categories · 352 static patterns · 26 runtime checks"
-const headerMetricsRe = /(\d+) threat categories · (\d+) static patterns · (\d+) runtime checks/;
-const newHeaderMetrics = `${threat_category_count} threat categories · ${static_pattern_count} static patterns · ${runtime_check_count} runtime checks`;
+// 1. Update header metrics line (HTML format with <strong> tags)
+const headerMetricsRe = /<strong>(\d+)<\/strong> detection patterns · <strong>(\d+)<\/strong> threat categories · <strong>(\d+)<\/strong> runtime checks/;
+const newHeaderMetrics = `<strong>${static_pattern_count}</strong> detection patterns · <strong>${threat_category_count}</strong> threat categories · <strong>${runtime_check_count}</strong> runtime checks`;
 if (headerMetricsRe.test(readme)) {
     const oldMatch = readme.match(headerMetricsRe);
     if (oldMatch[0] !== newHeaderMetrics) {

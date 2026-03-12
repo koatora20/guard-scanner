@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <strong>358</strong> 検出パターン · <strong>35</strong> 脅威カテゴリ · <strong>27</strong> ランタイムチェック · 依存: <code>ws</code> のみ
+  <strong>358</strong> 検出パターン · <strong>35</strong> 脅威カテゴリ · <strong>27</strong> ランタイムチェック · 依存: <strong>1</strong> (<code>ws</code> のみ)
 </p>
 
 <p align="center">
