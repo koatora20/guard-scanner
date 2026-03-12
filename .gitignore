@@ -25,7 +25,6 @@ docs/html-report-preview.png
 
 # Duplicate test fixtures (test/ is canonical)
 ts-src/__tests__/fixtures/
-tsconfig.json
 ts-src/
 docs/TASKLIST_*.md
 docs/OPENCLAW_*.md
