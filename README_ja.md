@@ -52,6 +52,12 @@ $ npx @guava-parity/guard-scanner ./skills/ --strict --soul-lock
 
 ---
 
+## Finding Schema
+
+全検出結果は共通スキーマに従います: `rule_id`, `category`, `severity`, `description`, `rationale`, `preconditions`, `false_positive_scenarios`, `remediation_hint`, `validation_status`, `evidence`。機械可読な仕様: [`docs/spec/finding.schema.json`](docs/spec/finding.schema.json)
+
+---
+
 ## クイックスタート
 
 **ディレクトリをスキャン** — インストール不要：

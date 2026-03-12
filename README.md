@@ -48,6 +48,12 @@ $ npx @guava-parity/guard-scanner ./skills/ --strict --soul-lock
 
 ---
 
+## Finding Schema
+
+Every finding includes: `rule_id`, `category`, `severity`, `description`, `rationale`, `preconditions`, `false_positive_scenarios`, `remediation_hint`, `validation_status`, and `evidence`. Machine-readable contract: [`docs/spec/finding.schema.json`](docs/spec/finding.schema.json).
+
+---
+
 ## Quick Start
 
 **Scan a directory** — no install required:

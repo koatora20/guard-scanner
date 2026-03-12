@@ -13,11 +13,7 @@ const REQUIRED_FINDING_FIELDS = [
   'preconditions',
   'false_positive_scenarios',
   'remediation_hint',
-  'validation_state',
   'validation_status',
-  'confidence',
-  'evidence_spans',
-  'attack_chain_id',
   'evidence',
 ];
 

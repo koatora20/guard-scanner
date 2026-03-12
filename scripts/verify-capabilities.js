@@ -11,7 +11,7 @@ const filesToCheck = [
             { regex: /<strong>(\d+)<\/strong> detection patterns/, expected: spec.static_pattern_count, name: "Static Pattern Count" },
             { regex: /<strong>(\d+)<\/strong> threat categories/, expected: spec.threat_category_count, name: "Threat Category Count" },
             { regex: /<strong>(\d+)<\/strong> runtime checks/, expected: spec.runtime_check_count, name: "Runtime Check Count" },
-            { regex: /(\d+)<\/strong> dependency/, expected: spec.dependencies_runtime, name: "Runtime Dependencies" }
+            { regex: /<strong>(\d+)<\/strong> dependency/, expected: spec.dependencies_runtime, name: "Runtime Dependencies" }
         ],
         banned: [
             { regex: /first open-source/i, reason: "False 'first' claim" },
