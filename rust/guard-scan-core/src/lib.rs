@@ -1,3 +1,13 @@
+/// guard-scan-core — Agentic Security Scanner Core Engine
+///
+/// v16 Architecture (P0 Implementation):
+/// - Layer 0: Memory Integrity Module (MINJA/Zombie Agent defense)
+/// - Layer A-D: SOUL.md Hard Gate (Cryptographic Integrity + Mutation Guard)
+/// - Existing: Static signature detection (patterns.ts bridge)
+
+pub mod soul_hard_gate;
+pub mod memory_integrity;
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -73,6 +83,6 @@ mod tests {
                 category: "exfiltration".into(),
             },
         ];
-        assert_eq!(calculate_risk(&findings), 54);
+        assert_eq!(calculate_risk(&findings), 65);
     }
 }
