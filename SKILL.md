@@ -1,6 +1,6 @@
 ---
 name: guard-scanner
-description: "Security scanner and runtime guard for AI agent skills. 358 static threat patterns across 35 categories + 27 runtime checks (5 defense layers). Use when scanning skill directories for security threats, auditing npm/GitHub/ClawHub assets for leaked credentials, running real-time file watch during development, integrating security checks into CI/CD pipelines (SARIF/JSON), setting up MCP server for editor-integrated scanning (Cursor, Windsurf, Claude Code, OpenClaw), or runtime guarding tool calls via the OpenClaw v2026.3.12 before_tool_call hook with regression coverage for v2026.3.8. Single dependency (ws). MIT licensed."
+description: "Security scanner and runtime guard for AI agent skills. 358 static threat patterns across 35 categories + 27 runtime checks (5 defense layers). Use when scanning skill directories for security threats, auditing npm/GitHub/ClawHub assets for leaked credentials, running real-time file watch during development, integrating security checks into CI/CD pipelines (SARIF/JSON), setting up MCP server for editor-integrated scanning (Cursor, Windsurf, Claude Code, OpenClaw), or runtime guarding tool calls via the OpenClaw v2026.3.8 before_tool_call compatibility surface. Single dependency (ws). MIT licensed."
 license: MIT
 metadata: {"openclaw": {"requires": {"bins": ["node"]}}}
 ---
@@ -65,6 +65,24 @@ Editor config (Cursor, Windsurf, Claude Code, OpenClaw):
 
 MCP tools: `scan_skill`, `scan_text`, `check_tool_call`, `audit_assets`, `get_stats`.
 
+## Quality Contract
+
+Public quality contract:
+
+- Benchmark corpus version: `2026-03-13.quality-v1`
+- Precision target: `>= 0.90`
+- Recall target: `>= 0.90`
+- FPR/FNR budgets: `<= 0.10`
+- Explainability completeness: `1.0`
+- Runtime policy latency budget: `5ms`
+
+Evidence surfaces:
+
+- `docs/spec/capabilities.json`
+- `docs/data/corpus-metrics.json`
+- `docs/data/benchmark-ledger.json`
+- `docs/data/fp-ledger.json`
+
 ### Watch Mode
 
 Monitor skill directories in real-time during development.
@@ -84,7 +102,7 @@ guard-scanner scan ./skills/ --vt-scan
 
 ## Runtime Guard
 
-The validated OpenClaw surface is the compiled runtime plugin entry (`dist/openclaw-plugin.mjs`) discovered through `package.json > openclaw.extensions` and mounted on `before_tool_call` for OpenClaw `v2026.3.12`, with a retained compatibility baseline on `v2026.3.8`.
+The validated OpenClaw surface is the compiled runtime plugin entry (`dist/openclaw-plugin.mjs`) discovered through `package.json > openclaw.extensions` and mounted on `before_tool_call` for OpenClaw `v2026.3.8`. Newer upstream releases are measured by the drift watchdog before any public compatibility claim is widened.
 
 The `before_tool_call` hook provides 27 runtime checks across 5 defense layers:
 

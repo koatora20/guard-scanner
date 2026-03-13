@@ -121,7 +121,7 @@ guard-scanner isn't just a static scanner — it provides a real-time **`before_
 | 4. Behavioral Analysis | No-research execution, hallucination-driven actions |
 | 5. Trust Exploitation | Authority claim attacks, creator impersonation |
 
-**27 runtime checks** across 5 layers. Validated against OpenClaw `v2026.3.12` with regression coverage for `v2026.3.8`.
+**27 runtime checks** across 5 layers. Public compatibility is pinned to OpenClaw `v2026.3.8` for manifest/discovery/`before_tool_call`; newer upstream releases are tracked separately by the upstream drift watchdog.
 
 Modes: `monitor` (log only) · `enforce` (block CRITICAL, default) · `strict` (block HIGH+)
 
@@ -200,6 +200,28 @@ When running as an MCP server, guard-scanner exposes:
 | `check_tool_call` | Runtime validation of a single tool invocation |
 | `audit_assets` | Audit npm/GitHub/ClawHub for credential exposure |
 | `get_stats` | Return scanner capabilities and pattern counts |
+
+---
+
+## Quality Contract
+
+guard-scanner ships a measured quality contract, not a vague strength claim.
+
+| Metric | Contract |
+|--------|----------|
+| Benchmark corpus | `2026-03-13.quality-v1` |
+| Precision target | `>= 0.90` |
+| Recall target | `>= 0.90` |
+| False Positive Rate budget | `<= 0.10` |
+| False Negative Rate budget | `<= 0.10` |
+| Explainability completeness | `1.0` |
+| Runtime policy latency budget | `5ms` |
+
+Evidence artifacts:
+- `docs/data/corpus-metrics.json`
+- `docs/data/benchmark-ledger.json`
+- `docs/data/fp-ledger.json`
+- `docs/spec/capabilities.json`
 
 ---
 

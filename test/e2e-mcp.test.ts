@@ -144,5 +144,6 @@ describe('E2E MCP: get_stats accuracy', () => {
         const res = await mcpCall(server, 30, 'tools/call', { name: 'get_stats', arguments: {} });
         const text = res.result.content[0].text;
         assert.ok(text.includes(String(PATTERNS.length)), `Stats should include actual pattern count ${PATTERNS.length}`);
+        assert.ok(text.includes('Benchmark corpus version'), 'Stats should expose the quality contract');
     });
 });

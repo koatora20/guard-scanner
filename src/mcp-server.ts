@@ -32,6 +32,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const CAPABILITIES = require('../docs/spec/capabilities.json');
+const QUALITY_CONTRACT = require('../docs/data/quality-contract.json');
 
 // ── MCP Protocol Constants ──
 
@@ -187,6 +188,19 @@ const TOOLS = [
                     description: 'Guard mode — monitor: log only, enforce: block CRITICAL (default), strict: block HIGH+CRITICAL',
                     default: 'enforce',
                 },
+                policy: {
+                    type: 'object',
+                    description: 'Optional capability-scoped runtime policy contract',
+                    additionalProperties: false,
+                    properties: {
+                        id: { type: 'string' },
+                        allowed_tools: { type: 'array', items: { type: 'string' } },
+                        blocked_tools: { type: 'array', items: { type: 'string' } },
+                        max_network_scope: { type: 'string', enum: ['none', 'internal-only', 'external-ok'] },
+                        secret_bearing_context: { type: 'boolean' },
+                        memory_write_permission: { type: 'boolean' },
+                    },
+                },
             },
             required: ['tool', 'args'],
         },
@@ -341,28 +355,32 @@ function handleScanText({ text, filename = 'snippet.txt' }) {
     );
 }
 
-function handleCheckToolCall({ tool, args, mode = 'enforce' }) {
+function handleCheckToolCall({ tool, args, mode = 'enforce', policy }) {
     if (!tool) return errorResult('tool is required');
     if (args === undefined) return errorResult('args is required');
 
-    const result = scanToolCall(tool, args, { mode, auditLog: true });
+    const result = scanToolCall(tool, args, { mode, auditLog: true, policy });
     const runtimeCheckCount = getCheckStats().total;
 
     if (result.detections.length === 0) {
         return successResult(
-            `✅ Tool call "${tool}" passed all ${runtimeCheckCount} runtime checks.\nMode: ${mode}`
+            `✅ Tool call "${tool}" passed all ${runtimeCheckCount} runtime checks.\nMode: ${mode}\nPolicy: ${result.matchedPolicyId || 'none'}`
         );
     }
 
     const lines = result.detections.map(d =>
-        `  [${d.action.toUpperCase()}] ${d.id} (${d.severity}, L${d.layer}): ${d.desc}`
+        `  [${d.action.toUpperCase()}] ${d.id} (${d.severity}${d.layer ? `, L${d.layer}` : ''}): ${d.desc}`
     );
 
     return successResult(
         `🛡️ Runtime Check: ${result.blocked ? '🚫 BLOCKED' : '⚠️ WARNINGS'}\n` +
         `Tool: ${tool} | Mode: ${mode}\n` +
+        `Policy: ${result.matchedPolicyId || 'none'}\n` +
         `Detections: ${result.detections.length}\n\n` +
         lines.join('\n') +
+        (result.riskAmplificationReasons.length > 0 ? `\n\nAmplification:\n  - ${result.riskAmplificationReasons.join('\n  - ')}` : '') +
+        (result.policyRationale ? `\n\nPolicy rationale: ${result.policyRationale}` : '') +
+        (result.remediationSuggestion ? `\nRemediation: ${result.remediationSuggestion}` : '') +
         (result.blocked ? `\n\n❌ Blocked: ${result.blockReason}` : '')
     );
 }
@@ -402,6 +420,7 @@ async function handleAuditAssets({ username, scope = 'all' }) {
 
 function handleGetStats() {
     const runtimeStats = getCheckStats();
+    const targets = CAPABILITIES.quality_targets || QUALITY_CONTRACT.quality_targets;
 
     return successResult(
         `🛡️ guard-scanner v${VERSION}\n\n` +
@@ -422,8 +441,16 @@ function handleGetStats() {
         `  • npm package exposure detection\n` +
         `  • GitHub repository scanning\n` +
         `  • ClawHub skill auditing\n\n` +
+        `Quality Contract:\n` +
+        `  • Benchmark corpus version: ${CAPABILITIES.benchmark_corpus_version || QUALITY_CONTRACT.benchmark_version}\n` +
+        `  • Precision target: >= ${targets.precision_min}\n` +
+        `  • Recall target: >= ${targets.recall_min}\n` +
+        `  • FPR budget: <= ${targets.false_positive_rate_max}\n` +
+        `  • FNR budget: <= ${targets.false_negative_rate_max}\n` +
+        `  • Explainability completeness: ${CAPABILITIES.explainability_completeness_rate}\n` +
+        `  • Runtime latency budget: ${CAPABILITIES.runtime_check_latency_budget_ms}ms\n\n` +
         `Performance: 0.016ms/scan average\n` +
-        `Dependencies: 0 external (node:fs, node:path, node:https only)`
+        `Dependencies: 1 runtime (${CAPABILITIES.dependencies_runtime === 1 ? 'ws' : CAPABILITIES.dependencies_runtime})`
     );
 }
 

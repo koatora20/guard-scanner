@@ -51,6 +51,52 @@ if (args[0] === 'serve') {
   // Server runs until stdin closes
 }
 
+// ── benchmark subcommand ──────────────────────────────────────
+if (args[0] === 'benchmark') {
+  const { buildBenchmarkLedger, buildFalsePositiveLedger, loadQualityContract, writeLedger } = require('./benchmark-runner');
+  const contract = loadQualityContract();
+  const ledger = buildBenchmarkLedger(contract);
+  const fpLedger = buildFalsePositiveLedger(ledger);
+  const formatIdx = args.indexOf('--format');
+  const formatValue = formatIdx >= 0 ? args[formatIdx + 1] : null;
+  const writeLedgers = args.includes('--write-ledgers');
+
+  if (args.includes('--help') || args.includes('-h')) {
+    console.log(`
+🛡️  guard-scanner benchmark — Detection Quality Ledger
+
+Usage:
+  guard-scanner benchmark
+  guard-scanner benchmark --format json
+  guard-scanner benchmark --write-ledgers
+
+Options:
+  --format json       Print benchmark ledger JSON to stdout
+  --write-ledgers     Refresh docs/data/benchmark-ledger.json and fp-ledger.json
+  --help, -h          Show this help
+`);
+    process.exit(0);
+  }
+
+  if (writeLedgers) {
+    writeLedger(path.join(process.cwd(), 'docs', 'data', 'benchmark-ledger.json'), ledger);
+    writeLedger(path.join(process.cwd(), 'docs', 'data', 'fp-ledger.json'), fpLedger);
+  }
+
+  if (formatValue === 'json') {
+    process.stdout.write(JSON.stringify(ledger, null, 2) + '\n');
+  } else {
+    console.log(`🛡️  benchmark ${ledger.benchmark_version}`);
+    for (const layer of ledger.layers) {
+      console.log(`  • ${layer.layer}: benign=${layer.counts.benign}, malicious=${layer.counts.malicious}, precision=${layer.metrics.precision}, recall=${layer.metrics.recall}, fpr=${layer.metrics.false_positive_rate}, fnr=${layer.metrics.false_negative_rate}`);
+    }
+    console.log(`  • aggregate: precision=${ledger.aggregate.metrics.precision}, recall=${ledger.aggregate.metrics.recall}, fpr=${ledger.aggregate.metrics.false_positive_rate}, fnr=${ledger.aggregate.metrics.false_negative_rate}`);
+    console.log(`  • explainability completeness=${ledger.explainability.rate}`);
+  }
+
+  process.exit(0);
+}
+
 // ── watch subcommand ──────────────────────────────────────────
 if (args[0] === 'watch') {
   const watchDir = args[1] || '.';
@@ -295,6 +341,7 @@ Options:
 
 Usage: guard-scanner [scan-dir] [options]
        guard-scanner serve              Start as MCP server (stdio)
+       guard-scanner benchmark          Generate benchmark/fp ledgers
        guard-scanner audit <npm|github|clawhub|all> <username> [options]
 
 Options:

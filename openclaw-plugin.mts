@@ -13,6 +13,14 @@ const runtimeGuardApi = runtimeGuard as {
             runId?: string;
             toolCallId?: string;
             agentId?: string;
+            policy?: {
+                id?: string;
+                allowed_tools?: string[];
+                blocked_tools?: string[];
+                max_network_scope?: "none" | "internal-only" | "external-ok";
+                secret_bearing_context?: boolean;
+                memory_write_permission?: boolean;
+            };
         },
     ) => {
         blocked: boolean;
@@ -34,6 +42,14 @@ type PluginHookToolContext = {
     runId?: string;
     toolName: string;
     toolCallId?: string;
+    policy?: {
+        id?: string;
+        allowed_tools?: string[];
+        blocked_tools?: string[];
+        max_network_scope?: "none" | "internal-only" | "external-ok";
+        secret_bearing_context?: boolean;
+        memory_write_permission?: boolean;
+    };
 };
 
 function resolveMode(pluginConfig?: Record<string, unknown>): GuardMode | undefined {
@@ -61,6 +77,7 @@ function beforeToolCall(
         runId: ctx.runId ?? event.runId,
         toolCallId: ctx.toolCallId ?? event.toolCallId,
         agentId: ctx.agentId,
+        policy: ctx.policy,
     });
 
     if (!result.blocked) return;

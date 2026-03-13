@@ -127,6 +127,11 @@ export interface RuntimeDecision {
   detections: Finding[];
   mode: GuardMode;
   toolName?: string;
+  matchedPolicyId?: string | null;
+  policyRationale?: string | null;
+  riskAmplificationReasons?: string[];
+  remediationSuggestion?: string | null;
+  policyDecision?: RuntimePolicyDecision | null;
 }
 
 export interface McpRequest {
@@ -147,6 +152,10 @@ export interface CapabilityMetrics {
   threat_category_count: number;
   runtime_layer_count?: number;
   runtime_layers?: number;
+  benchmark_corpus_version?: string;
+  explainability_completeness_rate?: number;
+  runtime_check_latency_budget_ms?: number;
+  quality_targets?: QualityTargets;
   [key: string]: unknown;
 }
 
@@ -154,6 +163,33 @@ export interface RuntimeCheckStats {
   total: number;
   byLayer: Record<number, number>;
   bySeverity: Partial<Record<Severity, number>>;
+}
+
+export interface QualityTargets {
+  precision_min: number;
+  recall_min: number;
+  false_positive_rate_max: number;
+  false_negative_rate_max: number;
+  explainability_completeness_rate_min: number;
+  runtime_check_latency_budget_ms: number;
+  false_positive_budget_by_category: Record<string, number>;
+}
+
+export interface RuntimePolicyContract {
+  id?: string;
+  allowed_tools?: string[];
+  blocked_tools?: string[];
+  max_network_scope?: "none" | "internal-only" | "external-ok";
+  secret_bearing_context?: boolean;
+  memory_write_permission?: boolean;
+}
+
+export interface RuntimePolicyDecision {
+  action: "allow" | "block";
+  reason: string;
+  policyId: string;
+  amplificationReasons: string[];
+  remediationSuggestion: string;
 }
 
 export interface ThreatModel {

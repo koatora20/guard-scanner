@@ -4,7 +4,7 @@
   "static_pattern_count": 358,
   "threat_category_count": 35,
   "runtime_check_count": 27,
-  "test_file_count": 23,
+  "test_file_count": 28,
   "dependencies_runtime": 1,
   "dependencies_dev": 5,
   "mcp_tools": [
@@ -20,6 +20,7 @@
   ],
   "cli_commands": [
     "scan",
+    "benchmark",
     "serve",
     "watch",
     "audit",
@@ -38,5 +39,52 @@
     "virustotal",
     "github",
     "npm"
-  ]
+  ],
+  "benchmark_corpus_version": "2026-03-13.quality-v1",
+  "benchmark_layers": [
+    {
+      "id": "layer_a",
+      "benign": 17,
+      "malicious": 15,
+      "precision": 1,
+      "recall": 1,
+      "false_positive_rate": 0,
+      "false_negative_rate": 0
+    },
+    {
+      "id": "layer_b",
+      "benign": 12,
+      "malicious": 12,
+      "precision": 0.9091,
+      "recall": 0.8333,
+      "false_positive_rate": 0.0833,
+      "false_negative_rate": 0.1667
+    },
+    {
+      "id": "layer_c",
+      "benign": 8,
+      "malicious": 8,
+      "precision": 1,
+      "recall": 0.875,
+      "false_positive_rate": 0,
+      "false_negative_rate": 0.125
+    }
+  ],
+  "explainability_completeness_rate": 1,
+  "runtime_check_latency_budget_ms": 5,
+  "quality_targets": {
+    "precision_min": 0.9,
+    "recall_min": 0.9,
+    "false_positive_rate_max": 0.1,
+    "false_negative_rate_max": 0.1,
+    "explainability_completeness_rate_min": 1,
+    "runtime_check_latency_budget_ms": 5,
+    "false_positive_budget_by_category": {
+      "prompt-injection": 0.05,
+      "runtime-policy": 0.02,
+      "secret-detection": 0.08,
+      "supply-chain": 0.05,
+      "memory-poisoning": 0.03
+    }
+  }
 }

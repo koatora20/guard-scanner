@@ -35,6 +35,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { normalizeFinding } = require('./finding-schema');
+const { PolicyEngine } = require('./policy-engine');
 
 // ── Runtime threat patterns (26 checks, 5 layers) ──
 
@@ -258,6 +259,7 @@ function shouldBlock(severity, mode) {
  * @param {string} [options.runId] - Stable OpenClaw run identifier for audit
  * @param {string} [options.toolCallId] - Provider tool call identifier for audit
  * @param {string} [options.agentId] - Agent identifier for audit
+ * @param {object} [options.policy] - Session policy contract
  * @returns {{ blocked: boolean, detections: Array<{id: string, severity: string, layer: number, desc: string, action: string}> }}
  */
 function scanToolCall(toolName, params, options = {}) {
@@ -275,6 +277,11 @@ function scanToolCall(toolName, params, options = {}) {
         detections: [],
         mode,
         toolName,
+        matchedPolicyId: null,
+        policyRationale: null,
+        riskAmplificationReasons: [],
+        remediationSuggestion: null,
+        policyDecision: null,
     };
 
     // Only check tools that can cause damage
@@ -283,6 +290,38 @@ function scanToolCall(toolName, params, options = {}) {
     }
 
     const serialized = typeof params === 'string' ? params : JSON.stringify(params);
+    const policyDecision = new PolicyEngine({ mode, policy: options.policy || {} }).evaluate(toolName, params);
+    result.policyDecision = policyDecision;
+    result.matchedPolicyId = policyDecision.policyId;
+    result.policyRationale = policyDecision.reason;
+    result.remediationSuggestion = policyDecision.remediationSuggestion;
+    result.riskAmplificationReasons = [...policyDecision.amplificationReasons];
+
+    if (policyDecision.action === 'block') {
+        const detection = normalizeFinding({
+            id: 'POLICY_CONTRACT_BLOCK',
+            category: 'runtime-policy',
+            severity: 'CRITICAL',
+            layer: 2,
+            desc: 'Capability-scoped runtime policy blocked the tool call',
+            action: 'blocked',
+            rationale: policyDecision.reason,
+            preconditions: 'The session policy contract is active and the requested tool call exceeds its scope.',
+            false_positive_scenarios: [
+                'The policy contract is stricter than the current task actually requires.',
+                'The tool call is legitimate but the allowlist or network scope was not updated yet.',
+            ],
+            remediation_hint: policyDecision.remediationSuggestion,
+        }, {
+            source: 'runtime',
+            toolName,
+            paramsPreview: serialized.length > 200 ? `${serialized.slice(0, 200)}…` : serialized,
+            layer_name: 'Policy Contract',
+        });
+        result.detections.push(detection);
+        result.blocked = true;
+        result.blockReason = `🛡️ guard-scanner: ${policyDecision.reason} [${policyDecision.policyId}]`;
+    }
 
     for (const check of RUNTIME_CHECKS) {
         if (!check.test(serialized)) continue;
@@ -313,6 +352,9 @@ function scanToolCall(toolName, params, options = {}) {
         });
 
         result.detections.push(detection);
+        if (policyDecision.amplificationReasons.length > 0) {
+            result.riskAmplificationReasons.push(...policyDecision.amplificationReasons);
+        }
 
         if (enableAudit) {
             logAudit({
@@ -337,6 +379,7 @@ function scanToolCall(toolName, params, options = {}) {
         }
     }
 
+    result.riskAmplificationReasons = [...new Set(result.riskAmplificationReasons)];
     return result;
 }
 

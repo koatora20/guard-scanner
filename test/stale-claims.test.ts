@@ -10,6 +10,7 @@ const BANNED = [
     /fully OpenClaw-compatible/i,
     /dist\/runtime-plugin\.js/,
     /test\/manifest\.test\.js/,
+    /OpenClaw `v2026\.3\.12`/,
 ];
 
 describe('stale compatibility claims', () => {
