@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 // @ts-nocheck
 /**
  * guard-scanner v6.0.0 — Asset Auditor
@@ -13,8 +12,8 @@
  *   purpose: Audit npm/GitHub/ClawHub assets for accidental exposure
  */
 
-const https = require('https');
-const { execSync } = require('child_process');
+import https  from 'https';
+import { execSync  } from 'child_process';
 
 const AUDIT_VERSION = '8.0.0';
 
@@ -506,4 +505,4 @@ class AssetAuditor {
     }
 }
 
-module.exports = { AssetAuditor, AUDIT_VERSION, ALERT_SEVERITY, httpGet };
+export {  AssetAuditor, AUDIT_VERSION, ALERT_SEVERITY, httpGet  };

@@ -85,10 +85,10 @@ function getVerdict(risk, thresholds) {
     return { icon: '🟢', label: 'CLEAN', stat: 'clean' };
 }
 
-module.exports = {
+export { 
     SEVERITY_WEIGHTS,
     calculateRisk,
     getVerdict,
     enrichFinding,
     detectAttackChainId,
-};
+ };

@@ -1,4 +1,7 @@
-#!/usr/bin/env node
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 // @ts-nocheck
 /**
  * generate-readme-stats.js
@@ -11,9 +14,9 @@
  *   node scripts/generate-readme-stats.js --check   # CI mode: fail if drift detected
  */
 
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+import { execSync }  from 'child_process';
+import fs from 'node:fs';
+import path from 'node:path';
 
 const ROOT = path.join(__dirname, '..');
 const README_PATH = path.join(ROOT, 'README.md');

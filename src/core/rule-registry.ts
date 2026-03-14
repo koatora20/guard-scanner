@@ -1,7 +1,7 @@
 // @ts-nocheck
 'use strict';
 
-const { PATTERNS } = require('../patterns');
+import { PATTERNS  } from '../patterns';
 
 function buildScope(rule) {
     if (rule.scope) return rule.scope;
@@ -68,7 +68,7 @@ class RuleRegistry {
     }
 }
 
-module.exports = {
+export { 
     RuleRegistry,
     normalizeRule,
-};
+ };

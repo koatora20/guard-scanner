@@ -46,6 +46,6 @@ function generateModel(codeContent) {
   };
 }
 
-module.exports = {
+export { 
   generateModel
-};
+ };

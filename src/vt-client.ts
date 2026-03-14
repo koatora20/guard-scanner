@@ -12,9 +12,9 @@
  *   purpose: VirusTotal threat intelligence integration
  */
 
-const https = require('https');
-const crypto = require('crypto');
-const fs = require('fs');
+import https  from 'https';
+import crypto  from 'crypto';
+import fs  from 'fs';
 
 const VT_API_BASE = 'https://www.virustotal.com/api/v3';
 const VT_RATE_LIMIT = 4; // requests per minute (free tier)
@@ -200,4 +200,4 @@ class VTClient {
     }
 }
 
-module.exports = { VTClient, VT_API_BASE, VT_RATE_LIMIT };
+export {  VTClient, VT_API_BASE, VT_RATE_LIMIT  };

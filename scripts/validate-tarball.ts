@@ -1,3 +1,7 @@
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -149,7 +153,7 @@ function validateCleanInstall(entry: PackEntry, pkg: Record<string, any>) {
     "node",
     [
       "-e",
-      "const pkg=require('@guava-parity/guard-scanner'); const plugin=require('@guava-parity/guard-scanner/plugin'); console.log(typeof pkg.GuardScanner, typeof pkg.scanToolCall, typeof pkg.MCPServer, typeof (plugin.default ?? plugin).register);",
+      "import pkg from '@guava-parity/guard-scanner'; import plugin from '@guava-parity/guard-scanner/plugin'; console.log(typeof pkg.GuardScanner, typeof pkg.scanToolCall, typeof pkg.MCPServer, typeof (plugin.default ?? plugin).register);",
     ],
     {
       cwd: installDir,
@@ -166,7 +170,7 @@ function validateCleanInstall(entry: PackEntry, pkg: Record<string, any>) {
     "node",
     [
       "-e",
-      "const { MCPServer } = require('@guava-parity/guard-scanner/mcp'); const server = new MCPServer(); server._callTool('get_stats', {}).then((res)=>console.log(Boolean(res && res.content && res.content[0] && /Static Analysis/.test(res.content[0].text)))).catch((err)=>{console.error(err); process.exit(1);});",
+      "import { MCPServer }  from '@guava-parity/guard-scanner/mcp'; const server = new MCPServer(); server._callTool('get_stats', {}).then((res)=>console.log(Boolean(res && res.content && res.content[0] && /Static Analysis/.test(res.content[0].text)))).catch((err)=>{console.error(err); process.exit(1);});",
     ],
     {
       cwd: installDir,

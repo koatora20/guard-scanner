@@ -1,4 +1,7 @@
-#!/usr/bin/env node
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 // @ts-nocheck
 /**
  * guard-scanner ClawHub Auto-Scanner
@@ -24,10 +27,10 @@
  */
 'use strict';
 
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
-const os = require('os');
+import { execSync }  from 'child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+import os from 'node:os';
 
 // ── Configuration ──
 const DEFAULT_LIMIT = 50;

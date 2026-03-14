@@ -237,4 +237,4 @@ ${total > 0 ? `<div class="ag">
 </body></html>`;
 }
 
-module.exports = { generateHTML };
+export {  generateHTML  };

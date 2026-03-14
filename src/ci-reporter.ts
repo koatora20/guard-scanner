@@ -12,8 +12,8 @@
  *   purpose: CI/CD pipeline integration for guard-scanner results
  */
 
-const fs = require('fs');
-const https = require('https');
+import fs  from 'fs';
+import https  from 'https';
 
 class CIReporter {
     constructor(options = {}) {
@@ -133,4 +133,4 @@ class CIReporter {
     }
 }
 
-module.exports = { CIReporter };
+export {  CIReporter  };

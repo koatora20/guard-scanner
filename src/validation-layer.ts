@@ -35,6 +35,6 @@ function validateFindings(findings, context) {
   });
 }
 
-module.exports = {
+export { 
   validateFindings
-};
+ };

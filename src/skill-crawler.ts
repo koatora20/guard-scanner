@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 // @ts-nocheck
 /**
  * guard-scanner — Skill Crawler
@@ -13,8 +12,8 @@
  *   purpose: Crawl ClawHub/GitHub for SKILL.md files and scan for threats
  */
 
-const { httpGet } = require('./asset-auditor');
-const { GuardScanner } = require('./scanner');
+import { httpGet  } from './asset-auditor';
+import { GuardScanner  } from './scanner';
 
 const CRAWLER_VERSION = '1.0.0';
 
@@ -252,4 +251,4 @@ class SkillCrawler {
     }
 }
 
-module.exports = { SkillCrawler, CRAWLER_VERSION };
+export {  SkillCrawler, CRAWLER_VERSION  };

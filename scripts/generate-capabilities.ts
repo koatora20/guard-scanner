@@ -1,14 +1,18 @@
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 // @ts-nocheck
-const fs = require('fs');
-const path = require('path');
-const { PATTERNS } = require('../src/patterns');
-const { RUNTIME_CHECKS } = require('../src/runtime-guard');
-const { TOOLS } = require('../src/mcp-server');
-const { computeExplainabilityCompletenessRate } = require('../src/benchmark-runner');
-const { normalizeFinding } = require('../src/finding-schema');
-const { V16_LAYER_NAMES, buildAsiCoverage } = require('../src/v16-taxonomy');
-const packageJson = require('../package.json');
-const pluginJson = require('../openclaw.plugin.json');
+import fs from 'node:fs';
+import path from 'node:path';
+import { PATTERNS }  from '../src/patterns';
+import { RUNTIME_CHECKS }  from '../src/runtime-guard';
+import { TOOLS }  from '../src/mcp-server';
+import { computeExplainabilityCompletenessRate }  from '../src/benchmark-runner';
+import { normalizeFinding }  from '../src/finding-schema';
+import { V16_LAYER_NAMES, buildAsiCoverage }  from '../src/v16-taxonomy';
+import packageJson  from '../package.json';
+import pluginJson  from '../openclaw.plugin.json';
 
 const specDir = path.join(__dirname, '../docs/spec');
 const capabilitiesPath = path.join(specDir, 'capabilities.json');

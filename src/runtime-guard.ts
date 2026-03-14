@@ -31,11 +31,11 @@
  * @license MIT
  */
 
-const fs = require('fs');
-const path = require('path');
-const os = require('os');
-const { normalizeFinding } = require('./finding-schema');
-const { PolicyEngine } = require('./policy-engine');
+import fs  from 'fs';
+import path  from 'path';
+import os  from 'os';
+import { normalizeFinding  } from './finding-schema';
+import { PolicyEngine  } from './policy-engine';
 
 // ── Runtime threat patterns (26 checks, 5 layers) ──
 
@@ -414,7 +414,7 @@ const LAYER_CATEGORIES = {
     5: 'trust-exploitation',
 };
 
-module.exports = {
+export { 
     RUNTIME_CHECKS,
     DANGEROUS_TOOLS,
     LAYER_NAMES,
@@ -425,4 +425,4 @@ module.exports = {
     logAudit,
     AUDIT_DIR,
     AUDIT_FILE,
-};
+ };

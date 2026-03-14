@@ -1,4 +1,7 @@
-#!/usr/bin/env node
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 // @ts-nocheck
 
 /**
@@ -8,8 +11,8 @@
  * Fails if inconsistencies are found, or syncs them if --fix is passed.
  */
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'node:fs';
+import path from 'node:path';
 
 const ROOT_DIR = path.join(__dirname, '..');
 const SPEC_PATH = path.join(ROOT_DIR, 'docs', 'spec', 'capabilities.json');

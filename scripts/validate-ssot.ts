@@ -1,6 +1,10 @@
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 // @ts-nocheck
-const fs = require('fs');
-const path = require('path');
+import fs from 'node:fs';
+import path from 'node:path';
 
 const specPath = path.join(__dirname, '..', 'docs', 'spec', 'capabilities.json');
 const readmePath = path.join(__dirname, '..', 'README.md');

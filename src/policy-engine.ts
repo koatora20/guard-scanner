@@ -120,4 +120,4 @@ class PolicyEngine {
     }
 }
 
-module.exports = { PolicyEngine };
+export {  PolicyEngine  };

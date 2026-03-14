@@ -1,5 +1,5 @@
 // @ts-nocheck
-const https = require('node:https');
+import https  from 'node:https';
 
 function parseVersion(version) {
     const [stable, prerelease = ''] = String(version).split('-', 2);
@@ -120,10 +120,10 @@ async function fetchLatestOpenClawRelease(fetchJson = httpGetJson) {
     };
 }
 
-module.exports = {
+export { 
     compareOpenClawVersions,
     evaluateOpenClawBaseline,
     evaluateOpenClawSourceParity,
     fetchLatestOpenClawRelease,
     normalizeGitHubReleaseVersion,
-};
+ };

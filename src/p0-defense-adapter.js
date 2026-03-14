@@ -1,3 +1,7 @@
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 /**
  * guard-scanner — P0 Defense Adapter
  *
@@ -26,10 +30,10 @@
  * @license MIT
  */
 
-const { execSync, spawnSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
-const crypto = require('crypto');
+import { execSync, spawnSync  } from 'child_process';
+import fs  from 'fs';
+import path  from 'path';
+import crypto  from 'crypto';
 
 // ── Types ──
 
@@ -423,9 +427,9 @@ class MemoryIntegrity {
 
 // ── Exports ──
 
-module.exports = {
+export { 
   SoulHardGate,
   MemoryIntegrity,
   TrustLevel,
   MutationRisk,
-};
+ };

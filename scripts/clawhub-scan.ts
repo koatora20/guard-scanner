@@ -1,4 +1,7 @@
-#!/usr/bin/env node
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 // @ts-nocheck
 /**
  * ClawHub Dashboard Data Generator
@@ -14,10 +17,10 @@
  * Usage: node scripts/clawhub-scan.js [--limit N] [--sort newest|installs|downloads]
  */
 
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
-const { PATTERNS } = require('../src/patterns');
+import { execSync }  from 'child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+import { PATTERNS }  from '../src/patterns';
 
 const VERSION = JSON.parse(
     fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8')

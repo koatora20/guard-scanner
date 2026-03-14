@@ -12,10 +12,10 @@
  *   purpose: Real-time file system monitoring for security threats
  */
 
-const fs = require('fs');
-const path = require('path');
-const { GuardScanner } = require('./scanner');
-const EventEmitter = require('events');
+import fs  from 'fs';
+import path  from 'path';
+import { GuardScanner  } from './scanner';
+import EventEmitter  from 'events';
 
 class GuardWatcher extends EventEmitter {
     constructor(options = {}) {
@@ -168,4 +168,4 @@ class GuardWatcher extends EventEmitter {
     }
 }
 
-module.exports = { GuardWatcher };
+export {  GuardWatcher  };

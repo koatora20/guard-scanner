@@ -1,8 +1,8 @@
 // @ts-nocheck
 'use strict';
 
-const { RuleRegistry } = require('./core/rule-registry');
-const { inferFindingContext } = require('./v16-taxonomy');
+import { RuleRegistry  } from './core/rule-registry';
+import { inferFindingContext  } from './v16-taxonomy';
 
 const FINDING_SCHEMA_VERSION = '2.0.0';
 
@@ -204,7 +204,7 @@ function normalizeFinding(raw, options = {}) {
     return normalized;
 }
 
-module.exports = {
+export { 
     FINDING_SCHEMA_VERSION,
     normalizeFinding,
-};
+ };

@@ -1,7 +1,11 @@
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 // @ts-nocheck
-const path = require('path');
-const { execFileSync } = require('child_process');
-const { calculateRisk } = require('../src/core/risk-engine');
+import path from 'node:path';
+import { execFileSync } from 'node:child_process';
+import { calculateRisk }  from '../src/core/risk-engine';
 
 const ROOT = path.join(__dirname, '..');
 const MANIFEST = path.join(ROOT, 'rust', 'guard-scan-core', 'Cargo.toml');

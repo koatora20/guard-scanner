@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 // @ts-nocheck
 /**
  * guard-scanner MCP Server — Lightweight stdio JSON-RPC 2.0
@@ -26,13 +25,13 @@
  * @license MIT
  */
 
-const { GuardScanner, VERSION, scanToolCall, getCheckStats, LAYER_NAMES } = require('./scanner');
-const { AssetAuditor, AUDIT_VERSION } = require('./asset-auditor');
-const fs = require('fs');
-const path = require('path');
-const os = require('os');
-const CAPABILITIES = require('../docs/spec/capabilities.json');
-const QUALITY_CONTRACT = require('../docs/data/quality-contract.json');
+import { GuardScanner, VERSION, scanToolCall, getCheckStats, LAYER_NAMES  } from './scanner';
+import { AssetAuditor, AUDIT_VERSION  } from './asset-auditor';
+import fs  from 'fs';
+import path  from 'path';
+import os  from 'os';
+import CAPABILITIES  from '../docs/spec/capabilities.json';
+import QUALITY_CONTRACT  from '../docs/data/quality-contract.json';
 
 // ── MCP Protocol Constants ──
 
@@ -291,7 +290,7 @@ const TOOLS = [
 function handleScanSkill({ path: scanPath, verbose = false, strict = false, compliance = null }) {
     if (!scanPath) return errorResult('path is required');
 
-    const fs = require('fs');
+    import fs  from 'fs';
     if (!fs.existsSync(scanPath)) {
         return errorResult(`Directory not found: ${scanPath}`);
     }
@@ -339,7 +338,7 @@ function handleScanSkill({ path: scanPath, verbose = false, strict = false, comp
 
 function handleScanText({ text, filename = 'snippet.txt', compliance = null }) {
     if (!text) return errorResult('text is required');
-    const { normalizeFinding } = require('./finding-schema');
+    import { normalizeFinding  } from './finding-schema';
     const scanner = new GuardScanner({ quiet: true, compliance });
     const report = scanner.scanText(text);
     const detections = report.detections.map((finding) => normalizeFinding(finding, { source: 'static' }));
@@ -690,4 +689,4 @@ function startServer() {
     server.start();
 }
 
-module.exports = { MCPServer, startServer, TOOLS };
+export {  MCPServer, startServer, TOOLS  };

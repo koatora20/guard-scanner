@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 // @ts-nocheck
 /**
  * guard-scanner CLI
@@ -30,13 +29,13 @@
  *   --help, -h          Help
  */
 
-const fs = require('fs');
-const path = require('path');
-const { GuardScanner, VERSION } = require('./scanner');
-const { AssetAuditor, AUDIT_VERSION } = require('./asset-auditor');
-const { VTClient } = require('./vt-client');
-const { GuardWatcher } = require('./watcher');
-const { CIReporter } = require('./ci-reporter');
+import fs  from 'fs';
+import path  from 'path';
+import { GuardScanner, VERSION  } from './scanner';
+import { AssetAuditor, AUDIT_VERSION  } from './asset-auditor';
+import { VTClient  } from './vt-client';
+import { GuardWatcher  } from './watcher';
+import { CIReporter  } from './ci-reporter';
 
 const args = process.argv.slice(2);
 
@@ -47,14 +46,14 @@ if (args.includes('--version') || args.includes('-V')) {
 
 // ── serve subcommand (MCP server) ────────────────────────────
 if (args[0] === 'serve') {
-  const { startServer } = require('./mcp-server');
+  import { startServer  } from './mcp-server';
   startServer();
   // Server runs until stdin closes
 }
 
 // ── benchmark subcommand ──────────────────────────────────────
 if (args[0] === 'benchmark') {
-  const { buildBenchmarkLedger, buildFalsePositiveLedger, loadQualityContract, writeLedger } = require('./benchmark-runner');
+  import { buildBenchmarkLedger, buildFalsePositiveLedger, loadQualityContract, writeLedger  } from './benchmark-runner';
   const contract = loadQualityContract();
   const ledger = buildBenchmarkLedger(contract);
   const fpLedger = buildFalsePositiveLedger(ledger);
@@ -201,7 +200,7 @@ Examples:
 
   // ── crawl subcommand ──────────────────────────────────────────
 } else if (args[0] === 'crawl') {
-  const { SkillCrawler } = require('./skill-crawler');
+  import { SkillCrawler  } from './skill-crawler';
   const subCmd = args[1]; // clawhub | github | url
   const target = args[2]; // query or URL
   const verbose = args.includes('--verbose') || args.includes('-v');
@@ -267,7 +266,7 @@ Examples:
 
   // ── patrol subcommand ──────────────────────────────────────────
 } else if (args[0] === 'patrol') {
-  const { SkillCrawler } = require('./skill-crawler');
+  import { SkillCrawler  } from './skill-crawler';
   const verbose = args.includes('--verbose') || args.includes('-v');
   const once = args.includes('--once');
   const intervalIdx = args.indexOf('--interval');
@@ -378,7 +377,7 @@ Custom Rules JSON Format:
 
 Plugin API:
   // my-plugin.js
-  module.exports = {
+  export default {
     name: 'my-plugin',
     patterns: [
       { id: 'MY_01', cat: 'custom', regex: /pattern/g, severity: 'HIGH', desc: 'Description', all: true }

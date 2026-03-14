@@ -1,11 +1,11 @@
 // @ts-nocheck
 'use strict';
 
-const crypto = require('crypto');
+import crypto  from 'crypto';
 
-const { normalizeFinding, FINDING_SCHEMA_VERSION } = require('../finding-schema');
-const { generateHTML } = require('../html-template');
-const { buildAsiCoverage, buildLayerSummary, filterFindingsForCompliance } = require('../v16-taxonomy');
+import { normalizeFinding, FINDING_SCHEMA_VERSION  } from '../finding-schema';
+import { generateHTML  } from '../html-template';
+import { buildAsiCoverage, buildLayerSummary, filterFindingsForCompliance  } from '../v16-taxonomy';
 
 function buildRecommendations(normalizedFindings) {
     const recommendations = [];
@@ -173,9 +173,9 @@ function printSummary(stats, version, logger = console.log) {
     }
 }
 
-module.exports = {
+export { 
     toJSONReport,
     toSARIFReport,
     toHTMLReport,
     printSummary,
-};
+ };

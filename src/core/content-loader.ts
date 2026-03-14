@@ -1,8 +1,8 @@
 // @ts-nocheck
 'use strict';
 
-const fs = require('fs');
-const path = require('path');
+import fs  from 'fs';
+import path  from 'path';
 
 function loadIgnoreFile(scanDir) {
     const ignoredSkills = new Set();
@@ -37,7 +37,7 @@ function loadTextFile(filePath, maxLength = 500000) {
     }
 }
 
-module.exports = {
+export { 
     loadIgnoreFile,
     loadTextFile,
-};
+ };

@@ -1,8 +1,8 @@
 // @ts-nocheck
 'use strict';
 
-const fs = require('fs');
-const path = require('path');
+import fs  from 'fs';
+import path  from 'path';
 
 const CODE_EXTENSIONS = new Set(['', '.js', '.ts', '.mjs', '.cjs', '.py', '.sh', '.bash', '.ps1', '.rb', '.go', '.rs', '.php', '.pl']);
 const DOC_EXTENSIONS = new Set(['.md', '.txt', '.rst', '.adoc']);
@@ -60,7 +60,7 @@ function listSkills(dir) {
     });
 }
 
-module.exports = {
+export { 
     CODE_EXTENSIONS,
     DOC_EXTENSIONS,
     DATA_EXTENSIONS,
@@ -71,4 +71,4 @@ module.exports = {
     isSelfThreatCorpus,
     getFiles,
     listSkills,
-};
+ };

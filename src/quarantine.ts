@@ -39,4 +39,4 @@ class QuarantineNode {
     }
 }
 
-module.exports = { QuarantineNode };
+export {  QuarantineNode  };

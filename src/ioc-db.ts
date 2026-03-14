@@ -52,4 +52,4 @@ const KNOWN_MALICIOUS = {
     ],
 };
 
-module.exports = { KNOWN_MALICIOUS };
+export {  KNOWN_MALICIOUS  };

@@ -1,6 +1,6 @@
 // @ts-nocheck
-const { performance } = require('perf_hooks');
-const { GuardScanner } = require('../src/scanner');
+import { performance }  from 'perf_hooks';
+import { GuardScanner }  from '../src/scanner';
 
 const scanner = new GuardScanner({ quiet: true, summaryOnly: true });
 const samples = [

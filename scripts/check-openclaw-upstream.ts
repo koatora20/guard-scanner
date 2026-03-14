@@ -1,10 +1,14 @@
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 // @ts-nocheck
-const fs = require('node:fs');
-const path = require('node:path');
-const {
+import fs  from 'node:fs';
+import path  from 'node:path';
+import {
     evaluateOpenClawBaseline,
     fetchLatestOpenClawRelease,
-} = require('../src/openclaw-upstream');
+}  from '../src/openclaw-upstream';
 
 const ROOT = path.join(__dirname, '..');
 const PACKAGE_JSON = path.join(ROOT, 'package.json');

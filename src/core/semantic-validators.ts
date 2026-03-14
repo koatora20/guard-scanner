@@ -90,7 +90,7 @@ function checkFetchExfiltration(content, relFile, findings) {
     }
 }
 
-module.exports = {
+export { 
     applySemanticValidators,
     checkASTValidation,
-};
+ };

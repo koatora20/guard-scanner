@@ -1,11 +1,15 @@
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 // @ts-nocheck
 'use strict';
 
-const fs = require('fs');
-const path = require('path');
+import fs  from 'fs';
+import path  from 'path';
 
-const { GuardScanner } = require('./scanner');
-const { RuleRegistry } = require('./core/rule-registry');
+import { GuardScanner  } from './scanner';
+import { RuleRegistry  } from './core/rule-registry';
 
 const ROOT = path.join(__dirname, '..');
 const DEFAULT_QUALITY_CONTRACT_PATH = path.join(ROOT, 'docs', 'data', 'quality-contract.json');
@@ -191,7 +195,7 @@ function writeLedger(filePath, data) {
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
 }
 
-module.exports = {
+export { 
     DEFAULT_QUALITY_CONTRACT_PATH,
     loadQualityContract,
     summarizeLayer,
@@ -199,4 +203,4 @@ module.exports = {
     buildFalsePositiveLedger,
     computeExplainabilityCompletenessRate,
     writeLedger,
-};
+ };

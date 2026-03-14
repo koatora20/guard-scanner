@@ -151,10 +151,10 @@ function filterFindingsForCompliance(findings, complianceMode) {
         .filter((skillResult) => skillResult.findings.length > 0);
 }
 
-module.exports = {
+export { 
     V16_LAYER_NAMES,
     inferFindingContext,
     buildLayerSummary,
     buildAsiCoverage,
     filterFindingsForCompliance,
-};
+ };

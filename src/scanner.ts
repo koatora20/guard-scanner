@@ -1,4 +1,7 @@
-#!/usr/bin/env node
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 // @ts-nocheck
 /**
  * guard-scanner v2.1.0 — Agent Skill Security Scanner 🛡️
@@ -22,22 +25,22 @@
  * License: MIT
  */
 
-const fs = require('fs');
-const path = require('path');
-const os = require('os');
+import fs  from 'fs';
+import path  from 'path';
+import os  from 'os';
 
-const { PATTERNS } = require('./patterns');
-const { KNOWN_MALICIOUS } = require('./ioc-db');
-const { RuleRegistry } = require('./core/rule-registry');
-const { loadIgnoreFile, loadTextFile } = require('./core/content-loader');
-const { classifyFile, CODE_EXTENSIONS, BINARY_EXTENSIONS, isSelfNoisePath, isSelfThreatCorpus, getFiles, listSkills } = require('./core/inventory');
-const { calculateRisk, getVerdict, SEVERITY_WEIGHTS } = require('./core/risk-engine');
-const { applySemanticValidators, checkASTValidation } = require('./core/semantic-validators');
-const { toJSONReport, toSARIFReport, toHTMLReport, printSummary } = require('./core/report-adapters');
-const { inferFindingContext } = require('./v16-taxonomy');
+import { PATTERNS  } from './patterns';
+import { KNOWN_MALICIOUS  } from './ioc-db';
+import { RuleRegistry  } from './core/rule-registry';
+import { loadIgnoreFile, loadTextFile  } from './core/content-loader';
+import { classifyFile, CODE_EXTENSIONS, BINARY_EXTENSIONS, isSelfNoisePath, isSelfThreatCorpus, getFiles, listSkills  } from './core/inventory';
+import { calculateRisk, getVerdict, SEVERITY_WEIGHTS  } from './core/risk-engine';
+import { applySemanticValidators, checkASTValidation  } from './core/semantic-validators';
+import { toJSONReport, toSARIFReport, toHTMLReport, printSummary  } from './core/report-adapters';
+import { inferFindingContext  } from './v16-taxonomy';
 
 // ===== CONFIGURATION =====
-const { version: VERSION } = require('../package.json');
+import pkg from '../package.json' assert { type: 'json' }; const { version: VERSION } = pkg;
 
 const THRESHOLDS = {
     normal: { suspicious: 30, malicious: 80 },
@@ -1293,6 +1296,6 @@ class GuardScanner {
 
 }
 
-const { scanToolCall, RUNTIME_CHECKS, getCheckStats, LAYER_NAMES } = require('./runtime-guard');
+import { scanToolCall, RUNTIME_CHECKS, getCheckStats, LAYER_NAMES  } from './runtime-guard';
 
-module.exports = { GuardScanner, VERSION, THRESHOLDS, SEVERITY_WEIGHTS, scanToolCall, RUNTIME_CHECKS, getCheckStats, LAYER_NAMES };
+export {  GuardScanner, VERSION, THRESHOLDS, SEVERITY_WEIGHTS, scanToolCall, RUNTIME_CHECKS, getCheckStats, LAYER_NAMES  };

@@ -1,3 +1,7 @@
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 // @ts-nocheck
 /**
  * guard-scanner — Threat Pattern Database
@@ -627,4 +631,4 @@ PATTERNS.push(
     { id: 'OPENCLAW_CVE_CHAIN_2026', cat: 'cve-patterns', regex: /(?:CVE-2026-(?:24763|25157|25475|26319|26322|26329))|(?:openclaw|cline)[^]*?(?:brute.?force|device.?registration|unauthenticated)[^]*?(?:password|token|hijack)/gis, severity: 'CRITICAL', desc: 'OpenClaw CVE chain 2026 — brute-force auth, device registration, token theft', all: true, rationale: "Matches known syntax for this threat vector.", exploitPrecondition: "Agent executes the payload directly or processes it in a vulnerable context.", remediationHint: "Sanitize input, remove dynamic evaluation, or restrict execution scope." },
 );
 
-module.exports = { PATTERNS };
+export {  PATTERNS  };

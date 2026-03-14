@@ -1,13 +1,16 @@
-#!/usr/bin/env node
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 // @ts-nocheck
 
-const path = require('path');
-const {
+import path from 'node:path';
+import {
     buildBenchmarkLedger,
     buildFalsePositiveLedger,
     loadQualityContract,
     writeLedger,
-} = require('../src/benchmark-runner');
+}  from '../src/benchmark-runner';
 
 const ROOT = path.join(__dirname, '..');
 const LEDGER_PATH = path.join(ROOT, 'docs', 'data', 'benchmark-ledger.json');
