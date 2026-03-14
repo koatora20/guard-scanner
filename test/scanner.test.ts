@@ -207,6 +207,9 @@ describe('Output Formats', () => {
         assert.ok(json.stats, 'Should have stats');
         assert.ok(Array.isArray(json.findings), 'findings should be array');
         assert.ok(Array.isArray(json.recommendations), 'recommendations should be array');
+        assert.ok(Array.isArray(json.layer_summary), 'Should expose layer summary');
+        assert.ok(Array.isArray(json.owasp_asi_coverage), 'Should expose OWASP ASI coverage');
+        assert.ok(json.threat_model, 'Should expose a threat model');
     });
 
     it('toJSON recommendations should flag credential+exfil', () => {
@@ -681,6 +684,33 @@ describe('OWASP Agentic Security Top 10 (ASI01-10)', () => {
         const asi03 = findSkillFindings(soulScanner, 'owasp-asi03-identity');
         assert.ok(asi03, 'ASI10: identity abuse fixture should detect rogue agent patterns');
         assert.ok(hasCategory(asi03, 'identity-hijack'), 'ASI10: rogue agent should trigger identity-hijack');
+    });
+});
+
+describe('v16 Layered Pipeline', () => {
+    it('should annotate findings with layer, OWASP ASI, and protocol surface', () => {
+        const scanner = scanFixture();
+        const protocolSkill = findSkillFindings(scanner, 'v16-protocol-skill');
+        assert.ok(protocolSkill, 'v16-protocol-skill should have findings');
+        assert.ok(protocolSkill.findings.some(f => f.layer === 2), 'Should include protocol layer findings');
+        assert.ok(protocolSkill.findings.some(f => Array.isArray(f.owasp_asi) && f.owasp_asi.includes('ASI07')), 'Should map findings to OWASP ASI07');
+        assert.ok(protocolSkill.findings.some(f => Array.isArray(f.protocol_surface) && f.protocol_surface.includes('websocket')), 'Should expose websocket protocol surface');
+    });
+
+    it('should detect runtime integration modules as Layer 3 findings', () => {
+        const scanner = scanFixture();
+        const runtimeSkill = findSkillFindings(scanner, 'v16-runtime-modules');
+        assert.ok(runtimeSkill, 'v16-runtime-modules should have findings');
+        assert.ok(hasId(runtimeSkill, 'RUNTIME_MEMORY_INTEGRITY_MODULE'), 'Should detect memory_integrity module');
+        assert.ok(hasId(runtimeSkill, 'RUNTIME_SOUL_HARD_GATE_MODULE'), 'Should detect soul_hard_gate module');
+        assert.ok(runtimeSkill.findings.some(f => f.layer === 3), 'Should include runtime behavior findings');
+    });
+
+    it('should support OWASP ASI compliance projection', () => {
+        const scanner = scanFixture({ compliance: 'owasp-asi' });
+        const json = scanner.toJSON();
+        assert.equal(json.compliance_mode, 'owasp-asi');
+        assert.ok(json.findings.every(skill => skill.findings.every(f => f.owasp_asi?.length > 0)), 'Compliance mode should keep only ASI-mapped findings');
     });
 });
 

@@ -26,6 +26,7 @@
  *   --rules <file>      Custom rules JSON
  *   --plugin <file>     Load plugin module
  *   --fail-on-findings  Exit 1 on findings (CI/CD)
+ *   --compliance <mode> Compliance projection (supported: owasp-asi)
  *   --help, -h          Help
  */
 
@@ -405,6 +406,8 @@ Examples:
   const soulLock = args.includes('--soul-lock');
   const failOnFindings = args.includes('--fail-on-findings');
   const quietMode = args.includes('--quiet');
+  const complianceIdx = args.indexOf('--compliance');
+  const compliance = complianceIdx >= 0 ? args[complianceIdx + 1] : null;
 
   // --format json|sarif → stdout output (v3.2.0)
   const formatIdx = args.indexOf('--format');
@@ -429,12 +432,13 @@ Examples:
     !a.startsWith('-') &&
     a !== rulesFile &&
     a !== formatValue &&
+    a !== compliance &&
     !plugins.includes(a)
   ) || process.cwd();
 
   try {
     const scanner = new GuardScanner({
-      verbose, selfExclude, strict, summaryOnly, checkDeps, soulLock, rulesFile, plugins,
+      verbose, selfExclude, strict, summaryOnly, checkDeps, soulLock, rulesFile, plugins, compliance,
       quiet: quietMode || !!formatValue,
     });
 

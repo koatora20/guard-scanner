@@ -17,6 +17,8 @@ export interface FindingEvidence {
   params_preview?: string;
   layer?: number;
   layer_name?: string;
+  owasp_asi?: string[];
+  protocol_surface?: string[];
 }
 
 export interface Finding {
@@ -44,6 +46,9 @@ export interface Finding {
   evidence: FindingEvidence;
   evidence_spans: EvidenceSpan[];
   layer?: number;
+  layer_name?: string;
+  owasp_asi?: string[];
+  protocol_surface?: string[];
   action?: RuntimeAction;
 }
 
@@ -78,10 +83,14 @@ export interface ScanReport {
   scanner: string;
   finding_schema_version: string;
   mode: "normal" | "strict";
+  compliance_mode?: "owasp-asi" | null;
   stats: ScanStats;
   thresholds: ThresholdBand;
   findings: SkillFindingResult[];
   recommendations: Recommendation[];
+  layer_summary?: Array<Record<string, unknown>>;
+  owasp_asi_coverage?: Array<Record<string, unknown>>;
+  threat_model?: Record<string, unknown>;
   iocVersion: string;
 }
 
@@ -101,6 +110,7 @@ export interface ScannerOptions {
   soulLock?: boolean;
   plugins?: string[];
   rulesFile?: string;
+  compliance?: "owasp-asi";
 }
 
 export interface CustomRule {
@@ -196,6 +206,9 @@ export interface ThreatModel {
   timestamp: string;
   surface: Record<string, boolean>;
   summary: string;
+  owasp_asi?: string[];
+  layer_summary?: Array<Record<string, unknown>>;
+  protocol_surfaces?: string[];
 }
 
 export interface GuardScannerInstance {

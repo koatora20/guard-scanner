@@ -1,5 +1,33 @@
 # Changelog
 
+## [16.0.0] - 2026-03-14
+
+### v16 Ship-Ready Release Candidate
+
+#### Added
+- Introduced the v16 5-layer analysis taxonomy: Static Analysis, Protocol Analysis, Runtime Behavior, Cognitive Threat Detection, and Threat Intelligence.
+- Added additive finding metadata across JSON/MCP/report surfaces: `layer`, `layer_name`, `owasp_asi`, and `protocol_surface`.
+- Added `--compliance owasp-asi` to project scan output onto the OWASP Agentic Top 10 mapping without changing scan semantics.
+- Added protocol/runtime fixtures for v16 regression coverage, including protocol-surface and Rust runtime-evidence scenarios.
+
+#### Changed
+- Bumped public package and plugin metadata to **16.0.0**.
+- Extended `scan_skill`, `scan_text`, and `get_stats` MCP outputs with v16 layer and ASI summaries.
+- Extended capabilities generation to advertise the v16 5-layer surface and compliance mode in `docs/spec/capabilities.json`.
+- Runtime evidence from Rust `memory_integrity` and `soul_hard_gate` is now represented in the TypeScript reporting path.
+
+#### Validation
+- `npm test` → **363 passed / 94 suites / 0 failed**
+- `npm run test:contracts` → passed
+- `npm run test:rust-parity` → passed (warnings only)
+- `npm run benchmark` → passed
+- `npm run release:gate` → passed
+
+#### Evidence
+- npm package version: **16.0.0**
+- plugin manifest version: **16.0.0**
+- capabilities spec: **358 patterns / 35 categories / 27 runtime checks / 5 analysis layers**
+
 ## [15.0.0] - 2026-03-12
 
 ### Public Surface Recovery + Release Evidence Sync

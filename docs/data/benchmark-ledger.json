@@ -1,7 +1,7 @@
 {
   "benchmark_version": "2026-03-13.quality-v1",
   "contract_version": "2026-03-13.quality-v1",
-  "generatedAt": "2026-03-13T18:44:53.899Z",
+  "generatedAt": "2026-03-14T05:26:02.684Z",
   "layers": [
     {
       "layer": "layer_a",
@@ -308,7 +308,8 @@
           "safe": false,
           "matchedCategories": [
             "malicious-code",
-            "cve-patterns"
+            "cve-patterns",
+            "agent-protocol"
           ],
           "categoryCoverage": 1,
           "detections": [
@@ -321,6 +322,11 @@
               "id": "OPENCLAW_WSS_HIJACK",
               "severity": "CRITICAL",
               "category": "cve-patterns"
+            },
+            {
+              "id": "PROTO_WS_INSECURE_TRANSPORT",
+              "severity": "HIGH",
+              "category": "agent-protocol"
             }
           ]
         },
@@ -602,16 +608,16 @@
       "counts": {
         "benign": 12,
         "malicious": 12,
-        "true_positives": 10,
-        "false_negatives": 2,
+        "true_positives": 11,
+        "false_negatives": 1,
         "false_positives": 1,
         "true_negatives": 11
       },
       "metrics": {
-        "precision": 0.9091,
-        "recall": 0.8333,
+        "precision": 0.9167,
+        "recall": 0.9167,
         "false_positive_rate": 0.0833,
-        "false_negative_rate": 0.1667,
+        "false_negative_rate": 0.0833,
         "category_coverage": 0.7917
       },
       "benign_results": [
@@ -919,12 +925,20 @@
           "id": "adv-mal-08",
           "title": "runtime-trust",
           "expected": "malicious",
-          "detected": false,
-          "risk": 0,
+          "detected": true,
+          "risk": 12,
           "safe": true,
-          "matchedCategories": [],
+          "matchedCategories": [
+            "trust-exploitation"
+          ],
           "categoryCoverage": 0,
-          "detections": []
+          "detections": [
+            {
+              "id": "COG_TRUST_BIAS_V16",
+              "severity": "HIGH",
+              "category": "trust-exploitation"
+            }
+          ]
         },
         {
           "id": "adv-mal-09",
@@ -1064,16 +1078,16 @@
       "counts": {
         "benign": 8,
         "malicious": 8,
-        "true_positives": 7,
-        "false_negatives": 1,
+        "true_positives": 8,
+        "false_negatives": 0,
         "false_positives": 0,
         "true_negatives": 8
       },
       "metrics": {
         "precision": 1,
-        "recall": 0.875,
+        "recall": 1,
         "false_positive_rate": 0,
-        "false_negative_rate": 0.125,
+        "false_negative_rate": 0,
         "category_coverage": 0.7291
       },
       "benign_results": [
@@ -1218,7 +1232,8 @@
           "risk": 70,
           "safe": false,
           "matchedCategories": [
-            "cve-patterns"
+            "cve-patterns",
+            "agent-protocol"
           ],
           "categoryCoverage": 1,
           "detections": [
@@ -1226,6 +1241,11 @@
               "id": "CVE_GATEWAY_URL",
               "severity": "CRITICAL",
               "category": "cve-patterns"
+            },
+            {
+              "id": "PROTO_WS_INSECURE_TRANSPORT",
+              "severity": "HIGH",
+              "category": "agent-protocol"
             }
           ]
         },
@@ -1309,6 +1329,11 @@
               "id": "FETCH_EXFIL_CHAIN",
               "severity": "CRITICAL",
               "category": "exfiltration"
+            },
+            {
+              "id": "PROTO_CRED_FLOW_TRACE_V16",
+              "severity": "CRITICAL",
+              "category": "credential-handling"
             }
           ]
         },
@@ -1317,10 +1342,11 @@
           "title": "secret-network",
           "expected": "malicious",
           "detected": true,
-          "risk": 50,
+          "risk": 100,
           "safe": false,
           "matchedCategories": [
-            "exfiltration"
+            "exfiltration",
+            "credential-handling"
           ],
           "categoryCoverage": 1,
           "detections": [
@@ -1333,6 +1359,11 @@
               "id": "EXFIL_WEBHOOK",
               "severity": "CRITICAL",
               "category": "exfiltration"
+            },
+            {
+              "id": "PROTO_CRED_FLOW_TRACE_V16",
+              "severity": "CRITICAL",
+              "category": "credential-handling"
             }
           ]
         },
@@ -1340,12 +1371,20 @@
           "id": "eco-mal-08",
           "title": "policy-bypass",
           "expected": "malicious",
-          "detected": false,
-          "risk": 0,
+          "detected": true,
+          "risk": 12,
           "safe": true,
-          "matchedCategories": [],
+          "matchedCategories": [
+            "trust-exploitation"
+          ],
           "categoryCoverage": 0,
-          "detections": []
+          "detections": [
+            {
+              "id": "COG_TRUST_BIAS_V16",
+              "severity": "HIGH",
+              "category": "trust-exploitation"
+            }
+          ]
         }
       ]
     }
@@ -1354,16 +1393,16 @@
     "counts": {
       "benign": 37,
       "malicious": 35,
-      "true_positives": 32,
-      "false_negatives": 3,
+      "true_positives": 34,
+      "false_negatives": 1,
       "false_positives": 1,
       "true_negatives": 36
     },
     "metrics": {
-      "precision": 0.9697,
-      "recall": 0.9143,
+      "precision": 0.9714,
+      "recall": 0.9714,
       "false_positive_rate": 0.027,
-      "false_negative_rate": 0.0857
+      "false_negative_rate": 0.0286
     }
   },
   "explainability": {

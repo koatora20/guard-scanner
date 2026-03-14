@@ -1,13 +1,13 @@
 ---
 name: guard-scanner
-description: "Security scanner and runtime guard for AI agent skills. 358 static threat patterns across 35 categories + 27 runtime checks (5 defense layers). Use when scanning skill directories for security threats, auditing npm/GitHub/ClawHub assets for leaked credentials, running real-time file watch during development, integrating security checks into CI/CD pipelines (SARIF/JSON), setting up MCP server for editor-integrated scanning (Cursor, Windsurf, Claude Code, OpenClaw), or runtime guarding tool calls via the OpenClaw v2026.3.8 before_tool_call compatibility surface. Single dependency (ws). MIT licensed."
+description: "Security scanner and runtime guard for AI agent skills. 358 static threat patterns across 35 categories + 27 runtime checks, with v16 5-layer analysis output (`layer`, `layer_name`, `owasp_asi`, `protocol_surface`) and `--compliance owasp-asi`. Use when scanning skill directories for security threats, auditing npm/GitHub/ClawHub assets for leaked credentials, running real-time file watch during development, integrating security checks into CI/CD pipelines (SARIF/JSON), setting up MCP server for editor-integrated scanning (Cursor, Windsurf, Claude Code, OpenClaw), or runtime guarding tool calls via the OpenClaw v2026.3.8 before_tool_call compatibility surface. Single dependency (ws). MIT licensed."
 license: MIT
 metadata: {"openclaw": {"requires": {"bins": ["node"]}}}
 ---
 
 # guard-scanner
 
-Scan AI agent skills for 35 categories of threats. Detect prompt injection, identity hijacking, memory poisoning, MCP tool poisoning, supply chain attacks, and 27 more threat classes that traditional security tools miss.
+Scan AI agent skills for 35 categories of threats. v16 adds a 5-layer analysis pipeline, OWASP ASI projection mode, richer finding metadata, and Rust runtime evidence integration on top of the existing prompt injection, identity hijacking, memory poisoning, MCP poisoning, and supply chain coverage.
 
 ## Quick Start
 
@@ -17,6 +17,9 @@ npx -y @guava-parity/guard-scanner ./my-skills/ --verbose
 
 # Scan with identity protection
 npx -y @guava-parity/guard-scanner ./skills/ --soul-lock --strict
+
+# Filter to OWASP ASI mapped findings only
+npx -y @guava-parity/guard-scanner ./skills/ --compliance owasp-asi --format json
 ```
 
 ## Core Commands
@@ -24,11 +27,12 @@ npx -y @guava-parity/guard-scanner ./skills/ --soul-lock --strict
 ### Scan
 
 ```bash
-guard-scanner scan <dir>        # Scan directory
-guard-scanner scan <dir> -v     # Verbose output
-guard-scanner scan <dir> --json # JSON output
-guard-scanner scan <dir> --sarif # SARIF for CI/CD
-guard-scanner scan <dir> --html # HTML report
+guard-scanner <dir>         # Scan directory
+guard-scanner <dir> -v      # Verbose output
+guard-scanner <dir> --json  # JSON report file
+guard-scanner <dir> --sarif # SARIF for CI/CD
+guard-scanner <dir> --html  # HTML report
+guard-scanner <dir> --compliance owasp-asi --format json
 ```
 
 ### Asset Audit
@@ -63,7 +67,7 @@ Editor config (Cursor, Windsurf, Claude Code, OpenClaw):
 }
 ```
 
-MCP tools: `scan_skill`, `scan_text`, `check_tool_call`, `audit_assets`, `get_stats`.
+MCP tools: `scan_skill`, `scan_text`, `check_tool_call`, `audit_assets`, `get_stats`, and the async experimental task helpers.
 
 ## Quality Contract
 
@@ -104,7 +108,7 @@ guard-scanner scan ./skills/ --vt-scan
 
 The validated OpenClaw surface is the compiled runtime plugin entry (`dist/openclaw-plugin.mjs`) discovered through `package.json > openclaw.extensions` and mounted on `before_tool_call` for OpenClaw `v2026.3.8`. Newer upstream releases are measured by the drift watchdog before any public compatibility claim is widened.
 
-The `before_tool_call` hook provides 27 runtime checks across 5 defense layers:
+The `before_tool_call` hook provides 27 runtime checks across 5 defense layers, while v16 scan output adds a second 5-layer analysis view:
 
 | Layer | Focus |
 |-------|-------|
@@ -116,6 +120,13 @@ The `before_tool_call` hook provides 27 runtime checks across 5 defense layers:
 
 Modes: `monitor` (log only), `enforce` (block CRITICAL, default), `strict` (block HIGH+).
 
+## v16 Output Surface
+
+- Finding fields: `layer`, `layer_name`, `owasp_asi`, `protocol_surface`
+- Compliance mode: `--compliance owasp-asi`
+- MCP summaries: `scan_skill`, `scan_text`, and `get_stats` now surface layer and ASI context
+- Runtime evidence: Rust `memory_integrity` and `soul_hard_gate` modules are represented in the TypeScript pipeline
+
 ## Key Flags
 
 | Flag | Effect |
@@ -123,12 +134,12 @@ Modes: `monitor` (log only), `enforce` (block CRITICAL, default), `strict` (bloc
 | `--verbose` / `-v` | Detailed findings with line numbers |
 | `--strict` | Lower detection thresholds |
 | `--soul-lock` | Enable identity protection patterns |
-| `--vt-scan` | Add VirusTotal double-layered check |
 | `--json` / `--sarif` / `--html` | Output format |
 | `--fail-on-findings` | Exit 1 on findings (CI/CD) |
 | `--check-deps` | Scan package.json dependencies |
 | `--rules <file>` | Load custom rules JSON |
 | `--plugin <file>` | Load plugin module |
+| `--compliance owasp-asi` | Keep only OWASP ASI mapped findings in output |
 
 ## Custom Rules
 

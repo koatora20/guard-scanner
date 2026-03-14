@@ -12,7 +12,7 @@
 <p align="center">
   <a href="https://www.npmjs.com/package/@guava-parity/guard-scanner"><img src="https://img.shields.io/npm/v/@guava-parity/guard-scanner?color=cb3837&label=npm" alt="npm" /></a>
   <a href="https://www.npmjs.com/package/@guava-parity/guard-scanner"><img src="https://img.shields.io/npm/dm/@guava-parity/guard-scanner?color=blue&label=downloads" alt="downloads" /></a>
-  <a href="#テスト結果"><img src="https://img.shields.io/badge/テスト-332_passed-brightgreen" alt="tests" /></a>
+  <a href="#テスト結果"><img src="https://img.shields.io/badge/テスト-363_passed-brightgreen" alt="tests" /></a>
   <a href="https://github.com/koatora20/guard-scanner/actions/workflows/codeql.yml"><img src="https://img.shields.io/badge/CodeQL-有効-181717" alt="CodeQL" /></a>
   <a href="https://doi.org/10.5281/zenodo.18906684"><img src="https://img.shields.io/badge/DOI-Zenodo-blue" alt="DOI" /></a>
   <a href="https://github.com/koatora20/guard-scanner/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="MIT" /></a>
@@ -31,9 +31,9 @@
 従来のセキュリティツールはマルウェアを検出します。**guard-scanner** はその先を検出します：エージェント命令に隠された不可視Unicode注入、SOUL.mdの上書きによるアイデンティティ窃盗、巧妙な会話を通じたメモリ汚染、チェーン接続されたエージェント間のワーム型感染。
 
 ```
-$ npx @guava-parity/guard-scanner ./skills/ --strict --soul-lock
+$ npx @guava-parity/guard-scanner ./skills/ --strict --soul-lock --compliance owasp-asi
 
-  guard-scanner v15.0.0
+  guard-scanner v16.0.0
 
   ⚠  CRITICAL  identity-hijack   SOUL_OVERWRITE_ATTEMPT
      skills/imported-tool/SKILL.md:47
@@ -64,6 +64,7 @@ $ npx @guava-parity/guard-scanner ./skills/ --strict --soul-lock
 
 ```bash
 npx -y @guava-parity/guard-scanner ./my-skills/ --strict
+npx -y @guava-parity/guard-scanner ./my-skills/ --compliance owasp-asi
 ```
 
 **MCPサーバーとして起動** — Cursor, Windsurf, Claude Code, OpenClaw対応：
@@ -88,6 +89,12 @@ npx -y @guava-parity/guard-scanner serve
 
 ```bash
 guard-scanner watch ./skills/ --strict --soul-lock
+```
+
+**v16 コンプライアンス投影** — OWASP Agentic Top 10 に対応する検出だけを抽出：
+
+```bash
+guard-scanner ./skills/ --compliance owasp-asi --format json
 ```
 
 ---
@@ -115,7 +122,19 @@ guard-scanner watch ./skills/ --strict --soul-lock
 
 ## ランタイムガード
 
-guard-scannerは静的スキャナーだけではありません。エージェント実行中の危険なツール呼び出しを **`before_tool_call`** フックでインターセプトします。
+guard-scanner v16 は静的スキャナーだけではありません。静的解析、プロトコル解析、ランタイム証跡、認知ヒューリスティクス、脅威インテリジェンスを束ねた **5-layer pipeline** を持ち、さらに実行中の危険なツール呼び出しを **`before_tool_call`** フックでインターセプトします。
+
+### v16 分析レイヤー
+
+| レイヤー | 役割 |
+|---------|------|
+| 1. Static Analysis | パターン、AST/データフロー、manifest、依存関係 |
+| 2. Protocol Analysis | MCP、A2A、WebSocket、credential-flow、session-boundary |
+| 3. Runtime Behavior | ランタイムガード + Rust `memory_integrity` / `soul_hard_gate` 証跡 |
+| 4. Cognitive Threat Detection | goal drift、trust bias、handoff cascade |
+| 5. Threat Intelligence | provenance、machine identity、budget abuse、supply chain hints |
+
+v16 の JSON / MCP 出力では各 finding に `layer`, `layer_name`, `owasp_asi`, `protocol_surface` が付与されます。
 
 | 防御レイヤー | ブロック対象 |
 |-------------|-------------|
@@ -159,19 +178,6 @@ guard-scanner audit all <ユーザー名>
 
 ---
 
-## VirusTotal連携
-
-guard-scannerのセマンティック分析 + VirusTotalの70以上のウイルスエンジン：
-
-```bash
-export VT_API_KEY=your-key
-guard-scanner scan ./skills/ --vt-scan
-```
-
-オプション機能 — guard-scanner単体で完全に動作します。無料枠: 4リクエスト/分、500/日。
-
----
-
 ## プラグインAPI
 
 カスタム検出パターンでguard-scannerを拡張：
@@ -188,7 +194,7 @@ module.exports = {
 ```
 
 ```bash
-guard-scanner scan ./skills/ --plugin ./my-plugin.js
+guard-scanner ./skills/ --plugin ./my-plugin.js
 ```
 
 ---
@@ -200,23 +206,23 @@ MCPサーバーとして実行時に公開されるツール：
 | ツール | 説明 |
 |--------|------|
 | `scan_skill` | スキルディレクトリの脅威スキャン |
-| `scan_text` | 任意テキストのインジェクションパターンスキャン |
+| `scan_text` | 任意テキストの脅威スキャンと ASI 対応抽出 |
 | `check_tool_call` | 単一ツール呼び出しのランタイム検証 |
 | `audit_assets` | npm/GitHub/ClawHubの認証情報露出監査 |
-| `get_stats` | スキャナー能力・パターン数の取得 |
+| `get_stats` | スキャナー能力、5-layer 概要、ASI カバレッジの取得 |
 
 ---
 
 ## テスト結果
 
 ```
-ℹ tests    332
-ℹ suites   85
-ℹ pass     332
+ℹ tests    363
+ℹ suites   94
+ℹ pass     363
 ℹ fail     0
 ```
 
-テストファイル23件。`npm test` で再現可能。[ベンチマークコーパス](docs/data/corpus-metrics.json) 100%パス。
+テストファイル28件。`npm test` で再現可能。[ベンチマークコーパス](docs/data/corpus-metrics.json) 100%パス。
 
 ---
 

@@ -5,6 +5,7 @@ const crypto = require('crypto');
 
 const { normalizeFinding, FINDING_SCHEMA_VERSION } = require('../finding-schema');
 const { generateHTML } = require('../html-template');
+const { buildAsiCoverage, buildLayerSummary, filterFindingsForCompliance } = require('../v16-taxonomy');
 
 function buildRecommendations(normalizedFindings) {
     const recommendations = [];
@@ -40,6 +41,8 @@ function toJSONReport(scanner, version) {
         ...skillResult,
         findings: skillResult.findings.map((finding) => normalizeFinding(finding, { source: 'static' })),
     }));
+    const complianceFiltered = filterFindingsForCompliance(normalizedFindings, scanner.compliance || null);
+    const flattened = complianceFiltered.flatMap((skillResult) => skillResult.findings);
 
     return {
         schema_version: '2.0.0',
@@ -47,10 +50,16 @@ function toJSONReport(scanner, version) {
         scanner: `guard-scanner v${version}`,
         finding_schema_version: FINDING_SCHEMA_VERSION,
         mode: scanner.strict ? 'strict' : 'normal',
+        compliance_mode: scanner.compliance || null,
         stats: scanner.stats,
         thresholds: scanner.thresholds,
-        findings: normalizedFindings,
-        recommendations: buildRecommendations(normalizedFindings),
+        findings: complianceFiltered,
+        recommendations: buildRecommendations(complianceFiltered),
+        layer_summary: buildLayerSummary(flattened),
+        owasp_asi_coverage: buildAsiCoverage(flattened),
+        threat_model: typeof scanner.generateThreatModel === 'function'
+            ? scanner.generateThreatModel(flattened)
+            : null,
         iocVersion: '2026-02-12',
     };
 }

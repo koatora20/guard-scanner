@@ -5,6 +5,8 @@ const { PATTERNS } = require('../src/patterns');
 const { RUNTIME_CHECKS } = require('../src/runtime-guard');
 const { TOOLS } = require('../src/mcp-server');
 const { computeExplainabilityCompletenessRate } = require('../src/benchmark-runner');
+const { normalizeFinding } = require('../src/finding-schema');
+const { V16_LAYER_NAMES, buildAsiCoverage } = require('../src/v16-taxonomy');
 const packageJson = require('../package.json');
 const pluginJson = require('../openclaw.plugin.json');
 
@@ -27,6 +29,7 @@ const benchmarkLedger = fs.existsSync(benchmarkLedgerPath)
     ? JSON.parse(fs.readFileSync(benchmarkLedgerPath, 'utf8'))
     : null;
 const explainability = computeExplainabilityCompletenessRate();
+const normalizedSample = PATTERNS.slice(0, 64).map((pattern) => normalizeFinding(pattern, { source: 'static' }));
 
 const spec = {
     package_version: packageJson.version,
@@ -51,6 +54,15 @@ const spec = {
         false_positive_rate: layer.metrics.false_positive_rate,
         false_negative_rate: layer.metrics.false_negative_rate,
     })) : [],
+    analysis_layers: Object.entries(V16_LAYER_NAMES).map(([layer, name]) => ({ layer: Number(layer), name })),
+    owasp_asi_coverage: buildAsiCoverage(normalizedSample),
+    capability_flags: {
+        protocol_analysis: true,
+        runtime_evidence: true,
+        cognitive_detection: true,
+        threat_intelligence: true,
+    },
+    compliance_modes: ['owasp-asi'],
     explainability_completeness_rate: explainability.rate,
     runtime_check_latency_budget_ms: qualityContract.quality_targets.runtime_check_latency_budget_ms,
     quality_targets: qualityContract.quality_targets,

@@ -1,6 +1,6 @@
 {
-  "package_version": "15.0.0",
-  "plugin_version": "15.0.0",
+  "package_version": "16.0.0",
+  "plugin_version": "16.0.0",
   "static_pattern_count": 358,
   "threat_category_count": 35,
   "runtime_check_count": 27,
@@ -55,20 +55,104 @@
       "id": "layer_b",
       "benign": 12,
       "malicious": 12,
-      "precision": 0.9091,
-      "recall": 0.8333,
+      "precision": 0.9167,
+      "recall": 0.9167,
       "false_positive_rate": 0.0833,
-      "false_negative_rate": 0.1667
+      "false_negative_rate": 0.0833
     },
     {
       "id": "layer_c",
       "benign": 8,
       "malicious": 8,
       "precision": 1,
-      "recall": 0.875,
+      "recall": 1,
       "false_positive_rate": 0,
-      "false_negative_rate": 0.125
+      "false_negative_rate": 0
     }
+  ],
+  "analysis_layers": [
+    {
+      "layer": 1,
+      "name": "Static Analysis"
+    },
+    {
+      "layer": 2,
+      "name": "Protocol Analysis"
+    },
+    {
+      "layer": 3,
+      "name": "Runtime Behavior"
+    },
+    {
+      "layer": 4,
+      "name": "Cognitive Threat Detection"
+    },
+    {
+      "layer": 5,
+      "name": "Threat Intelligence"
+    }
+  ],
+  "owasp_asi_coverage": [
+    {
+      "id": "ASI01",
+      "count": 11,
+      "categories": [
+        "prompt-injection"
+      ]
+    },
+    {
+      "id": "ASI02",
+      "count": 28,
+      "categories": [
+        "credential-handling",
+        "exfiltration",
+        "malicious-code",
+        "pii-exposure",
+        "secret-detection",
+        "suspicious-download"
+      ]
+    },
+    {
+      "id": "ASI04",
+      "count": 8,
+      "categories": [
+        "suspicious-download",
+        "unverifiable-deps"
+      ]
+    },
+    {
+      "id": "ASI05",
+      "count": 2,
+      "categories": [
+        "financial-access"
+      ]
+    },
+    {
+      "id": "ASI06",
+      "count": 10,
+      "categories": [
+        "exfiltration",
+        "memory-poisoning",
+        "pii-exposure"
+      ]
+    },
+    {
+      "id": "ASI07",
+      "count": 9,
+      "categories": [
+        "credential-handling",
+        "secret-detection"
+      ]
+    }
+  ],
+  "capability_flags": {
+    "protocol_analysis": true,
+    "runtime_evidence": true,
+    "cognitive_detection": true,
+    "threat_intelligence": true
+  },
+  "compliance_modes": [
+    "owasp-asi"
   ],
   "explainability_completeness_rate": 1,
   "runtime_check_latency_budget_ms": 5,

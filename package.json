@@ -1,11 +1,11 @@
 {
   "name": "@guava-parity/guard-scanner",
-  "version": "15.0.0",
+  "version": "16.0.0",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
   },
-  "description": "Agent Skill Security Scanner - ASI Sanctuary Enforcer (v15)",
+  "description": "Agent Skill Security Scanner - ASI Sanctuary Enforcer (v16)",
   "openclaw": {
     "extensions": [
       "./dist/openclaw-plugin.mjs"

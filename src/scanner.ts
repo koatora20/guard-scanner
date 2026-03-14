@@ -34,6 +34,7 @@ const { classifyFile, CODE_EXTENSIONS, BINARY_EXTENSIONS, isSelfNoisePath, isSel
 const { calculateRisk, getVerdict, SEVERITY_WEIGHTS } = require('./core/risk-engine');
 const { applySemanticValidators, checkASTValidation } = require('./core/semantic-validators');
 const { toJSONReport, toSARIFReport, toHTMLReport, printSummary } = require('./core/report-adapters');
+const { inferFindingContext } = require('./v16-taxonomy');
 
 // ===== CONFIGURATION =====
 const { version: VERSION } = require('../package.json');
@@ -59,6 +60,7 @@ class GuardScanner {
         this.ignoredSkills = new Set();
         this.ignoredPatterns = new Set();
         this.customRules = [];
+        this.compliance = options.compliance || null;
 
         // Plugin API: load plugins
         if (options.plugins && Array.isArray(options.plugins)) {
@@ -157,9 +159,13 @@ class GuardScanner {
             this.checkPatterns(text, 'raw_text', 'code', findings, this.customRules);
         }
         applySemanticValidators(text, 'raw_text', findings);
+        this.analyzeProtocolFindings(text, 'raw_text', 'code', findings);
+        this.analyzeCognitiveFindings(text, 'raw_text', 'code', findings);
+        this.analyzeThreatIntelFindings(text, 'raw_text', 'code', findings);
         
         // Filter ignored patterns
         const filteredFindings = findings.filter(f => !this.ignoredPatterns.has(f.id));
+        this.annotateV16Findings(filteredFindings);
         const risk = this.calculateRisk(filteredFindings);
         
         return {
@@ -272,6 +278,9 @@ class GuardScanner {
                 this.checkJSDataFlow(content, relFile, skillFindings);
             }
             applySemanticValidators(content, relFile, skillFindings);
+            this.analyzeProtocolFindings(content, relFile, fileType, skillFindings);
+            this.analyzeCognitiveFindings(content, relFile, fileType, skillFindings);
+            this.analyzeThreatIntelFindings(content, relFile, fileType, skillFindings);
         }
 
         // Check 3: Structural checks
@@ -287,6 +296,7 @@ class GuardScanner {
 
         // Check 6: Cross-file analysis
         this.checkCrossFile(skillPath, skillName, skillFindings);
+        this.checkRuntimeIntegration(skillPath, skillName, skillFindings);
 
         // Check 7: Skill manifest validation (v1.1)
         this.checkSkillManifest(skillPath, skillName, skillFindings);
@@ -299,6 +309,7 @@ class GuardScanner {
 
         // Filter ignored patterns
         const filteredFindings = skillFindings.filter(f => !this.ignoredPatterns.has(f.id));
+        this.annotateV16Findings(filteredFindings);
 
         // Calculate risk
         const risk = this.calculateRisk(filteredFindings);
@@ -319,7 +330,8 @@ class GuardScanner {
                     for (const f of findings) {
                         const icon = f.severity === 'CRITICAL' ? '💀' : f.severity === 'HIGH' ? '🔴' : f.severity === 'MEDIUM' ? '🟡' : '⚪';
                         const loc = f.line ? `${f.file}:${f.line}` : f.file;
-                        console.log(`      ${icon} [${f.severity}] ${f.desc} — ${loc}`);
+                        const layerLabel = f.layer_name || inferFindingContext(f).layer_name;
+                        console.log(`      ${icon} [${f.severity}] ${f.desc} — ${loc} (${layerLabel})`);
                         if (f.sample) console.log(`         └─ "${f.sample}"`);
                     }
                 }
@@ -375,6 +387,207 @@ class GuardScanner {
             if (contentLower.includes(user.toLowerCase())) {
                 findings.push({ severity: 'HIGH', id: 'IOC_USER', cat: 'malicious-code', desc: `Known malicious username: ${user}`, file: relFile });
             }
+        }
+    }
+
+    annotateV16Findings(findings) {
+        for (const finding of findings) {
+            const inferred = inferFindingContext(finding);
+            if (finding.layer === undefined) finding.layer = inferred.layer;
+            if (finding.layer_name === undefined) finding.layer_name = inferred.layer_name;
+            if (finding.owasp_asi === undefined) finding.owasp_asi = inferred.owasp_asi;
+            if (finding.protocol_surface === undefined) finding.protocol_surface = inferred.protocol_surface;
+        }
+    }
+
+    pushUniqueFinding(findings, finding) {
+        const key = `${finding.id}|${finding.file || ''}|${finding.line || 0}|${finding.desc || ''}`;
+        const exists = findings.some((current) => `${current.id}|${current.file || ''}|${current.line || 0}|${current.desc || ''}` === key);
+        if (!exists) findings.push(finding);
+    }
+
+    analyzeProtocolFindings(content, relFile, fileType, findings) {
+        const checks = [
+            {
+                id: 'PROTO_WS_INSECURE_TRANSPORT',
+                when: /new\s+WebSocket\s*\(\s*['"`]ws:\/\//i,
+                finding: {
+                    severity: 'HIGH',
+                    cat: 'agent-protocol',
+                    desc: 'Protocol: insecure WebSocket transport without TLS',
+                    protocol_surface: ['websocket'],
+                    owasp_asi: ['ASI07'],
+                    layer: 2,
+                },
+            },
+            {
+                id: 'PROTO_MCP_TOOL_MUTATION_V16',
+                when: /(tools\/list|tool[s]?)[\s\S]{0,120}(redefine|override|replace|mutate)/i,
+                finding: {
+                    severity: 'HIGH',
+                    cat: 'mcp-security',
+                    desc: 'Protocol: MCP tool definition mutation risk',
+                    protocol_surface: ['mcp'],
+                    owasp_asi: ['ASI07'],
+                    layer: 2,
+                },
+            },
+            {
+                id: 'PROTO_AGENT_IDENTITY_SPOOF_V16',
+                when: /(agent.?card|trusted origin|x-agent-id|authorization)[\s\S]{0,120}(spoof|forge|impersonat|override)/i,
+                finding: {
+                    severity: 'HIGH',
+                    cat: 'a2a-contagion',
+                    desc: 'Protocol: agent identity spoofing or trusted-origin abuse',
+                    protocol_surface: ['a2a', 'machine-identity'],
+                    owasp_asi: ['ASI07', 'ASI10'],
+                    layer: 2,
+                },
+            },
+            {
+                id: 'PROTO_SESSION_REPLAY_V16',
+                when: /(session|task)[\s\S]{0,80}(replay|resume|smuggle|persist)/i,
+                finding: {
+                    severity: 'HIGH',
+                    cat: 'agent-protocol',
+                    desc: 'Runtime: session replay or smuggling path detected',
+                    protocol_surface: ['session-boundary', 'a2a'],
+                    owasp_asi: ['ASI07'],
+                    layer: 3,
+                },
+            },
+            {
+                id: 'PROTO_CRED_FLOW_TRACE_V16',
+                when: /(client_secret|access_token|authorization|bearer|api[_-]?key|private[_-]?key)[\s\S]{0,120}(fetch|websocket|send|emit|postMessage|tool[s]?\/call)/i,
+                finding: {
+                    severity: 'CRITICAL',
+                    cat: 'credential-handling',
+                    desc: 'Protocol: credential-bearing data may cross a protocol boundary',
+                    protocol_surface: ['credential-flow'],
+                    owasp_asi: ['ASI02', 'ASI07'],
+                    layer: 2,
+                },
+            },
+        ];
+
+        for (const check of checks) {
+            const match = content.match(check.when);
+            if (!match) continue;
+            const idx = content.search(check.when);
+            const line = idx >= 0 ? content.substring(0, idx).split('\n').length : null;
+            this.pushUniqueFinding(findings, {
+                ...check.finding,
+                id: check.id,
+                file: relFile,
+                line,
+                sample: match[0].substring(0, 80),
+            });
+        }
+    }
+
+    analyzeCognitiveFindings(content, relFile, fileType, findings) {
+        const checks = [
+            {
+                id: 'COG_GOAL_DRIFT_V16',
+                when: /(ignore|drop|rewrite|replace)\s+(the\s+)?(goal|objective|mission|success criteria)/i,
+                finding: {
+                    severity: 'HIGH',
+                    cat: 'behavioral-guard',
+                    desc: 'Cognitive: goal-drift proxy detected',
+                    owasp_asi: ['ASI01'],
+                    layer: 4,
+                },
+            },
+            {
+                id: 'COG_TRUST_BIAS_V16',
+                when: /(trusted|authority|creator|partner|owner)[\s\S]{0,100}(skip|ignore|bypass|disable)\s+(guard|review|verification|safety)/i,
+                finding: {
+                    severity: 'HIGH',
+                    cat: 'trust-exploitation',
+                    desc: 'Cognitive: trust-bias shortcut may override verification',
+                    owasp_asi: ['ASI09'],
+                    layer: 4,
+                },
+            },
+            {
+                id: 'COG_CASCADING_HANDOFF_V16',
+                when: /(handoff|delegate|forward|relay)[\s\S]{0,80}(agent|tool|task)[\s\S]{0,120}(without review|auto|automatic)/i,
+                finding: {
+                    severity: 'MEDIUM',
+                    cat: 'behavioral-guard',
+                    desc: 'Cognitive: cascading handoff without review',
+                    owasp_asi: ['ASI08'],
+                    layer: 4,
+                },
+            },
+        ];
+
+        for (const check of checks) {
+            const match = content.match(check.when);
+            if (!match) continue;
+            const idx = content.search(check.when);
+            const line = idx >= 0 ? content.substring(0, idx).split('\n').length : null;
+            this.pushUniqueFinding(findings, {
+                ...check.finding,
+                id: check.id,
+                file: relFile,
+                line,
+                sample: match[0].substring(0, 80),
+            });
+        }
+    }
+
+    analyzeThreatIntelFindings(content, relFile, fileType, findings) {
+        const checks = [
+            {
+                id: 'TI_MACHINE_IDENTITY_EXPOSURE_V16',
+                when: /(client_secret|private_key|id_token|refresh_token|service account|oauth client)/i,
+                finding: {
+                    severity: 'HIGH',
+                    cat: 'credential-handling',
+                    desc: 'Threat intel: machine identity or long-lived credential material detected',
+                    protocol_surface: ['machine-identity', 'credential-flow'],
+                    owasp_asi: ['ASI07'],
+                    layer: 5,
+                },
+            },
+            {
+                id: 'TI_REGISTRY_SHADOW_HINT_V16',
+                when: /(registry|server|plugin)[\s\S]{0,100}(shadow|unverified|rogue|unknown publisher)/i,
+                finding: {
+                    severity: 'MEDIUM',
+                    cat: 'unverifiable-deps',
+                    desc: 'Threat intel: unverified registry or plugin provenance hint',
+                    protocol_surface: ['registry'],
+                    owasp_asi: ['ASI04'],
+                    layer: 5,
+                },
+            },
+            {
+                id: 'TI_PROTOCOL_BUDGET_ABUSE_V16',
+                when: /(max[_ -]?tokens|overthink|reasoning effort|budget|quota)[\s\S]{0,100}(increase|drain|exhaust|infinite)/i,
+                finding: {
+                    severity: 'MEDIUM',
+                    cat: 'advanced-exfil',
+                    desc: 'Threat intel: protocol or reasoning budget abuse indicator',
+                    owasp_asi: ['ASI08'],
+                    layer: 5,
+                },
+            },
+        ];
+
+        for (const check of checks) {
+            const match = content.match(check.when);
+            if (!match) continue;
+            const idx = content.search(check.when);
+            const line = idx >= 0 ? content.substring(0, idx).split('\n').length : null;
+            this.pushUniqueFinding(findings, {
+                ...check.finding,
+                id: check.id,
+                file: relFile,
+                line,
+                sample: match[0].substring(0, 80),
+            });
         }
     }
 
@@ -951,6 +1164,38 @@ class GuardScanner {
         }
     }
 
+    checkRuntimeIntegration(skillPath, skillName, findings) {
+        const runtimeModules = [
+            {
+                rel: path.join('rust', 'guard-scan-core', 'src', 'memory_integrity.rs'),
+                id: 'RUNTIME_MEMORY_INTEGRITY_MODULE',
+                desc: 'Runtime behavior: Rust memory_integrity module is wired into the v16 pipeline',
+                owasp_asi: ['ASI06'],
+            },
+            {
+                rel: path.join('rust', 'guard-scan-core', 'src', 'soul_hard_gate.rs'),
+                id: 'RUNTIME_SOUL_HARD_GATE_MODULE',
+                desc: 'Runtime behavior: Rust soul_hard_gate module is wired into the v16 pipeline',
+                owasp_asi: ['ASI10'],
+            },
+        ];
+
+        for (const module of runtimeModules) {
+            const abs = path.join(skillPath, module.rel);
+            if (!fs.existsSync(abs)) continue;
+            this.pushUniqueFinding(findings, {
+                id: module.id,
+                severity: 'LOW',
+                cat: 'runtime-guard',
+                desc: module.desc,
+                file: module.rel,
+                layer: 3,
+                owasp_asi: module.owasp_asi,
+                protocol_surface: ['session-boundary'],
+            });
+        }
+    }
+
     calculateRisk(findings) {
         return calculateRisk(findings);
     }
@@ -1002,6 +1247,9 @@ class GuardScanner {
             external_ingestion: false,
             persistence: false
         };
+        const owasp = new Set();
+        const protocolSurfaces = new Set();
+        const layerSeen = new Map();
 
         for (const f of findings) {
             // Map pattern IDs or categories to capability surfaces
@@ -1027,12 +1275,19 @@ class GuardScanner {
             if (id.includes('PERSIST') || id.includes('CRON') || id.includes('STARTUP') || cat.includes('persistence') || desc.includes('cron') || id.includes('DEPS_PHANTOM_IMPORT')) {
                 surface.persistence = true;
             }
+            for (const asi of f.owasp_asi || []) owasp.add(asi);
+            for (const protocol of f.protocol_surface || []) protocolSurfaces.add(protocol);
+            const layer = f.layer || 1;
+            layerSeen.set(layer, f.layer_name || inferFindingContext(f).layer_name);
         }
 
         return {
             timestamp: new Date().toISOString(),
             surface,
-            summary: Object.keys(surface).filter(k => surface[k]).join(', ') || 'none'
+            summary: Object.keys(surface).filter(k => surface[k]).join(', ') || 'none',
+            owasp_asi: [...owasp].sort(),
+            protocol_surfaces: [...protocolSurfaces].sort(),
+            layer_summary: [...layerSeen.entries()].sort((a, b) => a[0] - b[0]).map(([layer, layer_name]) => ({ layer, layer_name })),
         };
     }
 

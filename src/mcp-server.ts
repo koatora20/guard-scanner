@@ -144,6 +144,11 @@ const TOOLS = [
                     description: 'Lower detection thresholds (more sensitive)',
                     default: false,
                 },
+                compliance: {
+                    type: 'string',
+                    enum: ['owasp-asi'],
+                    description: 'Optional compliance projection. Filters output to findings mapped to OWASP ASI.',
+                },
             },
             required: ['path'],
         },
@@ -162,6 +167,11 @@ const TOOLS = [
                     type: 'string',
                     description: 'Optional filename hint for file-type detection (e.g. "script")',
                     default: 'snippet.txt',
+                },
+                compliance: {
+                    type: 'string',
+                    enum: ['owasp-asi'],
+                    description: 'Optional compliance projection. Filters output to findings mapped to OWASP ASI.',
                 },
             },
             required: ['text'],
@@ -278,7 +288,7 @@ const TOOLS = [
 
 // ── Tool Handlers ──
 
-function handleScanSkill({ path: scanPath, verbose = false, strict = false }) {
+function handleScanSkill({ path: scanPath, verbose = false, strict = false, compliance = null }) {
     if (!scanPath) return errorResult('path is required');
 
     const fs = require('fs');
@@ -289,7 +299,7 @@ function handleScanSkill({ path: scanPath, verbose = false, strict = false }) {
         return errorResult(`Not a directory: ${scanPath}`);
     }
 
-    const scanner = new GuardScanner({ verbose, strict, quiet: true });
+    const scanner = new GuardScanner({ verbose, strict, quiet: true, compliance });
     scanner.scanDirectory(scanPath);
     const report = scanner.toJSON();
 
@@ -312,44 +322,41 @@ function handleScanSkill({ path: scanPath, verbose = false, strict = false }) {
     return successResult(
         `🛡️ Scan: ${verdict}\n` +
         `Files: ${report.stats.scanned}, Skills: ${report.findings.length}\n` +
+        `Compliance: ${report.compliance_mode || 'default'}\n` +
         `Clean: ${report.stats.clean}, Suspicious: ${report.stats.suspicious}, Malicious: ${report.stats.malicious}\n` +
         `Findings: ${total} (Critical: ${critical}, High: ${high}, Medium: ${medium}, Low: ${low})\n` +
+        `Layers: ${report.layer_summary?.map((layer) => `L${layer.layer}=${layer.count}`).join(', ') || 'none'}\n` +
+        `OWASP ASI: ${report.owasp_asi_coverage?.map((entry) => entry.id).join(', ') || 'none'}\n` +
         (total > 0
             ? '\nTop findings:\n' + report.findings.flatMap(s =>
                 s.findings.slice(0, 5).map(f =>
-                    `  [${f.severity}] ${f.id}: ${f.desc} — ${s.skill}/${f.file}`
+                    `  [${f.severity}] ${f.id}: ${f.desc} — ${s.skill}/${f.file} (${f.layer_name || `L${f.layer}`})`
                 )
             ).slice(0, 10).join('\n')
             : '\n✅ No threats detected.')
     );
 }
 
-function handleScanText({ text, filename = 'snippet.txt' }) {
+function handleScanText({ text, filename = 'snippet.txt', compliance = null }) {
     if (!text) return errorResult('text is required');
-
-    const os = require('os');
-    const fs = require('fs');
-    const path = require('path');
-
-    // Write text to temp file, scan, cleanup
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gs-'));
-    const tmpFile = path.join(tmpDir, filename);
-    fs.writeFileSync(tmpFile, text);
-
-    const scanner = new GuardScanner({ quiet: true });
-    scanner.scanDirectory(tmpDir);
-    const report = scanner.toJSON();
-
-    // Cleanup
-    try { fs.unlinkSync(tmpFile); fs.rmdirSync(tmpDir); } catch { /* ok */ }
+    const { normalizeFinding } = require('./finding-schema');
+    const scanner = new GuardScanner({ quiet: true, compliance });
+    const report = scanner.scanText(text);
+    const detections = report.detections.map((finding) => normalizeFinding(finding, { source: 'static' }));
+    const filtered = compliance === 'owasp-asi'
+        ? detections.filter((finding) => finding.owasp_asi?.length > 0)
+        : detections;
+    const highest = filtered[0]?.severity || 'LOW';
 
     return successResult(
-        `🛡️ Text Scan: ${report.verdict}\n` +
-        `Score: ${report.risk.score} (${report.risk.level})\n` +
-        `Findings: ${report.summary.totalFindings}\n` +
-        (report.findings.length > 0
-            ? '\nDetected:\n' + report.findings.map(f =>
-                `  [${f.severity}] ${f.id}: ${f.desc}`
+        `🛡️ Text Scan: ${filtered.length > 0 ? '⚠️ FINDINGS' : '🟢 CLEAN'}\n` +
+        `Filename: ${filename}\n` +
+        `Compliance: ${compliance || 'default'}\n` +
+        `Score: ${report.risk}\n` +
+        `Findings: ${filtered.length} (highest: ${highest})\n` +
+        (filtered.length > 0
+            ? '\nDetected:\n' + filtered.map(f =>
+                `  [${f.severity}] ${f.id}: ${f.desc} (${f.layer_name || `L${f.layer}`}${f.owasp_asi?.length ? ` | ${f.owasp_asi.join(',')}` : ''})`
             ).join('\n')
             : '\n✅ No threats detected.')
     );
@@ -426,6 +433,7 @@ function handleGetStats() {
         `🛡️ guard-scanner v${VERSION}\n\n` +
         `Static Analysis:\n` +
         `  • ${STATIC_SUMMARY}\n` +
+        `  • 5-layer v16 pipeline: static, protocol, runtime, cognitive, threat intel\n` +
         `  • Entropy-based secret detection\n` +
         `  • Data flow analysis (JS)\n` +
         `  • Cross-file reference checking\n` +
@@ -449,6 +457,10 @@ function handleGetStats() {
         `  • FNR budget: <= ${targets.false_negative_rate_max}\n` +
         `  • Explainability completeness: ${CAPABILITIES.explainability_completeness_rate}\n` +
         `  • Runtime latency budget: ${CAPABILITIES.runtime_check_latency_budget_ms}ms\n\n` +
+        `OWASP ASI Coverage:\n` +
+        `  • ${(CAPABILITIES.owasp_asi_coverage || []).map((entry) => `${entry.id}=${entry.count}`).join(', ')}\n` +
+        `  • Layers: ${(CAPABILITIES.analysis_layers || []).map((layer) => `L${layer.layer}:${layer.name}`).join(', ')}\n` +
+        `  • Capability flags: protocol=${CAPABILITIES.capability_flags?.protocol_analysis ? 'yes' : 'no'}, runtime=${CAPABILITIES.capability_flags?.runtime_evidence ? 'yes' : 'no'}, cognitive=${CAPABILITIES.capability_flags?.cognitive_detection ? 'yes' : 'no'}\n\n` +
         `Performance: 0.016ms/scan average\n` +
         `Dependencies: 1 runtime (${CAPABILITIES.dependencies_runtime === 1 ? 'ws' : CAPABILITIES.dependencies_runtime})`
     );
