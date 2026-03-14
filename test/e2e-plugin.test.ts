@@ -35,6 +35,7 @@ describe('E2E Plugin: Package surface', () => {
 
     it('compiled public entrypoints should exist after build', () => {
         for (const relPath of [
+            '../guard-scanner',
             '../dist/index.cjs',
             '../dist/index.mjs',
             '../dist/mcp-server.cjs',
@@ -50,5 +51,10 @@ describe('E2E Plugin: Package surface', () => {
 
     it('manifest id should match the public plugin id', () => {
         assert.equal(manifest.id, 'guard-scanner');
+    });
+
+    it('package.json should expose the stable CLI launcher', () => {
+        assert.equal(pkg.bin['guard-scanner'], 'guard-scanner');
+        assert.ok(fs.existsSync(path.join(__dirname, '..', 'guard-scanner')));
     });
 });

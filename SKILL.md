@@ -20,6 +20,12 @@ npx -y @guava-parity/guard-scanner ./skills/ --soul-lock --strict
 
 # Filter to OWASP ASI mapped findings only
 npx -y @guava-parity/guard-scanner ./skills/ --compliance owasp-asi --format json
+
+# Installed CLI
+guard-scanner ./skills/ --strict
+
+# npm exec compatibility
+npm exec --yes --package=@guava-parity/guard-scanner -- guard-scanner ./skills/ --strict
 ```
 
 ## Core Commands

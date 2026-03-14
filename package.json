@@ -1,6 +1,6 @@
 {
   "name": "@guava-parity/guard-scanner",
-  "version": "16.0.0",
+  "version": "16.0.1",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
@@ -45,7 +45,7 @@
     "./dist/openclaw-plugin.cjs"
   ],
   "bin": {
-    "guard-scanner": "dist/cli.cjs"
+    "guard-scanner": "guard-scanner"
   },
   "scripts": {
     "build": "tsup --config tsup.config.ts",
@@ -91,13 +91,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/koatora20/guard-scanner.git"
+    "url": "git+https://github.com/koatora20/guard-scanner.git"
   },
   "homepage": "https://github.com/koatora20/guard-scanner",
   "files": [
     "dist/",
     "hooks/",
     "docs/",
+    "guard-scanner",
     "openclaw-plugin.mts",
     "openclaw.plugin.json",
     "SKILL.md",

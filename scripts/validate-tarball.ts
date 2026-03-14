@@ -55,6 +55,7 @@ function validatePackedFiles(entry: PackEntry, pkg: Record<string, any>) {
     "README_ja.md",
     "SKILL.md",
     "SECURITY.md",
+    "guard-scanner",
     "openclaw.plugin.json",
     "dist/index.mjs",
     "dist/index.cjs",
@@ -87,7 +88,7 @@ function validatePackedFiles(entry: PackEntry, pkg: Record<string, any>) {
   }
 }
 
-function validateCleanInstall(entry: PackEntry) {
+function validateCleanInstall(entry: PackEntry, pkg: Record<string, any>) {
   assert(entry.filename, "npm pack metadata missing filename");
   const tarballPath = path.join(ROOT, entry.filename);
   assert(fs.existsSync(tarballPath), `npm pack did not create expected tarball: ${tarballPath}`);
@@ -108,6 +109,41 @@ function validateCleanInstall(entry: PackEntry) {
   const installedRoot = path.join(installDir, "node_modules", "@guava-parity", "guard-scanner");
   assert(fs.existsSync(path.join(installedRoot, "dist", "index.mjs")), "clean install missing dist/index.mjs");
   assert(fs.existsSync(path.join(installedRoot, "openclaw.plugin.json")), "clean install missing openclaw.plugin.json");
+  assert(fs.existsSync(path.join(installedRoot, "guard-scanner")), "clean install missing root guard-scanner launcher");
+
+  const binVersion = execFileSync(
+    path.join(installDir, "node_modules", ".bin", "guard-scanner"),
+    ["--version"],
+    {
+      cwd: installDir,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    },
+  ).trim();
+  assert(new RegExp(`guard-scanner v${pkg.version}`).test(binVersion), `unexpected .bin version output: ${binVersion}`);
+
+  const fixturePath = path.join(ROOT, "test", "fixtures", "benign", "math-helper");
+  const binScan = execFileSync(
+    path.join(installDir, "node_modules", ".bin", "guard-scanner"),
+    [fixturePath, "--compliance", "owasp-asi", "--format", "json"],
+    {
+      cwd: installDir,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    },
+  ).trim();
+  const parsedScan = JSON.parse(binScan) as { compliance_mode?: string; findings?: unknown[] };
+  assert(parsedScan.compliance_mode === "owasp-asi", "installed CLI must preserve compliance mode");
+  assert(Array.isArray(parsedScan.findings), "installed CLI must return findings array");
+
+  const execVersion = runNpm(
+    ["exec", "--yes", `--package=${tarballPath}`, "--", "guard-scanner", "--version"],
+    installDir,
+    {
+      npm_config_dry_run: "false",
+    },
+  ).trim();
+  assert(new RegExp(`guard-scanner v${pkg.version}`).test(execVersion), `unexpected npm exec version output: ${execVersion}`);
 
   const packageSurface = execFileSync(
     "node",
@@ -126,6 +162,20 @@ function validateCleanInstall(entry: PackEntry) {
     `unexpected installed package surface: ${packageSurface}`,
   );
 
+  const mcpSurface = execFileSync(
+    "node",
+    [
+      "-e",
+      "const { MCPServer } = require('@guava-parity/guard-scanner/mcp'); const server = new MCPServer(); server._callTool('get_stats', {}).then((res)=>console.log(Boolean(res && res.content && res.content[0] && /Static Analysis/.test(res.content[0].text)))).catch((err)=>{console.error(err); process.exit(1);});",
+    ],
+    {
+      cwd: installDir,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    },
+  ).trim();
+  assert(mcpSurface === "true", `unexpected MCP package surface: ${mcpSurface}`);
+
   fs.rmSync(tarballPath, { force: true });
 }
 
@@ -133,7 +183,7 @@ function main() {
   const pkg = JSON.parse(fs.readFileSync(PACKAGE_JSON, "utf8")) as Record<string, any>;
   const packEntry = getPackEntry();
   validatePackedFiles(packEntry, pkg);
-  validateCleanInstall(packEntry);
+  validateCleanInstall(packEntry, pkg);
   console.log(`✅ tarball validation: ${packEntry.filename ?? "guard-scanner.tgz"} contains the compiled plugin surface`);
 }
 

@@ -1,5 +1,27 @@
 # Changelog
 
+## [16.0.1] - 2026-03-14
+
+### CLI Compatibility Patch
+
+#### Changed
+- Moved the published CLI entrypoint to a root launcher so npm, npx, and npm exec resolve `guard-scanner` through a more conservative package layout.
+- Tightened tarball validation to execute the installed `.bin/guard-scanner` path, validate `npm exec --package <tarball>`, and verify MCP import surface after clean install.
+- Normalized `repository.url` to npm's canonical `git+https://...` format.
+
+#### Validation
+- `npm test` → passed
+- `npm run test:contracts` → passed
+- `npm run test:rust-parity` → passed
+- `npm run benchmark` → passed
+- `npm run release:gate` → passed
+- `npm pack --dry-run` → passed
+- `npm publish --dry-run` → passed
+
+#### Evidence
+- npm package version: **16.0.1**
+- plugin manifest version: **16.0.1**
+
 ## [16.0.0] - 2026-03-14
 
 ### v16 Ship-Ready Release Candidate

@@ -29,7 +29,7 @@ Traditional security tools catch malware. **guard-scanner** catches what they mi
 ```
 $ npx @guava-parity/guard-scanner ./skills/ --strict --soul-lock --compliance owasp-asi
 
-  guard-scanner v16.0.0
+  guard-scanner v16.0.1
 
   ⚠  CRITICAL  identity-hijack   SOUL_OVERWRITE_ATTEMPT
      skills/imported-tool/SKILL.md:47
@@ -63,6 +63,13 @@ npx -y @guava-parity/guard-scanner ./my-skills/ --strict
 npx -y @guava-parity/guard-scanner ./my-skills/ --compliance owasp-asi
 ```
 
+**Installed CLI**:
+
+```bash
+npm install -g @guava-parity/guard-scanner
+guard-scanner ./my-skills/ --strict
+```
+
 **Start as MCP server** — works with Cursor, Windsurf, Claude Code, OpenClaw:
 
 ```bash
@@ -91,6 +98,12 @@ guard-scanner watch ./skills/ --strict --soul-lock
 
 ```bash
 guard-scanner ./skills/ --compliance owasp-asi --format json
+```
+
+**`npm exec` compatibility path**:
+
+```bash
+npm exec --yes --package=@guava-parity/guard-scanner -- guard-scanner ./skills/ --strict
 ```
 
 ---

@@ -1,6 +1,6 @@
 {
-  "package_version": "16.0.0",
-  "plugin_version": "16.0.0",
+  "package_version": "16.0.1",
+  "plugin_version": "16.0.1",
   "static_pattern_count": 358,
   "threat_category_count": 35,
   "runtime_check_count": 27,
