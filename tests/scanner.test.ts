@@ -364,9 +364,9 @@ describe('Ignore Functionality', () => {
 // ===== 10. Plugin API =====
 describe('Plugin API', () => {
     it('should load plugin patterns', () => {
-        const pluginPath = path.join(__dirname, 'test-plugin');
+        const pluginPath = path.join(__dirname, 'test-plugin.cjs');
         fs.writeFileSync(pluginPath, `
-      export default {
+      module.exports = {
         name: 'test-plugin',
         patterns: [
           { id: 'PLUGIN_TEST', cat: 'custom', regex: /console\\.log/g, severity: 'LOW', desc: 'Plugin test', all: true }

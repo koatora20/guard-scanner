@@ -9,7 +9,7 @@
 /// - Schneider (2026-02-26): Memory poisoning complete taxonomy
 /// - AgentSentry (arXiv:2602.22724): Temporal causal diagnostics
 
-use chrono::{DateTime, Duration, Utc};
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::VecDeque;
@@ -162,9 +162,9 @@ pub struct MemoryIntegrity {
     /// 最近の異常レポート
     anomalies: VecDeque<AnomalyReport>,
     /// フォレンジックススナップショット
-    snapshots: VecDeque<ForensicSnapshot>,
+    _snapshots: VecDeque<ForensicSnapshot>,
     /// 最大スナップショット保持数
-    max_snapshots: usize,
+    _max_snapshots: usize,
     /// セッションベースライン（通常の書き込みパターン）
     baseline_writes_per_session: (usize, usize), // (min, max)
 }
@@ -174,8 +174,8 @@ impl MemoryIntegrity {
         MemoryIntegrity {
             session_writes: 0,
             anomalies: VecDeque::new(),
-            snapshots: VecDeque::new(),
-            max_snapshots: 30,
+            _snapshots: VecDeque::new(),
+            _max_snapshots: 30,
             baseline_writes_per_session: (5, 20),
         }
     }
@@ -536,6 +536,7 @@ fn hex_encode(bytes: impl AsRef<[u8]>) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use chrono::Duration;
 
     fn make_entry(id: &str, content: &str, source: MemorySource) -> TaggedMemoryEntry {
         let mi = MemoryIntegrity::new();

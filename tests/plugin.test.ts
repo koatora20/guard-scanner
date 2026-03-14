@@ -13,7 +13,7 @@ import { RUNTIME_CHECKS  } from '../src/runtime-guard';
  * guard-scanner OpenClaw Plugin Hook Tests
  *
  * Tests the compiled before_tool_call entrypoint that is exposed through
- * package.json > openclaw.extensions for OpenClaw v2026.3.12, with regression coverage for v2026.3.8.
+ * package.json > openclaw.extensions for OpenClaw v2026.3.13, with regression coverage for v2026.3.8.
  */
 
 const DIST_PLUGIN = path.join(__dirname, '..', 'dist', 'openclaw-plugin.mjs');

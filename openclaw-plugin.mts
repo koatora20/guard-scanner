@@ -2,6 +2,7 @@ import type { OpenClawPluginApi } from "openclaw/plugin-sdk/core";
 import * as runtimeGuard from "./src/index.js";
 
 const runtimeGuardApi = runtimeGuard as {
+    VERSION: string;
     scanToolCall: (
         toolName: string,
         params: Record<string, unknown>,
@@ -90,7 +91,7 @@ function beforeToolCall(
 const plugin = {
     id: "guard-scanner",
     name: "guard-scanner",
-    version: "15.0.0",
+    version: runtimeGuardApi.VERSION,
     description: "Runtime guard for OpenClaw before_tool_call hook execution.",
     register(api: OpenClawPluginApi) {
         api.on(
@@ -99,7 +100,7 @@ const plugin = {
             { priority: 90 },
         );
         api.logger.info(
-            "guard-scanner registered OpenClaw before_tool_call hook (stable: v2026.3.12, regression lane: v2026.3.8).",
+            "guard-scanner registered OpenClaw before_tool_call hook (stable: v2026.3.13, regression lane: v2026.3.8).",
         );
     },
 };

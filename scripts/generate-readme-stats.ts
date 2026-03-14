@@ -20,33 +20,42 @@ import path from 'node:path';
 
 const ROOT = path.join(__dirname, '..');
 const README_PATH = path.join(ROOT, 'README.md');
+const TEST_FILE_COUNT_REGEX = /\.test\.(?:ts|js)$/;
 
-// Run tests and capture output (node --test puts stats on stderr)
-let testOutput;
+function extractVitestJson(output: string): {
+    numTotalTests: number;
+    numPassedTests: number;
+    numFailedTests: number;
+    testResults: Array<{ name: string }>;
+} {
+    const lines = output.trim().split('\n').reverse();
+    const jsonLine = lines.find((line) => line.trim().startsWith('{') && line.includes('"numTotalTests"'));
+    if (!jsonLine) {
+        throw new Error(`Could not find Vitest JSON payload in output:\n${output}`);
+    }
+    return JSON.parse(jsonLine);
+}
+
+// Run tests and capture output
+let testOutput = '';
 try {
-    const result = execSync('node --import tsx --test test/*.test.ts', { cwd: ROOT, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
-    testOutput = result; // stdout contains the stats in newer Node
+    testOutput = execSync('npx vitest run --reporter=json', { cwd: ROOT, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
 } catch (err) {
-    // node --test puts stats on stderr; also exits non-zero on failures
     testOutput = (err.stdout || '') + '\n' + (err.stderr || '');
 }
 
-// Parse stats from output
-const parseCount = (label) => {
-    const re = new RegExp(`ℹ ${label} (\\d+)`, 'i');
-    const m = testOutput.match(re);
-    return m ? parseInt(m[1], 10) : null;
-};
-
-const tests = parseCount('tests');
-const suites = parseCount('suites');
-const pass = parseCount('pass');
-const fail = parseCount('fail');
-
-if (tests === null || suites === null) {
-    console.error('❌ Could not parse test output. Raw output:\n', testOutput);
+let vitestReport;
+try {
+    vitestReport = extractVitestJson(testOutput);
+} catch (err) {
+    console.error(`❌ ${err.message}`);
     process.exit(1);
 }
+
+const tests = vitestReport.numTotalTests;
+const pass = vitestReport.numPassedTests;
+const fail = vitestReport.numFailedTests;
+const suites = fs.readdirSync(path.join(ROOT, 'tests')).filter((file) => TEST_FILE_COUNT_REGEX.test(file)).length;
 
 console.log(`📊 Parsed: tests=${tests} suites=${suites} pass=${pass} fail=${fail}`);
 

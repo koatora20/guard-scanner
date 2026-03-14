@@ -35,6 +35,8 @@ const REQUIRED_FINDING_FIELDS = [
   'validation_status',
   'evidence',
 ];
+const TEST_DIR = path.join(ROOT, 'tests');
+const TEST_FILE_REGEX = /\.test\.(?:ts|js)$/;
 
 console.log('🛡️  Guard-Scanner Test Quality Gate\n');
 
@@ -109,10 +111,9 @@ try {
 }
 
 // Check test files
-const testDir = path.join(ROOT, 'test');
-const testFiles = fs.readdirSync(testDir).filter(f => f.endsWith('.test.ts'));
+const testFiles = fs.readdirSync(TEST_DIR).filter(f => TEST_FILE_REGEX.test(f));
 const testContents = new Map(
-  testFiles.map((file) => [file, fs.readFileSync(path.join(testDir, file), 'utf8')])
+  testFiles.map((file) => [file, fs.readFileSync(path.join(TEST_DIR, file), 'utf8')])
 );
 
 const missingDirectContracts = DIRECT_CONTRACT_MODULES.filter((modulePath) => {

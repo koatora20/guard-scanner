@@ -1,7 +1,3 @@
-import { fileURLToPath } from 'node:url';
-import { dirname } from 'node:path';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 // @ts-nocheck
 /**
  * guard-scanner v2.1.0 — Agent Skill Security Scanner 🛡️
@@ -38,9 +34,11 @@ import { calculateRisk, getVerdict, SEVERITY_WEIGHTS  } from './core/risk-engine
 import { applySemanticValidators, checkASTValidation  } from './core/semantic-validators';
 import { toJSONReport, toSARIFReport, toHTMLReport, printSummary  } from './core/report-adapters';
 import { inferFindingContext  } from './v16-taxonomy';
+import { getCurrentModuleDir } from './module-path';
 
 // ===== CONFIGURATION =====
 import pkg from '../package.json' assert { type: 'json' }; const { version: VERSION } = pkg;
+const MODULE_DIR = getCurrentModuleDir();
 
 const THRESHOLDS = {
     normal: { suspicious: 30, malicious: 80 },
@@ -56,7 +54,7 @@ class GuardScanner {
         this.quiet = options.quiet || false;
         this.checkDeps = options.checkDeps || false;
         this.soulLock = options.soulLock || false;
-        this.scannerDir = path.resolve(__dirname);
+        this.scannerDir = path.resolve(MODULE_DIR);
         this.thresholds = this.strict ? THRESHOLDS.strict : THRESHOLDS.normal;
         this.findings = [];
         this.stats = { scanned: 0, clean: 0, low: 0, suspicious: 0, malicious: 0 };
@@ -185,7 +183,10 @@ class GuardScanner {
 
         this.loadIgnoreFile(dir);
 
-        const skills = listSkills(dir);
+        const rootSkillMd = path.join(dir, 'SKILL.md');
+        const skills = fs.existsSync(rootSkillMd)
+            ? [{ name: path.basename(path.resolve(dir)), path: path.resolve(dir) }]
+            : listSkills(dir).map((skill) => ({ name: skill, path: path.join(dir, skill) }));
 
         if (!this.quiet) {
             console.log(`\n🛡️  guard-scanner v${VERSION}`);
@@ -197,21 +198,22 @@ class GuardScanner {
         }
 
         for (const skill of skills) {
-            const skillPath = path.join(dir, skill);
+            const skillPath = skill.path;
+            const skillName = skill.name;
 
             // Self-exclusion
             if (this.selfExclude && path.resolve(skillPath) === this.scannerDir) {
-                if (!this.summaryOnly && !this.quiet) console.log(`⏭️  ${skill} — SELF (excluded)`);
+                if (!this.summaryOnly && !this.quiet) console.log(`⏭️  ${skillName} — SELF (excluded)`);
                 continue;
             }
 
             // Ignore list
-            if (this.ignoredSkills.has(skill)) {
-                if (!this.summaryOnly && !this.quiet) console.log(`⏭️  ${skill} — IGNORED`);
+            if (this.ignoredSkills.has(skillName)) {
+                if (!this.summaryOnly && !this.quiet) console.log(`⏭️  ${skillName} — IGNORED`);
                 continue;
             }
 
-            this.scanSkill(skillPath, skill);
+            this.scanSkill(skillPath, skillName);
         }
 
         if (!this.quiet) this.printSummary();
@@ -1140,10 +1142,17 @@ class GuardScanner {
         }
 
         const skillMd = allContent['SKILL.md'] || '';
-        const codeFileRefs = skillMd.match(/(?:scripts?\/|\.\/)[a-zA-Z0-9_\-./]+\.(js|py|sh|ts)/gi) || [];
+        const codeFileRefs = skillMd.match(/(?:(?:\.\.\/)+|\.\/)?(?:[a-zA-Z0-9_\-]+\/)*[a-zA-Z0-9_\-.]+\.(js|py|sh|ts)/gi) || [];
         for (const ref of codeFileRefs) {
-            const cleanRef = ref.replace(/^\.\//, '');
-            if (!allContent[cleanRef] && !files.some(f => path.relative(skillPath, f) === cleanRef)) {
+            const cleanRef = ref.trim();
+            const normalizedRef = cleanRef.replace(/^\.\//, '');
+            const resolvedRef = path.normalize(path.resolve(skillPath, cleanRef));
+            const insideSkillRef = path.normalize(path.join(skillPath, normalizedRef));
+            const exists = fs.existsSync(resolvedRef)
+                || fs.existsSync(insideSkillRef)
+                || !!allContent[normalizedRef]
+                || files.some(f => path.normalize(f) === resolvedRef || path.relative(skillPath, f) === normalizedRef);
+            if (!exists) {
                 findings.push({ severity: 'MEDIUM', id: 'XFILE_PHANTOM_REF', cat: 'structural', desc: `SKILL.md references non-existent file: ${cleanRef}`, file: 'SKILL.md' });
             }
         }

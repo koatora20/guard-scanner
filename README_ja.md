@@ -12,7 +12,7 @@
 <p align="center">
   <a href="https://www.npmjs.com/package/@guava-parity/guard-scanner"><img src="https://img.shields.io/npm/v/@guava-parity/guard-scanner?color=cb3837&label=npm" alt="npm" /></a>
   <a href="https://www.npmjs.com/package/@guava-parity/guard-scanner"><img src="https://img.shields.io/npm/dm/@guava-parity/guard-scanner?color=blue&label=downloads" alt="downloads" /></a>
-  <a href="#テスト結果"><img src="https://img.shields.io/badge/テスト-363_passed-brightgreen" alt="tests" /></a>
+  <a href="#テスト結果"><img src="https://img.shields.io/badge/テスト-354_passed-brightgreen" alt="tests" /></a>
   <a href="https://github.com/koatora20/guard-scanner/actions/workflows/codeql.yml"><img src="https://img.shields.io/badge/CodeQL-有効-181717" alt="CodeQL" /></a>
   <a href="https://doi.org/10.5281/zenodo.18906684"><img src="https://img.shields.io/badge/DOI-Zenodo-blue" alt="DOI" /></a>
   <a href="https://github.com/koatora20/guard-scanner/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="MIT" /></a>
@@ -157,7 +157,7 @@ v16 の JSON / MCP 出力では各 finding に `layer`, `layer_name`, `owasp_asi
 | 4. 行動分析 | リサーチ未実施での実行、ハルシネーション駆動アクション |
 | 5. 信頼搾取 | 権限主張攻撃、作成者なりすまし |
 
-**27のランタイムチェック**を5層で実行。公開互換の保証面は OpenClaw `v2026.3.8` の manifest/discovery/`before_tool_call` に固定し、新しい upstream は drift watchdog で別途追跡する。
+**27のランタイムチェック**を5層で実行。検証済みの安定ターゲットは OpenClaw `v2026.3.13`、回帰ベースラインは manifest/discovery/`before_tool_call` の `v2026.3.8`。
 
 モード: `monitor`（ログのみ）· `enforce`（CRITICAL をブロック、デフォルト）· `strict`（HIGH+をブロック）
 
@@ -229,13 +229,13 @@ MCPサーバーとして実行時に公開されるツール：
 ## テスト結果
 
 ```
-ℹ tests    363
-ℹ suites   94
-ℹ pass     363
+ℹ tests    354
+ℹ suites   35
+ℹ pass     354
 ℹ fail     0
 ```
 
-テストファイル28件。`npm test` で再現可能。[ベンチマークコーパス](docs/data/corpus-metrics.json) 100%パス。
+テストファイル35件。`npm test` で再現可能。[ベンチマークコーパス](docs/data/corpus-metrics.json) 100%パス。
 
 ---
 

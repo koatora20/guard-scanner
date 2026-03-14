@@ -59,12 +59,12 @@ describe('OpenClaw package discovery metadata', () => {
     it('uses official openclaw.extensions array', () => {
         const pkg = JSON.parse(fs.readFileSync(PACKAGE_JSON, 'utf8'));
         assert.deepEqual(pkg.openclaw.extensions, ['./dist/openclaw-plugin.mjs']);
-        assert.equal(pkg.devDependencies.openclaw, '2026.3.12');
+        assert.equal(pkg.devDependencies.openclaw, '2026.3.13');
     });
 
     it('keeps the regression baseline older than the latest stable pin', () => {
         const pkg = JSON.parse(fs.readFileSync(PACKAGE_JSON, 'utf8'));
-        assert.equal(pkg.devDependencies.openclaw, '2026.3.12');
+        assert.equal(pkg.devDependencies.openclaw, '2026.3.13');
         assert.notEqual(pkg.devDependencies.openclaw, '2026.3.8');
     });
 });

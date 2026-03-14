@@ -19,17 +19,17 @@
   "layers": [
     {
       "id": "layer_a",
-      "corpus": "test/fixtures/corpus/security-corpus.json",
+      "corpus": "tests/fixtures/corpus/security-corpus.json",
       "scanner_options": {}
     },
     {
       "id": "layer_b",
-      "corpus": "test/fixtures/corpus/adversarial-corpus.json",
+      "corpus": "tests/fixtures/corpus/adversarial-corpus.json",
       "scanner_options": {}
     },
     {
       "id": "layer_c",
-      "corpus": "test/fixtures/corpus/ecosystem-corpus.json",
+      "corpus": "tests/fixtures/corpus/ecosystem-corpus.json",
       "scanner_options": {}
     }
   ]

@@ -1,6 +1,6 @@
 ---
 name: guard-scanner
-description: "Security scanner and runtime guard for AI agent skills. 358 static threat patterns across 35 categories + 27 runtime checks, with v16 5-layer analysis output (`layer`, `layer_name`, `owasp_asi`, `protocol_surface`) and `--compliance owasp-asi`. Use when scanning skill directories for security threats, auditing npm/GitHub/ClawHub assets for leaked credentials, running real-time file watch during development, integrating security checks into CI/CD pipelines (SARIF/JSON), setting up MCP server for editor-integrated scanning (Cursor, Windsurf, Claude Code, OpenClaw), or runtime guarding tool calls via the OpenClaw v2026.3.8 before_tool_call compatibility surface. Single dependency (ws). MIT licensed."
+description: "Security scanner and runtime guard for AI agent skills. 358 static threat patterns across 35 categories + 27 runtime checks, with v16 5-layer analysis output (`layer`, `layer_name`, `owasp_asi`, `protocol_surface`) and `--compliance owasp-asi`. Use when scanning skill directories for security threats, auditing npm/GitHub/ClawHub assets for leaked credentials, running real-time file watch during development, integrating security checks into CI/CD pipelines (SARIF/JSON), setting up MCP server for editor-integrated scanning (Cursor, Windsurf, Claude Code, OpenClaw), or runtime guarding tool calls validated against OpenClaw v2026.3.13 with a v2026.3.8 regression lane. Single dependency (ws). MIT licensed."
 license: MIT
 metadata: {"openclaw": {"requires": {"bins": ["node"]}}}
 ---
@@ -112,7 +112,7 @@ guard-scanner scan ./skills/ --vt-scan
 
 ## Runtime Guard
 
-The validated OpenClaw surface is the compiled runtime plugin entry (`dist/openclaw-plugin.mjs`) discovered through `package.json > openclaw.extensions` and mounted on `before_tool_call` for OpenClaw `v2026.3.8`. Newer upstream releases are measured by the drift watchdog before any public compatibility claim is widened.
+The validated OpenClaw surface is the compiled runtime plugin entry (`dist/openclaw-plugin.mjs`) discovered through `package.json > openclaw.extensions` and mounted on `before_tool_call` for OpenClaw `v2026.3.13`, with regression coverage kept on `v2026.3.8`.
 
 The `before_tool_call` hook provides 27 runtime checks across 5 defense layers, while v16 scan output adds a second 5-layer analysis view:
 
@@ -175,7 +175,7 @@ guard-scanner ./skills/ --plugin ./my-plugin.js
 
 ## Threat Categories
 
-35 categories covering OWASP LLM Top 10 + Agentic Security Top 10. See `src/patterns.js` for the full pattern database. Key categories:
+35 categories covering OWASP LLM Top 10 + Agentic Security Top 10. See `src/patterns.ts` for the full pattern database. Key categories:
 
 - **Prompt Injection** — hidden instructions, invisible Unicode, homoglyphs
 - **Identity Hijacking** ⚿ — persona swap, SOUL.md overwrites, memory wipe

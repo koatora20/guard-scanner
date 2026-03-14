@@ -9,7 +9,7 @@ import path from 'node:path';
 import { GuardScanner }  from '../src/scanner';
 
 const ROOT = path.join(__dirname, '..');
-const corpusPath = path.join(ROOT, 'test', 'fixtures', 'corpus', 'security-corpus.json');
+const corpusPath = path.join(ROOT, 'tests', 'fixtures', 'corpus', 'security-corpus.json');
 const outputPath = path.join(ROOT, 'docs', 'data', 'corpus-metrics.json');
 const corpus = JSON.parse(fs.readFileSync(corpusPath, 'utf8'));
 const scanner = new GuardScanner({ quiet: true, summaryOnly: true });

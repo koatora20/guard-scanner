@@ -8,6 +8,8 @@ import path from 'node:path';
 
 const specPath = path.join(__dirname, '../docs/spec/capabilities.json');
 const spec = JSON.parse(fs.readFileSync(specPath, 'utf8'));
+const TEST_DIR = path.join(__dirname, '../tests');
+const TEST_FILE_REGEX = /\.test\.(?:ts|js)$/;
 
 const filesToCheck = [
     {
@@ -117,13 +119,12 @@ for (const fileDef of filesToCheck) {
 
 // Verify test file count against spec
 if (spec.test_file_count !== undefined) {
-    const testDir = path.join(__dirname, '../test');
-    const testFiles = fs.readdirSync(testDir).filter(f => f.endsWith('.test.ts'));
+    const testFiles = fs.readdirSync(TEST_DIR).filter(f => TEST_FILE_REGEX.test(f));
     if (testFiles.length !== spec.test_file_count) {
-        console.error(`❌ [test/] Test file count mismatch: expected ${spec.test_file_count}, got ${testFiles.length}`);
+        console.error(`❌ [tests/] Test file count mismatch: expected ${spec.test_file_count}, got ${testFiles.length}`);
         errors++;
     } else {
-        console.log(`✅ [test/] Test file count matches (${testFiles.length})`);
+        console.log(`✅ [tests/] Test file count matches (${testFiles.length})`);
     }
 }
 

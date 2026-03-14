@@ -66,7 +66,7 @@ function validatePackedFiles(entry: PackEntry, pkg: Record<string, any>) {
     "dist/index.d.ts",
     "dist/openclaw-plugin.mjs",
     "dist/openclaw-plugin.cjs",
-    "dist/openclaw-plugin.d.mts",
+    "dist/openclaw-plugin.d.ts",
     "dist/mcp-server.mjs",
     "dist/mcp-server.cjs",
     "dist/types.d.ts",
@@ -126,7 +126,7 @@ function validateCleanInstall(entry: PackEntry, pkg: Record<string, any>) {
   ).trim();
   assert(new RegExp(`guard-scanner v${pkg.version}`).test(binVersion), `unexpected .bin version output: ${binVersion}`);
 
-  const fixturePath = path.join(ROOT, "test", "fixtures", "benign", "math-helper");
+  const fixturePath = path.join(ROOT, "tests", "fixtures", "benign", "math-helper");
   const binScan = execFileSync(
     path.join(installDir, "node_modules", ".bin", "guard-scanner"),
     [fixturePath, "--compliance", "owasp-asi", "--format", "json"],
@@ -153,7 +153,7 @@ function validateCleanInstall(entry: PackEntry, pkg: Record<string, any>) {
     "node",
     [
       "-e",
-      "import pkg from '@guava-parity/guard-scanner'; import plugin from '@guava-parity/guard-scanner/plugin'; console.log(typeof pkg.GuardScanner, typeof pkg.scanToolCall, typeof pkg.MCPServer, typeof (plugin.default ?? plugin).register);",
+      "import * as pkg from '@guava-parity/guard-scanner'; import plugin from '@guava-parity/guard-scanner/plugin'; console.log(typeof pkg.GuardScanner, typeof pkg.scanToolCall, typeof pkg.MCPServer, typeof (plugin.default ?? plugin).register);",
     ],
     {
       cwd: installDir,

@@ -16,10 +16,11 @@ import pluginJson  from '../openclaw.plugin.json';
 
 const specDir = path.join(__dirname, '../docs/spec');
 const capabilitiesPath = path.join(specDir, 'capabilities.json');
-const testDir = path.join(__dirname, '../test');
+const testDir = path.join(__dirname, '../tests');
 const dataDir = path.join(__dirname, '../docs/data');
 const qualityContractPath = path.join(dataDir, 'quality-contract.json');
 const benchmarkLedgerPath = path.join(dataDir, 'benchmark-ledger.json');
+const TEST_FILE_REGEX = /\.test\.(?:ts|js)$/;
 
 if (!fs.existsSync(specDir)) {
     fs.mkdirSync(specDir, { recursive: true });
@@ -27,7 +28,7 @@ if (!fs.existsSync(specDir)) {
 
 // Calculate true values from source code — single source of truth
 const categories = new Set(PATTERNS.map(p => p.cat));
-const testFiles = fs.readdirSync(testDir).filter(f => f.endsWith('.test.ts'));
+const testFiles = fs.readdirSync(testDir).filter(f => TEST_FILE_REGEX.test(f));
 const qualityContract = JSON.parse(fs.readFileSync(qualityContractPath, 'utf8'));
 const benchmarkLedger = fs.existsSync(benchmarkLedgerPath)
     ? JSON.parse(fs.readFileSync(benchmarkLedgerPath, 'utf8'))

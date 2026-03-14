@@ -1,7 +1,7 @@
 # guard-scanner Continuous OpenClaw Compatibility Plan
 
 Date: 2026-03-12
-Stable target: OpenClaw `2026.3.12`
+Stable target: OpenClaw `2026.3.13`
 Baseline regression lane: OpenClaw `2026.3.8`
 
 ## Goal

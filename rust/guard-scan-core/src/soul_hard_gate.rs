@@ -124,7 +124,7 @@ pub struct SoulHardGate {
     verifying_key: VerifyingKey,
     audit_log: VecDeque<AuditLogEntry>,
     /// ロールバック用のスナップショット保持数
-    max_snapshots: usize,
+    _max_snapshots: usize,
     /// クリティカルセクションのロック
     critical_locked: bool,
 }
@@ -138,7 +138,7 @@ impl SoulHardGate {
             signing_key,
             verifying_key,
             audit_log: VecDeque::new(),
-            max_snapshots: 30,
+            _max_snapshots: 30,
             critical_locked: false,
         }
     }
@@ -151,7 +151,7 @@ impl SoulHardGate {
             signing_key,
             verifying_key,
             audit_log: VecDeque::new(),
-            max_snapshots: 30,
+            _max_snapshots: 30,
             critical_locked: false,
         }
     }
@@ -287,7 +287,7 @@ impl SoulHardGate {
         &self,
         old_content: &str,
         new_content: &str,
-        old_record: &ProvenanceRecord,
+        _old_record: &ProvenanceRecord,
     ) -> MutationAnalysis {
         let old_sections = Self::parse_sections(old_content);
         let new_sections = Self::parse_sections(new_content);

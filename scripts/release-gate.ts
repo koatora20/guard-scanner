@@ -23,7 +23,7 @@ const docsToAudit = [
   path.join(ROOT, 'CHANGELOG.md'),
 ];
 
-const expectedOpenClawVersion = '2026.3.12';
+const expectedOpenClawVersion = '2026.3.13';
 const supportedBaselineVersion = '2026.3.8';
 const expectedExports = {
   '.': {
@@ -34,7 +34,7 @@ const expectedExports = {
   './plugin': {
     import: './dist/openclaw-plugin.mjs',
     require: './dist/openclaw-plugin.cjs',
-    types: './dist/openclaw-plugin.d.mts',
+    types: './dist/openclaw-plugin.d.ts',
   },
   './mcp': {
     import: './dist/mcp-server.mjs',

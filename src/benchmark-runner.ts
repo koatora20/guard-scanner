@@ -1,7 +1,3 @@
-import { fileURLToPath } from 'node:url';
-import { dirname } from 'node:path';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 // @ts-nocheck
 'use strict';
 
@@ -10,8 +6,9 @@ import path  from 'path';
 
 import { GuardScanner  } from './scanner';
 import { RuleRegistry  } from './core/rule-registry';
+import { getCurrentModuleDir } from './module-path';
 
-const ROOT = path.join(__dirname, '..');
+const ROOT = path.join(getCurrentModuleDir(), '..');
 const DEFAULT_QUALITY_CONTRACT_PATH = path.join(ROOT, 'docs', 'data', 'quality-contract.json');
 
 function readJson(filePath) {

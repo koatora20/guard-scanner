@@ -88,7 +88,7 @@ function collectFiles(dir: string): string[] {
 }
 
 function runCli(): void {
-  const targets = ['src', 'scripts', 'test']
+  const targets = ['src', 'scripts', 'tests']
     .map((dir) => path.join(ROOT, dir))
     .flatMap((dir) => collectLintTargets(dir));
 

@@ -12,7 +12,7 @@
 <p align="center">
   <a href="https://www.npmjs.com/package/@guava-parity/guard-scanner"><img src="https://img.shields.io/npm/v/@guava-parity/guard-scanner?color=cb3837&label=npm" alt="npm" /></a>
   <a href="https://www.npmjs.com/package/@guava-parity/guard-scanner"><img src="https://img.shields.io/npm/dm/@guava-parity/guard-scanner?color=blue&label=downloads" alt="downloads" /></a>
-  <a href="#test-results"><img src="https://img.shields.io/badge/tests-363%20passed-brightgreen" alt="tests" /></a>
+  <a href="#test-results"><img src="https://img.shields.io/badge/tests-354%20passed-brightgreen" alt="tests" /></a>
   <a href="https://github.com/koatora20/guard-scanner/actions/workflows/codeql.yml"><img src="https://img.shields.io/badge/CodeQL-enabled-181717" alt="CodeQL" /></a>
   <a href="https://doi.org/10.5281/zenodo.18906684"><img src="https://img.shields.io/badge/DOI-Zenodo-blue" alt="DOI" /></a>
   <a href="https://github.com/koatora20/guard-scanner/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="MIT" /></a>
@@ -153,7 +153,7 @@ Every v16 finding can now carry `layer`, `layer_name`, `owasp_asi`, and `protoco
 | 4. Behavioral Analysis | No-research execution, hallucination-driven actions |
 | 5. Trust Exploitation | Authority claim attacks, creator impersonation |
 
-**27 runtime checks** across 5 layers. Public compatibility is pinned to OpenClaw `v2026.3.8` for manifest/discovery/`before_tool_call`; newer upstream releases are tracked separately by the upstream drift watchdog.
+**27 runtime checks** across 5 layers. Validated stable target: OpenClaw `v2026.3.13`. Regression baseline: `v2026.3.8` for manifest/discovery/`before_tool_call`.
 
 Modes: `monitor` (log only) · `enforce` (block CRITICAL, default) · `strict` (block HIGH+)
 
@@ -247,13 +247,13 @@ Evidence artifacts:
 ## Test Results
 
 ```
-ℹ tests    363
-ℹ suites   94
-ℹ pass     363
+ℹ tests    354
+ℹ suites   35
+ℹ pass     354
 ℹ fail     0
 ```
 
-28 test files. Run `npm test` to reproduce. 100% pass rate on [benchmark corpus](docs/data/corpus-metrics.json).
+35 test files. Run `npm test` to reproduce. 100% pass rate on [benchmark corpus](docs/data/corpus-metrics.json).
 
 ---
 
