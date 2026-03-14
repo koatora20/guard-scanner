@@ -1,5 +1,73 @@
 # Changelog
 
+## [16.0.1] - 2026-03-14
+
+### CLI Compatibility Patch
+
+#### Changed
+- Moved the published CLI entrypoint to a root launcher so npm, npx, and npm exec resolve `guard-scanner` through a more conservative package layout.
+- Tightened tarball validation to execute the installed `.bin/guard-scanner` path, validate `npm exec --package <tarball>`, and verify MCP import surface after clean install.
+- Normalized `repository.url` to npm's canonical `git+https://...` format.
+
+#### Validation
+- `npm test` → passed
+- `npm run test:contracts` → passed
+- `npm run test:rust-parity` → passed
+- `npm run benchmark` → passed
+- `npm run release:gate` → passed
+- `npm pack --dry-run` → passed
+- `npm publish --dry-run` → passed
+
+#### Evidence
+- npm package version: **16.0.1**
+- plugin manifest version: **16.0.1**
+
+## [16.0.0] - 2026-03-14
+
+### v16 Ship-Ready Release Candidate
+
+#### Added
+- Introduced the v16 5-layer analysis taxonomy: Static Analysis, Protocol Analysis, Runtime Behavior, Cognitive Threat Detection, and Threat Intelligence.
+- Added additive finding metadata across JSON/MCP/report surfaces: `layer`, `layer_name`, `owasp_asi`, and `protocol_surface`.
+- Added `--compliance owasp-asi` to project scan output onto the OWASP Agentic Top 10 mapping without changing scan semantics.
+- Added protocol/runtime fixtures for v16 regression coverage, including protocol-surface and Rust runtime-evidence scenarios.
+
+#### Changed
+- Bumped public package and plugin metadata to **16.0.0**.
+- Extended `scan_skill`, `scan_text`, and `get_stats` MCP outputs with v16 layer and ASI summaries.
+- Extended capabilities generation to advertise the v16 5-layer surface and compliance mode in `docs/spec/capabilities.json`.
+- Runtime evidence from Rust `memory_integrity` and `soul_hard_gate` is now represented in the TypeScript reporting path.
+
+#### Validation
+- `npm test` → **363 passed / 94 suites / 0 failed**
+- `npm run test:contracts` → passed
+- `npm run test:rust-parity` → passed (warnings only)
+- `npm run benchmark` → passed
+- `npm run release:gate` → passed
+
+#### Evidence
+- npm package version: **16.0.0**
+- plugin manifest version: **16.0.0**
+- capabilities spec: **358 patterns / 35 categories / 27 runtime checks / 5 analysis layers**
+
+## [15.0.0] - 2026-03-12
+
+### Public Surface Recovery + Release Evidence Sync
+
+#### Changed
+- Locked public release claims to the current metrics baseline: **358 patterns / 35 categories / 27 runtime checks / 332 passing tests / 85 suites**
+- Added a shared metrics source for homepage, agent card, and Sanctuary worker consumers
+- Narrowed stale public drift by aligning release evidence to the current npm package and OpenClaw-facing surfaces
+
+#### Documentation
+- Homepage and agent card now consume the shared GPI metrics baseline instead of stale v13 copy
+- Sanctuary worker release claims updated to match guard-scanner v15
+
+#### Evidence
+- npm package version: **15.0.0**
+- guard-scanner capabilities spec: **358 / 35 / 27**
+- public audit target: homepage + agent card + Sanctuary worker
+
 ## [14.0.0] - 2026-03-08
 
 ### 🛡️ P0 Spec Governance & Security Claim Rewrite

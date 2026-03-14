@@ -1,7 +1,8 @@
 # guard-scanner OpenClaw Compatibility Audit
 
 Date: 2026-03-12
-Target baseline: OpenClaw `v2026.3.8`
+Public compatibility baseline: OpenClaw `v2026.3.8`
+Upstream drift lane: newer OpenClaw stable releases measured separately by `check:upstream`
 
 ## Official upstream requirements used
 
@@ -20,7 +21,7 @@ Target baseline: OpenClaw `v2026.3.8`
 | Runtime hook registration | ✅ | `openclaw-plugin.mts` registers `before_tool_call` with priority 90 |
 | Malicious tool-call blocking | ✅ | `test/openclaw-plugin-compat.test.js` + `scripts/release-gate.js` |
 | Benign tool-call passthrough | ✅ | `test/openclaw-plugin-compat.test.js` + `scripts/release-gate.js` |
-| Upstream latest-version drift detection | ✅ | `npm run check:upstream` + `docs/generated/openclaw-upstream-status.json` (npm + GitHub Releases parity) |
+| Upstream latest-version drift detection | ✅ | `npm run check:upstream` + `docs/generated/openclaw-upstream-status.json` (used for revalidation, not automatic claim widening) |
 
 ## Explicitly out of scope
 

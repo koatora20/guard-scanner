@@ -1,8 +1,8 @@
 {
   "id": "guard-scanner",
   "name": "guard-scanner",
-  "description": "Runtime guard plugin for OpenClaw before_tool_call enforcement.",
-  "version": "15.0.0",
+  "description": "Runtime guard plugin for OpenClaw before_tool_call enforcement with capability-scoped policy rationale.",
+  "version": "16.0.1",
   "configSchema": {
     "type": "object",
     "properties": {

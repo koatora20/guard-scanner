@@ -8,9 +8,9 @@ We are building this tool to provide a lightweight, evidence-driven safety net f
 
 ### Adding Threat Patterns
 
-The easiest way to contribute is adding or refining detection patterns in `src/patterns.js`, then adding semantic validation or scoring updates where needed.
+The easiest way to contribute is adding or refining detection patterns in `src/patterns.ts`, then adding semantic validation or scoring updates where needed.
 
-```javascript
+```typescript
 {
     id: 'YOUR_ID',           // Unique ID (CATEGORY_NAME format)
     cat: 'category-name',    // Threat category
@@ -23,7 +23,7 @@ The easiest way to contribute is adding or refining detection patterns in `src/p
 
 ### Adding IoCs
 
-Add known malicious indicators to `src/ioc-db.js`:
+Add known malicious indicators to `src/ioc-db.ts`:
 - IPs, domains, URLs, usernames, filenames, or typosquat names
 
 ### Development
@@ -33,17 +33,17 @@ Add known malicious indicators to `src/ioc-db.js`:
 npm test
 
 # Scan the test fixtures
-node src/cli.js test/fixtures/ --verbose --check-deps
+npx tsx src/cli.ts tests/fixtures/ --verbose --check-deps
 
 # Run with all output formats
-node src/cli.js test/fixtures/ --json --sarif --html --verbose
+npx tsx src/cli.ts tests/fixtures/ --json --sarif --html --verbose
 ```
 
 ### Pull Request Checklist
 
-- [ ] Tests pass (`npm test` — currently 342 tests / 84 suites)
-- [ ] New patterns have test coverage in `test/scanner.test.js`
-- [ ] No false positives against `test/fixtures/clean-skill/`
+- [ ] Tests pass (`npm test` — currently 354 tests / 35 suites)
+- [ ] New patterns have test coverage in `tests/scanner.test.ts`
+- [ ] No false positives against `tests/fixtures/clean-skill/`
 - [ ] Severity level is appropriate (see `docs/THREAT_TAXONOMY.md`)
 - [ ] Description is clear and references source (Snyk, OWASP, CVE, etc.)
 - [ ] Documentation and capability counts stay in sync (`docs/spec/capabilities.json`)

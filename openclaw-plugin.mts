@@ -1,8 +1,8 @@
-import { createRequire } from "node:module";
 import type { OpenClawPluginApi } from "openclaw/plugin-sdk/core";
+import * as runtimeGuard from "./src/index.js";
 
-const require = createRequire(import.meta.url);
-const runtimeGuard = require("../src/runtime-guard.js") as {
+const runtimeGuardApi = runtimeGuard as {
+    VERSION: string;
     scanToolCall: (
         toolName: string,
         params: Record<string, unknown>,
@@ -14,6 +14,14 @@ const runtimeGuard = require("../src/runtime-guard.js") as {
             runId?: string;
             toolCallId?: string;
             agentId?: string;
+            policy?: {
+                id?: string;
+                allowed_tools?: string[];
+                blocked_tools?: string[];
+                max_network_scope?: "none" | "internal-only" | "external-ok";
+                secret_bearing_context?: boolean;
+                memory_write_permission?: boolean;
+            };
         },
     ) => {
         blocked: boolean;
@@ -35,6 +43,14 @@ type PluginHookToolContext = {
     runId?: string;
     toolName: string;
     toolCallId?: string;
+    policy?: {
+        id?: string;
+        allowed_tools?: string[];
+        blocked_tools?: string[];
+        max_network_scope?: "none" | "internal-only" | "external-ok";
+        secret_bearing_context?: boolean;
+        memory_write_permission?: boolean;
+    };
 };
 
 function resolveMode(pluginConfig?: Record<string, unknown>): GuardMode | undefined {
@@ -54,7 +70,7 @@ function beforeToolCall(
     ctx: PluginHookToolContext,
     api: OpenClawPluginApi,
 ) {
-    const result = runtimeGuard.scanToolCall(event.toolName, event.params, {
+    const result = runtimeGuardApi.scanToolCall(event.toolName, event.params, {
         mode: resolveMode(api.pluginConfig),
         auditLog: resolveAuditLog(api.pluginConfig),
         sessionKey: ctx.sessionKey,
@@ -62,6 +78,7 @@ function beforeToolCall(
         runId: ctx.runId ?? event.runId,
         toolCallId: ctx.toolCallId ?? event.toolCallId,
         agentId: ctx.agentId,
+        policy: ctx.policy,
     });
 
     if (!result.blocked) return;
@@ -74,7 +91,7 @@ function beforeToolCall(
 const plugin = {
     id: "guard-scanner",
     name: "guard-scanner",
-    version: "15.0.0",
+    version: runtimeGuardApi.VERSION,
     description: "Runtime guard for OpenClaw before_tool_call hook execution.",
     register(api: OpenClawPluginApi) {
         api.on(
@@ -83,7 +100,7 @@ const plugin = {
             { priority: 90 },
         );
         api.logger.info(
-            "guard-scanner registered OpenClaw before_tool_call hook (validated for v2026.3.8).",
+            "guard-scanner registered OpenClaw before_tool_call hook (stable: v2026.3.13, regression lane: v2026.3.8).",
         );
     },
 };

@@ -12,7 +12,7 @@
 <p align="center">
   <a href="https://www.npmjs.com/package/@guava-parity/guard-scanner"><img src="https://img.shields.io/npm/v/@guava-parity/guard-scanner?color=cb3837&label=npm" alt="npm" /></a>
   <a href="https://www.npmjs.com/package/@guava-parity/guard-scanner"><img src="https://img.shields.io/npm/dm/@guava-parity/guard-scanner?color=blue&label=downloads" alt="downloads" /></a>
-  <a href="#test-results"><img src="https://img.shields.io/badge/tests-332%20passed-brightgreen" alt="tests" /></a>
+  <a href="#test-results"><img src="https://img.shields.io/badge/tests-354%20passed-brightgreen" alt="tests" /></a>
   <a href="https://github.com/koatora20/guard-scanner/actions/workflows/codeql.yml"><img src="https://img.shields.io/badge/CodeQL-enabled-181717" alt="CodeQL" /></a>
   <a href="https://doi.org/10.5281/zenodo.18906684"><img src="https://img.shields.io/badge/DOI-Zenodo-blue" alt="DOI" /></a>
   <a href="https://github.com/koatora20/guard-scanner/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="MIT" /></a>
@@ -27,9 +27,9 @@
 Traditional security tools catch malware. **guard-scanner** catches what they miss: invisible Unicode injections hiding in agent instructions, identity theft through SOUL.md overwrites, memory poisoning via crafted conversations, and worm-like contagion spreading between chained agents.
 
 ```
-$ npx @guava-parity/guard-scanner ./skills/ --strict --soul-lock
+$ npx @guava-parity/guard-scanner ./skills/ --strict --soul-lock --compliance owasp-asi
 
-  guard-scanner v15.0.0
+  guard-scanner v16.0.1
 
   ⚠  CRITICAL  identity-hijack   SOUL_OVERWRITE_ATTEMPT
      skills/imported-tool/SKILL.md:47
@@ -60,6 +60,14 @@ Every finding includes: `rule_id`, `category`, `severity`, `description`, `ratio
 
 ```bash
 npx -y @guava-parity/guard-scanner ./my-skills/ --strict
+npx -y @guava-parity/guard-scanner ./my-skills/ --compliance owasp-asi
+```
+
+**Installed CLI**:
+
+```bash
+npm install -g @guava-parity/guard-scanner
+guard-scanner ./my-skills/ --strict
 ```
 
 **Start as MCP server** — works with Cursor, Windsurf, Claude Code, OpenClaw:
@@ -84,6 +92,18 @@ npx -y @guava-parity/guard-scanner serve
 
 ```bash
 guard-scanner watch ./skills/ --strict --soul-lock
+```
+
+**v16 compliance projection** — filter findings to the OWASP Agentic Top 10 mapping:
+
+```bash
+guard-scanner ./skills/ --compliance owasp-asi --format json
+```
+
+**`npm exec` compatibility path**:
+
+```bash
+npm exec --yes --package=@guava-parity/guard-scanner -- guard-scanner ./skills/ --strict
 ```
 
 ---
@@ -111,7 +131,19 @@ guard-scanner watch ./skills/ --strict --soul-lock
 
 ## Runtime Guard
 
-guard-scanner isn't just a static scanner — it provides a real-time **`before_tool_call`** hook that intercepts dangerous tool invocations during agent execution.
+guard-scanner v16 isn't just a static scanner — it exposes a 5-layer analysis pipeline across static scan, protocol analysis, runtime evidence, cognitive heuristics, and threat-intelligence overlays. It also provides a real-time **`before_tool_call`** hook that intercepts dangerous tool invocations during agent execution.
+
+### v16 Analysis Layers
+
+| Layer | Purpose |
+|------|---------|
+| 1. Static Analysis | Patterns, AST/data-flow signals, manifest and dependency checks |
+| 2. Protocol Analysis | MCP, A2A, WebSocket, credential-flow, session-boundary findings |
+| 3. Runtime Behavior | Runtime guard evidence plus Rust `memory_integrity` / `soul_hard_gate` signals |
+| 4. Cognitive Threat Detection | Goal-drift, trust-bias, cascading handoff heuristics |
+| 5. Threat Intelligence | Registry/provenance, machine identity, budget abuse, supply chain hints |
+
+Every v16 finding can now carry `layer`, `layer_name`, `owasp_asi`, and `protocol_surface` in JSON/MCP output.
 
 | Defense Layer | What It Blocks |
 |---------------|---------------|
@@ -121,7 +153,7 @@ guard-scanner isn't just a static scanner — it provides a real-time **`before_
 | 4. Behavioral Analysis | No-research execution, hallucination-driven actions |
 | 5. Trust Exploitation | Authority claim attacks, creator impersonation |
 
-**27 runtime checks** across 5 layers. Validated against OpenClaw `v2026.3.8`.
+**27 runtime checks** across 5 layers. Validated stable target: OpenClaw `v2026.3.13`. Regression baseline: `v2026.3.8` for manifest/discovery/`before_tool_call`.
 
 Modes: `monitor` (log only) · `enforce` (block CRITICAL, default) · `strict` (block HIGH+)
 
@@ -155,19 +187,6 @@ Output formats: `json` · `sarif` · `html` · terminal
 
 ---
 
-## VirusTotal Integration
-
-Combine guard-scanner's semantic analysis with VirusTotal's 70+ antivirus engines:
-
-```bash
-export VT_API_KEY=your-key
-guard-scanner scan ./skills/ --vt-scan
-```
-
-Optional — guard-scanner works fully standalone. Free tier: 4 req/min, 500/day.
-
----
-
 ## Plugin API
 
 Extend guard-scanner with custom detection patterns:
@@ -184,7 +203,7 @@ module.exports = {
 ```
 
 ```bash
-guard-scanner scan ./skills/ --plugin ./my-plugin.js
+guard-scanner ./skills/ --plugin ./my-plugin.js
 ```
 
 ---
@@ -196,23 +215,45 @@ When running as an MCP server, guard-scanner exposes:
 | Tool | Description |
 |------|-------------|
 | `scan_skill` | Scan a skill directory for threats |
-| `scan_text` | Scan arbitrary text for injection patterns |
+| `scan_text` | Scan arbitrary text for injection patterns and ASI-mapped findings |
 | `check_tool_call` | Runtime validation of a single tool invocation |
 | `audit_assets` | Audit npm/GitHub/ClawHub for credential exposure |
-| `get_stats` | Return scanner capabilities and pattern counts |
+| `get_stats` | Return scanner capabilities, 5-layer summary, and ASI coverage |
+
+---
+
+## Quality Contract
+
+guard-scanner ships a measured quality contract, not a vague strength claim.
+
+| Metric | Contract |
+|--------|----------|
+| Benchmark corpus | `2026-03-13.quality-v1` |
+| Precision target | `>= 0.90` |
+| Recall target | `>= 0.90` |
+| False Positive Rate budget | `<= 0.10` |
+| False Negative Rate budget | `<= 0.10` |
+| Explainability completeness | `1.0` |
+| Runtime policy latency budget | `5ms` |
+
+Evidence artifacts:
+- `docs/data/corpus-metrics.json`
+- `docs/data/benchmark-ledger.json`
+- `docs/data/fp-ledger.json`
+- `docs/spec/capabilities.json`
 
 ---
 
 ## Test Results
 
 ```
-ℹ tests    332
-ℹ suites   85
-ℹ pass     332
+ℹ tests    354
+ℹ suites   35
+ℹ pass     354
 ℹ fail     0
 ```
 
-23 test files. Run `npm test` to reproduce. 100% pass rate on [benchmark corpus](docs/data/corpus-metrics.json).
+35 test files. Run `npm test` to reproduce. 100% pass rate on [benchmark corpus](docs/data/corpus-metrics.json).
 
 ---
 

@@ -1,0 +1,18 @@
+{
+  "benchmark_version": "2026-03-13.quality-v1",
+  "generatedAt": "2026-03-14T19:01:47.124Z",
+  "entries": [
+    {
+      "layer": "layer_b",
+      "sample_id": "adv-benign-06",
+      "title": "secret-placeholder",
+      "risk": 3,
+      "matched_categories": [
+        "credential-handling"
+      ],
+      "detection_ids": [
+        "CRED_ENV_REF"
+      ]
+    }
+  ]
+}
