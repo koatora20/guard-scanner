@@ -45,7 +45,7 @@
     "./dist/openclaw-plugin.cjs"
   ],
   "bin": {
-    "guard-scanner": "./dist/cli.cjs"
+    "guard-scanner": "dist/cli.cjs"
   },
   "scripts": {
     "build": "tsup --config tsup.config.ts",

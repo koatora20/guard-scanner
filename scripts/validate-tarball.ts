@@ -18,7 +18,7 @@ function assert(condition: unknown, message: string): asserts condition {
   }
 }
 
-function runNpm(args: string[], cwd: string): string {
+function runNpm(args: string[], cwd: string, envOverrides: Record<string, string> = {}): string {
   return execFileSync("npm", args, {
     cwd,
     encoding: "utf8",
@@ -27,14 +27,23 @@ function runNpm(args: string[], cwd: string): string {
       ...process.env,
       npm_config_audit: "false",
       npm_config_fund: "false",
+      ...envOverrides,
     },
   });
 }
 
 function getPackEntry(): PackEntry {
-  const stdout = runNpm(["pack", "--json", "--ignore-scripts"], ROOT);
+  const stdout = runNpm(
+    ["pack", "--json", "--ignore-scripts"],
+    ROOT,
+    {
+      // `npm pack --dry-run` and `npm publish --dry-run` propagate dry-run to child npm
+      // invocations through npm_config_dry_run, which suppresses tarball creation.
+      npm_config_dry_run: "false",
+    },
+  );
   const parsed = JSON.parse(stdout) as PackEntry[];
-  assert(Array.isArray(parsed) && parsed.length > 0, "npm pack --json --dry-run returned no metadata");
+  assert(Array.isArray(parsed) && parsed.length > 0, "npm pack --json returned no metadata");
   return parsed[0];
 }
 
@@ -81,13 +90,20 @@ function validatePackedFiles(entry: PackEntry, pkg: Record<string, any>) {
 function validateCleanInstall(entry: PackEntry) {
   assert(entry.filename, "npm pack metadata missing filename");
   const tarballPath = path.join(ROOT, entry.filename);
+  assert(fs.existsSync(tarballPath), `npm pack did not create expected tarball: ${tarballPath}`);
   const installDir = fs.mkdtempSync(path.join(os.tmpdir(), "guard-scanner-install-"));
   fs.writeFileSync(
     path.join(installDir, "package.json"),
     JSON.stringify({ name: "guard-scanner-smoke", private: true }, null, 2),
   );
 
-  runNpm(["install", "--ignore-scripts", "--no-package-lock", "--no-audit", "--no-fund", tarballPath], installDir);
+  runNpm(
+    ["install", "--ignore-scripts", "--no-package-lock", "--no-audit", "--no-fund", tarballPath],
+    installDir,
+    {
+      npm_config_dry_run: "false",
+    },
+  );
 
   const installedRoot = path.join(installDir, "node_modules", "@guava-parity", "guard-scanner");
   assert(fs.existsSync(path.join(installedRoot, "dist", "index.mjs")), "clean install missing dist/index.mjs");

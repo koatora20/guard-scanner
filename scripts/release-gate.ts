@@ -85,8 +85,8 @@ export async function runReleaseGate(): Promise<void> {
       }
     }
 
-    if (pkg.bin?.['guard-scanner'] !== './dist/cli.cjs') {
-      fail(`package.json bin.guard-scanner must be ./dist/cli.cjs, got ${pkg.bin?.['guard-scanner'] || 'missing'}`);
+    if (pkg.bin?.['guard-scanner'] !== 'dist/cli.cjs') {
+      fail(`package.json bin.guard-scanner must be dist/cli.cjs, got ${pkg.bin?.['guard-scanner'] || 'missing'}`);
     }
     if (!pkg.scripts?.benchmark) {
       fail('package.json must expose a benchmark script');
