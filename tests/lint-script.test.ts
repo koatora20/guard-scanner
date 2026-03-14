@@ -1,5 +1,5 @@
-import { describe, it, expect, assert, beforeEach, afterEach, vi } from 'vitest';
-import test from 'node:test';
+import { describe, it, expect, assert, beforeEach, afterEach, vi, test } from 'vitest';
+// import test from 'node:test'; // Removed incompatible node:test import
 
 import fs from 'node:fs';
 import os from 'node:os';

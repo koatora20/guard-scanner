@@ -1,7 +1,7 @@
 // @ts-nocheck
 
-import { test, it, assert, beforeEach, afterEach, vi } from 'vitest';
-import validator  from '../src/validation-layer';
+import { describe, test, it, assert, beforeEach, afterEach, vi } from 'vitest';
+import { validateFindings } from '../src/validation-layer';
 
 describe('Validation Layer (P1)', () => {
   it('Should separate validated findings from heuristic ones', () => {
@@ -17,7 +17,7 @@ describe('Validation Layer (P1)', () => {
       isExecutable: (text) => text.includes('exec') ? true : false
     };
 
-    const validated = validator.validateFindings(findings, context);
+    const validated = validateFindings(findings, context);
     
     // PI_IGNORE should be demoted or flagged as heuristic-only
     assert.strictEqual(validated[0].status, 'heuristic-only');

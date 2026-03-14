@@ -4,7 +4,8 @@ import type {
   RuntimeCheckStats,
   RuntimeDecision,
   ScannerOptions,
-} from "./types";
+  } from "./types.js";
+
 
 const scanner = require("./scanner") as {
   GuardScanner: GuardScannerConstructor;
@@ -58,4 +59,4 @@ export type {
   ScanResult,
   ScannerOptions,
   Severity,
-} from "./types";
+} from "./types.js";

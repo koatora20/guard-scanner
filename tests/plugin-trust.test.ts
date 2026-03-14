@@ -1,9 +1,9 @@
-import { describe, it, expect, assert, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, assert, beforeEach, afterEach, vi, test } from 'vitest';
 import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-import test from 'node:test';
+// import test from 'node:test'; // Removed node:test
 
 import fs from 'node:fs';
 import os from 'node:os';

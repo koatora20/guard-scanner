@@ -17,6 +17,7 @@ import fs  from 'fs';
 import { GuardScanner, VERSION, THRESHOLDS  } from '../src/scanner';
 import { PATTERNS  } from '../src/patterns';
 import { KNOWN_MALICIOUS  } from '../src/ioc-db';
+import { RUNTIME_CHECKS, scanToolCall, getCheckStats, shouldBlock, LAYER_NAMES  } from '../src/runtime-guard';
 
 const FIXTURES = path.join(__dirname, 'fixtures');
 
@@ -720,8 +721,6 @@ describe('v16 Layered Pipeline', () => {
 
 // ===== 17. Runtime Guard Tests =====
 describe('Runtime Guard', () => {
-    import { RUNTIME_CHECKS, scanToolCall, getCheckStats, shouldBlock, LAYER_NAMES  } from '../src/runtime-guard';
-
     it('should have runtime checks registered', () => {
         assert.ok(RUNTIME_CHECKS.length >= 26, `Expected at least 26 runtime checks, got ${RUNTIME_CHECKS.length}`);
     });

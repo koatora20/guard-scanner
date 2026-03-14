@@ -27,6 +27,7 @@
 
 import { GuardScanner, VERSION, scanToolCall, getCheckStats, LAYER_NAMES  } from './scanner';
 import { AssetAuditor, AUDIT_VERSION  } from './asset-auditor';
+import { normalizeFinding  } from './finding-schema';
 import fs  from 'fs';
 import path  from 'path';
 import os  from 'os';
@@ -290,7 +291,6 @@ const TOOLS = [
 function handleScanSkill({ path: scanPath, verbose = false, strict = false, compliance = null }) {
     if (!scanPath) return errorResult('path is required');
 
-    import fs  from 'fs';
     if (!fs.existsSync(scanPath)) {
         return errorResult(`Directory not found: ${scanPath}`);
     }
@@ -338,7 +338,6 @@ function handleScanSkill({ path: scanPath, verbose = false, strict = false, comp
 
 function handleScanText({ text, filename = 'snippet.txt', compliance = null }) {
     if (!text) return errorResult('text is required');
-    import { normalizeFinding  } from './finding-schema';
     const scanner = new GuardScanner({ quiet: true, compliance });
     const report = scanner.scanText(text);
     const detections = report.detections.map((finding) => normalizeFinding(finding, { source: 'static' }));

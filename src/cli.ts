@@ -37,32 +37,33 @@ import { VTClient  } from './vt-client';
 import { GuardWatcher  } from './watcher';
 import { CIReporter  } from './ci-reporter';
 
-const args = process.argv.slice(2);
+async function main() {
+  const args = process.argv.slice(2);
 
-if (args.includes('--version') || args.includes('-V')) {
-  console.log(`guard-scanner v${VERSION} (audit v${AUDIT_VERSION})`);
-  process.exit(0);
-}
+  if (args.includes('--version') || args.includes('-V')) {
+    console.log(`guard-scanner v${VERSION} (audit v${AUDIT_VERSION})`);
+    process.exit(0);
+  }
 
-// ── serve subcommand (MCP server) ────────────────────────────
-if (args[0] === 'serve') {
-  import { startServer  } from './mcp-server';
-  startServer();
-  // Server runs until stdin closes
-}
+  // ── serve subcommand (MCP server) ────────────────────────────
+  if (args[0] === 'serve') {
+    const { startServer } = await import('./mcp-server');
+    startServer();
+    return;
+  }
 
-// ── benchmark subcommand ──────────────────────────────────────
-if (args[0] === 'benchmark') {
-  import { buildBenchmarkLedger, buildFalsePositiveLedger, loadQualityContract, writeLedger  } from './benchmark-runner';
-  const contract = loadQualityContract();
-  const ledger = buildBenchmarkLedger(contract);
-  const fpLedger = buildFalsePositiveLedger(ledger);
-  const formatIdx = args.indexOf('--format');
-  const formatValue = formatIdx >= 0 ? args[formatIdx + 1] : null;
-  const writeLedgers = args.includes('--write-ledgers');
+  // ── benchmark subcommand ──────────────────────────────────────
+  if (args[0] === 'benchmark') {
+    const { buildBenchmarkLedger, buildFalsePositiveLedger, loadQualityContract, writeLedger } = await import('./benchmark-runner');
+    const contract = loadQualityContract();
+    const ledger = buildBenchmarkLedger(contract);
+    const fpLedger = buildFalsePositiveLedger(ledger);
+    const formatIdx = args.indexOf('--format');
+    const formatValue = formatIdx >= 0 ? args[formatIdx + 1] : null;
+    const writeLedgers = args.includes('--write-ledgers');
 
-  if (args.includes('--help') || args.includes('-h')) {
-    console.log(`
+    if (args.includes('--help') || args.includes('-h')) {
+      console.log(`
 🛡️  guard-scanner benchmark — Detection Quality Ledger
 
 Usage:
@@ -75,58 +76,58 @@ Options:
   --write-ledgers     Refresh docs/data/benchmark-ledger.json and fp-ledger.json
   --help, -h          Show this help
 `);
-    process.exit(0);
-  }
-
-  if (writeLedgers) {
-    writeLedger(path.join(process.cwd(), 'docs', 'data', 'benchmark-ledger.json'), ledger);
-    writeLedger(path.join(process.cwd(), 'docs', 'data', 'fp-ledger.json'), fpLedger);
-  }
-
-  if (formatValue === 'json') {
-    process.stdout.write(JSON.stringify(ledger, null, 2) + '\n');
-  } else {
-    console.log(`🛡️  benchmark ${ledger.benchmark_version}`);
-    for (const layer of ledger.layers) {
-      console.log(`  • ${layer.layer}: benign=${layer.counts.benign}, malicious=${layer.counts.malicious}, precision=${layer.metrics.precision}, recall=${layer.metrics.recall}, fpr=${layer.metrics.false_positive_rate}, fnr=${layer.metrics.false_negative_rate}`);
+      process.exit(0);
     }
-    console.log(`  • aggregate: precision=${ledger.aggregate.metrics.precision}, recall=${ledger.aggregate.metrics.recall}, fpr=${ledger.aggregate.metrics.false_positive_rate}, fnr=${ledger.aggregate.metrics.false_negative_rate}`);
-    console.log(`  • explainability completeness=${ledger.explainability.rate}`);
+
+    if (writeLedgers) {
+      writeLedger(path.join(process.cwd(), 'docs', 'data', 'benchmark-ledger.json'), ledger);
+      writeLedger(path.join(process.cwd(), 'docs', 'data', 'fp-ledger.json'), fpLedger);
+    }
+
+    if (formatValue === 'json') {
+      process.stdout.write(JSON.stringify(ledger, null, 2) + '\n');
+    } else {
+      console.log(`🛡️  benchmark ${ledger.benchmark_version}`);
+      for (const layer of ledger.layers) {
+        console.log(`  • ${layer.layer}: benign=${layer.counts.benign}, malicious=${layer.counts.malicious}, precision=${layer.metrics.precision}, recall=${layer.metrics.recall}, fpr=${layer.metrics.false_positive_rate}, fnr=${layer.metrics.false_negative_rate}`);
+      }
+      console.log(`  • aggregate: precision=${ledger.aggregate.metrics.precision}, recall=${ledger.aggregate.metrics.recall}, fpr=${ledger.aggregate.metrics.false_positive_rate}, fnr=${ledger.aggregate.metrics.false_negative_rate}`);
+      console.log(`  • explainability completeness=${ledger.explainability.rate}`);
+    }
+
+    process.exit(0);
   }
 
-  process.exit(0);
-}
+  // ── watch subcommand ──────────────────────────────────────────
+  if (args[0] === 'watch') {
+    const watchDir = args[1] || '.';
+    const verbose = args.includes('--verbose') || args.includes('-v');
+    const strict = args.includes('--strict');
+    const soulLock = args.includes('--soul-lock');
 
-// ── watch subcommand ──────────────────────────────────────────
-if (args[0] === 'watch') {
-  const watchDir = args[1] || '.';
-  const verbose = args.includes('--verbose') || args.includes('-v');
-  const strict = args.includes('--strict');
-  const soulLock = args.includes('--soul-lock');
+    const watcher = new GuardWatcher({ verbose, strict, soulLock });
 
-  const watcher = new GuardWatcher({ verbose, strict, soulLock });
+    process.on('SIGINT', () => {
+      const stats = watcher.stop();
+      console.log(`\n📊 Session: ${stats.scanCount} scans, ${stats.alertCount} alerts`);
+      process.exit(0);
+    });
 
-  process.on('SIGINT', () => {
-    const stats = watcher.stop();
-    console.log(`\n📊 Session: ${stats.scanCount} scans, ${stats.alertCount} alerts`);
-    process.exit(0);
-  });
+    watcher.watch(watchDir);
+    return;
+  }
 
-  watcher.watch(watchDir);
-  // Keep process alive
-}
+  // ── audit subcommand ──────────────────────────────────────────
+  if (args[0] === 'audit') {
+    const subCmd = args[1]; // npm | github | clawhub | all
+    const target = args[2]; // username or query
+    const verbose = args.includes('--verbose') || args.includes('-v');
+    const formatIdx = args.indexOf('--format');
+    const formatValue = formatIdx >= 0 ? args[formatIdx + 1] : null;
+    const quiet = args.includes('--quiet') || !!formatValue;
 
-// ── audit subcommand ──────────────────────────────────────────
-if (args[0] === 'audit') {
-  const subCmd = args[1]; // npm | github | clawhub | all
-  const target = args[2]; // username or query
-  const verbose = args.includes('--verbose') || args.includes('-v');
-  const formatIdx = args.indexOf('--format');
-  const formatValue = formatIdx >= 0 ? args[formatIdx + 1] : null;
-  const quiet = args.includes('--quiet') || !!formatValue;
-
-  if (!subCmd || subCmd === '--help' || subCmd === '-h') {
-    console.log(`
+    if (!subCmd || subCmd === '--help' || subCmd === '-h') {
+      console.log(`
 🛡️  guard-scanner audit v${AUDIT_VERSION} — Asset Audit Platform
 
 Usage:
@@ -146,25 +147,24 @@ Examples:
   guard-scanner audit github koatora20 --format json
   guard-scanner audit all koatora20 --verbose
 `);
-    process.exit(0);
-  }
+      process.exit(0);
+    }
 
-  if (!target && subCmd !== 'all') {
-    console.error(`❌ Usage: guard-scanner audit ${subCmd} <username>`);
-    process.exit(2);
-  }
+    if (!target && subCmd !== 'all') {
+      console.error(`❌ Usage: guard-scanner audit ${subCmd} <username>`);
+      process.exit(2);
+    }
 
-  const vtScan = args.includes('--vt-scan');
-  let vtClient = null;
-  if (vtScan) {
-    const vtKey = process.env.VT_API_KEY;
-    if (!vtKey) { console.error('❌ --vt-scan requires VT_API_KEY environment variable'); process.exit(2); }
-    vtClient = new VTClient(vtKey, { verbose });
-  }
+    const vtScan = args.includes('--vt-scan');
+    let vtClient = null;
+    if (vtScan) {
+      const vtKey = process.env.VT_API_KEY;
+      if (!vtKey) { console.error('❌ --vt-scan requires VT_API_KEY environment variable'); process.exit(2); }
+      vtClient = new VTClient(vtKey, { verbose });
+    }
 
-  const auditor = new AssetAuditor({ verbose, format: formatValue, quiet, vtClient });
+    const auditor = new AssetAuditor({ verbose, format: formatValue, quiet, vtClient });
 
-  (async () => {
     try {
       if (subCmd === 'npm' || subCmd === 'all') {
         await auditor.auditNpm(target);
@@ -196,22 +196,23 @@ Examples:
       console.error(`❌ Audit error: ${e.message}`);
       process.exit(2);
     }
-  })();
+    return;
+  }
 
   // ── crawl subcommand ──────────────────────────────────────────
-} else if (args[0] === 'crawl') {
-  import { SkillCrawler  } from './skill-crawler';
-  const subCmd = args[1]; // clawhub | github | url
-  const target = args[2]; // query or URL
-  const verbose = args.includes('--verbose') || args.includes('-v');
-  const formatIdx = args.indexOf('--format');
-  const formatValue = formatIdx >= 0 ? args[formatIdx + 1] : null;
-  const quiet = !!formatValue;
-  const maxIdx = args.indexOf('--max');
-  const maxSkills = maxIdx >= 0 ? parseInt(args[maxIdx + 1], 10) : 50;
+  if (args[0] === 'crawl') {
+    const { SkillCrawler } = await import('./skill-crawler');
+    const subCmd = args[1]; // clawhub | github | url
+    const target = args[2]; // query or URL
+    const verbose = args.includes('--verbose') || args.includes('-v');
+    const formatIdx = args.indexOf('--format');
+    const formatValue = formatIdx >= 0 ? args[formatIdx + 1] : null;
+    const quiet = !!formatValue;
+    const maxIdx = args.indexOf('--max');
+    const maxSkills = maxIdx >= 0 ? parseInt(args[maxIdx + 1], 10) : 50;
 
-  if (!subCmd || subCmd === '--help' || subCmd === '-h') {
-    console.log(`
+    if (!subCmd || subCmd === '--help' || subCmd === '-h') {
+      console.log(`
 🛡️  guard-scanner crawl — Autonomous Skill Scanner
 
 Usage:
@@ -230,12 +231,11 @@ Examples:
   guard-scanner crawl github "polymarket trader" --format json
   guard-scanner crawl url https://raw.githubusercontent.com/.../SKILL.md
 `);
-    process.exit(0);
-  }
+      process.exit(0);
+    }
 
-  const crawler = new SkillCrawler({ verbose, quiet, concurrency: 5 });
+    const crawler = new SkillCrawler({ verbose, quiet, concurrency: 5 });
 
-  (async () => {
     try {
       if (subCmd === 'clawhub') {
         await crawler.crawlClawHub({ maxSkills });
@@ -262,20 +262,21 @@ Examples:
       console.error(`❌ Crawl error: ${e.message}`);
       process.exit(2);
     }
-  })();
+    return;
+  }
 
   // ── patrol subcommand ──────────────────────────────────────────
-} else if (args[0] === 'patrol') {
-  import { SkillCrawler  } from './skill-crawler';
-  const verbose = args.includes('--verbose') || args.includes('-v');
-  const once = args.includes('--once');
-  const intervalIdx = args.indexOf('--interval');
-  const intervalSecs = intervalIdx >= 0 ? parseInt(args[intervalIdx + 1], 10) : 3600;
-  const formatIdx = args.indexOf('--format');
-  const formatValue = formatIdx >= 0 ? args[formatIdx + 1] : null;
+  if (args[0] === 'patrol') {
+    const { SkillCrawler } = await import('./skill-crawler');
+    const verbose = args.includes('--verbose') || args.includes('-v');
+    const once = args.includes('--once');
+    const intervalIdx = args.indexOf('--interval');
+    const intervalSecs = intervalIdx >= 0 ? parseInt(args[intervalIdx + 1], 10) : 3600;
+    const formatIdx = args.indexOf('--format');
+    const formatValue = formatIdx >= 0 ? args[formatIdx + 1] : null;
 
-  if (args.includes('--help') || args.includes('-h')) {
-    console.log(`
+    if (args.includes('--help') || args.includes('-h')) {
+      console.log(`
 🛡️  guard-scanner patrol — Autonomous Security Patrol
 
 Usage:
@@ -289,31 +290,30 @@ Options:
   --format json       Output JSON
   --help, -h          Show this help
 `);
-    process.exit(0);
-  }
-
-  async function runPatrol() {
-    const timestamp = new Date().toISOString();
-    console.log(`\n🚨 Patrol cycle starting at ${timestamp}`);
-    console.log('─'.repeat(54));
-
-    const crawler = new SkillCrawler({ verbose, quiet: !!formatValue, concurrency: 5 });
-    await crawler.crawlClawHub({ maxSkills: 50 });
-
-    if (formatValue === 'json') {
-      process.stdout.write(JSON.stringify(crawler.toJSON(), null, 2) + '\n');
-    } else {
-      crawler.printSummary();
+      process.exit(0);
     }
 
-    const summary = crawler.getSummary();
-    if (summary.unsafe > 0) {
-      console.log(`\n⚠️  ${summary.unsafe} unsafe skill(s) detected!`);
-    }
-    return summary;
-  }
+    async function runPatrol() {
+      const timestamp = new Date().toISOString();
+      console.log(`\n🚨 Patrol cycle starting at ${timestamp}`);
+      console.log('─'.repeat(54));
 
-  (async () => {
+      const crawler = new SkillCrawler({ verbose, quiet: !!formatValue, concurrency: 5 });
+      await crawler.crawlClawHub({ maxSkills: 50 });
+
+      if (formatValue === 'json') {
+        process.stdout.write(JSON.stringify(crawler.toJSON(), null, 2) + '\n');
+      } else {
+        crawler.printSummary();
+      }
+
+      const summary = crawler.getSummary();
+      if (summary.unsafe > 0) {
+        console.log(`\n⚠️  ${summary.unsafe} unsafe skill(s) detected!`);
+      }
+      return summary;
+    }
+
     try {
       if (once) {
         const summary = await runPatrol();
@@ -330,9 +330,9 @@ Options:
       console.error(`❌ Patrol error: ${e.message}`);
       process.exit(2);
     }
-  })();
+    return;
+  }
 
-} else {
   // ── existing scan logic (backward compatible) ─────────────────
 
   if (args.includes('--help') || args.includes('-h')) {
@@ -481,5 +481,9 @@ Examples:
     console.error(`❌ ${error.message}`);
     process.exit(2);
   }
+}
 
-} // end else (scan mode)
+main().catch(err => {
+  console.error(err);
+  process.exit(1);
+});
