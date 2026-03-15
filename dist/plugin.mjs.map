@@ -1,0 +1,1 @@
+{"version":3,"sources":["../src/plugin.ts"],"sourcesContent":["export { default } from \"./runtime-plugin.js\";\nexport type { PluginConfig, RuntimeDecision, RuntimePluginConfig } from \"./runtime-plugin.js\";\n"],"mappings":"AAAA,SAAS,WAAAA,gBAAe;","names":["default"]}

@@ -1,87 +1,83 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
+var __create = Object.create;
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+var rust_bridge_exports = {};
+__export(rust_bridge_exports, {
+  scoreWithRust: () => scoreWithRust
 });
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.scoreWithRust = scoreWithRust;
-const fs = __importStar(require("node:fs"));
-const os = __importStar(require("node:os"));
-const path = __importStar(require("node:path"));
-const node_child_process_1 = require("node:child_process");
+module.exports = __toCommonJS(rust_bridge_exports);
+var fs = __toESM(require("node:fs"));
+var os = __toESM(require("node:os"));
+var path = __toESM(require("node:path"));
+var import_node_child_process = require("node:child_process");
 function candidateBinaryPaths() {
-    const envPath = process.env.GUARD_SCANNER_RUST_CORE;
-    const candidates = [
-        envPath,
-        path.join(process.cwd(), 'rust', 'guard-scan-core', 'target', 'release', 'guard-scan-core'),
-        path.join(process.cwd(), 'rust', 'guard-scan-core', 'target', 'debug', 'guard-scan-core'),
-        path.join(process.cwd(), 'rust', 'guard-scan-core', 'target', 'release', 'guard-scan-core.exe'),
-        path.join(process.cwd(), 'rust', 'guard-scan-core', 'target', 'debug', 'guard-scan-core.exe'),
-    ].filter((value) => Boolean(value));
-    return [...new Set(candidates)];
+  const envPath = process.env.GUARD_SCANNER_RUST_CORE;
+  const candidates = [
+    envPath,
+    path.join(process.cwd(), "rust", "guard-scan-core", "target", "release", "guard-scan-core"),
+    path.join(process.cwd(), "rust", "guard-scan-core", "target", "debug", "guard-scan-core"),
+    path.join(process.cwd(), "rust", "guard-scan-core", "target", "release", "guard-scan-core.exe"),
+    path.join(process.cwd(), "rust", "guard-scan-core", "target", "debug", "guard-scan-core.exe")
+  ].filter((value) => Boolean(value));
+  return [...new Set(candidates)];
 }
 function scoreWithRust(findings) {
-    for (const binaryPath of candidateBinaryPaths()) {
-        if (!fs.existsSync(binaryPath))
-            continue;
-        const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'guard-scanner-rust-'));
-        const inputPath = path.join(tmpDir, 'input.json');
-        try {
-            fs.writeFileSync(inputPath, JSON.stringify({ findings }));
-            const proc = (0, node_child_process_1.spawnSync)(binaryPath, ['score', '--input', inputPath], {
-                cwd: process.cwd(),
-                encoding: 'utf8',
-                timeout: 5000,
-            });
-            if (proc.status !== 0) {
-                continue;
-            }
-            const parsed = JSON.parse(proc.stdout);
-            if (typeof parsed?.risk === 'number') {
-                return parsed;
-            }
-        }
-        catch {
-            continue;
-        }
-        finally {
-            try {
-                fs.rmSync(tmpDir, { recursive: true, force: true });
-            }
-            catch {
-                // ignore tmp cleanup failures
-            }
-        }
+  for (const binaryPath of candidateBinaryPaths()) {
+    if (!fs.existsSync(binaryPath)) continue;
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "guard-scanner-rust-"));
+    const inputPath = path.join(tmpDir, "input.json");
+    try {
+      fs.writeFileSync(inputPath, JSON.stringify({ findings }));
+      const proc = (0, import_node_child_process.spawnSync)(binaryPath, ["score", "--input", inputPath], {
+        cwd: process.cwd(),
+        encoding: "utf8",
+        timeout: 5e3
+      });
+      if (proc.status !== 0) {
+        continue;
+      }
+      const parsed = JSON.parse(proc.stdout);
+      if (typeof parsed?.risk === "number") {
+        return parsed;
+      }
+    } catch {
+      continue;
+    } finally {
+      try {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      } catch {
+      }
     }
-    return null;
+  }
+  return null;
 }
+// Annotate the CommonJS export names for ESM import in node:
+0 && (module.exports = {
+  scoreWithRust
+});
 //# sourceMappingURL=rust-bridge.js.map

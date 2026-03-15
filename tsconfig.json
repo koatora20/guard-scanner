@@ -8,25 +8,22 @@
         "types": [
             "node"
         ],
-        "outDir": "./dist",
-        "rootDir": "./ts-src",
         "strict": true,
         "esModuleInterop": true,
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
         "resolveJsonModule": true,
-        "declaration": true,
-        "declarationMap": true,
         "sourceMap": true
     },
     "include": [
-        "ts-src/**/*.ts"
+        "src/**/*.ts",
+        "scripts/**/*.ts",
+        "test/**/*.ts",
+        "hooks/**/*.ts"
     ],
     "exclude": [
         "node_modules",
         "dist",
-        "src",
-        "test",
-        "ts-src/__tests__"
+        "ts-src"
     ]
 }

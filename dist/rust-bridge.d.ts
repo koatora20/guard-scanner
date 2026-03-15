@@ -1,9 +1,11 @@
-import type { Finding } from './types.js';
-export type RustScoreResult = {
+import { c as Finding } from './types-DkNB1BjH.js';
+
+type RustScoreResult = {
     engine: 'rust';
     risk: number;
     degradedCount: number;
     note?: string;
 };
-export declare function scoreWithRust(findings: Finding[]): RustScoreResult | null;
-//# sourceMappingURL=rust-bridge.d.ts.map
+declare function scoreWithRust(findings: Finding[]): RustScoreResult | null;
+
+export { type RustScoreResult, scoreWithRust };

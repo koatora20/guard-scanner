@@ -1,20 +1,60 @@
 {
     "name": "guard-scanner",
-    "version": "16.0.0",
-    "description": "Platform for agent security evidence: static scanning, runtime guard hooks, baseline audits, and benchmarkable findings for AI agent skills and MCP workflows.",
+    "version": "17.0.0",
+    "description": "MCT (Metacognitive Training) framework for LLMs. A cyber-psychiatry tool by Dee & Guava to cure AI hallucinations through runtime cognitive correction.",
     "main": "dist/index.js",
+    "module": "dist/index.mjs",
     "types": "dist/index.d.ts",
     "bin": {
         "guard-scanner": "dist/cli.js"
     },
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.mjs",
+            "require": "./dist/index.js",
+            "default": "./dist/index.mjs"
+        },
+        "./plugin": {
+            "types": "./dist/plugin.d.ts",
+            "import": "./dist/plugin.mjs",
+            "require": "./dist/plugin.js",
+            "default": "./dist/plugin.mjs"
+        },
+        "./mcp": {
+            "types": "./dist/mcp.d.ts",
+            "import": "./dist/mcp.mjs",
+            "require": "./dist/mcp.js",
+            "default": "./dist/mcp.mjs"
+        },
+        "./audit-decision": {
+            "types": "./dist/audit-decision.d.ts",
+            "import": "./dist/audit-decision.mjs",
+            "require": "./dist/audit-decision.js",
+            "default": "./dist/audit-decision.mjs"
+        },
+        "./capabilities": {
+            "types": "./dist/capabilities.d.ts",
+            "import": "./dist/capabilities.mjs",
+            "require": "./dist/capabilities.js",
+            "default": "./dist/capabilities.mjs"
+        },
+        "./types": {
+            "types": "./dist/public-types.d.ts",
+            "import": "./dist/public-types.mjs",
+            "require": "./dist/public-types.js",
+            "default": "./dist/public-types.mjs"
+        },
+        "./package.json": "./package.json"
+    },
     "scripts": {
-        "build": "rm -rf dist && tsc",
+        "build": "tsup",
         "build:rust": "cargo build --manifest-path rust/guard-scan-core/Cargo.toml --release",
         "scan": "node dist/cli.js",
-        "scan:dev": "npx ts-node ts-src/cli.ts",
-        "test": "npm run build && node --test test/*.test.js",
-        "test:ts": "node --test dist/__tests__/*.test.js",
-        "release:check": "node scripts/release-gate.js",
+        "scan:dev": "node --import tsx src/cli.ts",
+        "test": "npm run build && node --import tsx --test test/*.test.ts",
+        "release:check": "npm run build && node dist/tools/release-gate.js",
+        "release:report": "npm run build && node dist/tools/oss-release-report.js",
         "prepublishOnly": "npm run build",
         "typecheck": "tsc --noEmit"
     },
@@ -36,6 +76,14 @@
     "engines": {
         "node": ">=18.0.0"
     },
+    "peerDependencies": {
+        "openclaw": ">=2026.3.13"
+    },
+    "peerDependenciesMeta": {
+        "openclaw": {
+            "optional": true
+        }
+    },
     "repository": {
         "type": "git",
         "url": "https://github.com/koatora20/guard-scanner.git"
@@ -44,6 +92,8 @@
     "files": [
         "dist/",
         "openclaw.plugin.json",
+        "docs/compatibility.json",
+        "docs/public-safe-boundary.md",
         "docs/THREAT_TAXONOMY.md",
         "docs/spec/capabilities.json",
         "SKILL.md",
@@ -53,6 +103,8 @@
     ],
     "devDependencies": {
         "@types/node": "^22.0.0",
+        "tsup": "^8.5.0",
+        "tsx": "^4.20.5",
         "typescript": "^5.7.0"
     }
 }

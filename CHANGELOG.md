@@ -176,6 +176,6 @@ Extracted from GuavaGuard v9.0.0 as the open-source component.
 
 ### What's NOT included (Private — GuavaSuite)
 - Soul Lock integrity verification
-- SoulChain on-chain verification
+- private identity verification infrastructure
 - Hash-based identity file watchdog
-- Polygon blockchain integration
+- non-public control-plane integrations

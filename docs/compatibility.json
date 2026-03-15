@@ -1,0 +1,17 @@
+{
+  "openclaw": {
+    "verifiedAt": "2026-03-20",
+    "latestStable": "2026.3.13",
+    "baseline": "2026.3.13",
+    "testedVersions": [
+      "2026.3.13"
+    ],
+    "claims": [
+      "plugin-discovery",
+      "manifest-validation",
+      "before_tool_call-registration",
+      "malicious-block",
+      "benign-passthrough"
+    ]
+  }
+}

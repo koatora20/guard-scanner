@@ -1,25 +1,68 @@
 "use strict";
-/**
- * guard-scanner v3.0.0 — Package Index
- * Re-exports all public types and the scanner class.
- */
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
+var __create = Object.create;
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
 };
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.PATTERNS = exports.SIGNATURES_DB = exports.KNOWN_MALICIOUS = exports.getCapabilitySummary = exports.CAPABILITIES = exports.runtimeGuardPlugin = exports.THRESHOLDS = exports.VERSION = exports.GuardScanner = void 0;
-var scanner_js_1 = require("./scanner.js");
-Object.defineProperty(exports, "GuardScanner", { enumerable: true, get: function () { return scanner_js_1.GuardScanner; } });
-Object.defineProperty(exports, "VERSION", { enumerable: true, get: function () { return scanner_js_1.VERSION; } });
-Object.defineProperty(exports, "THRESHOLDS", { enumerable: true, get: function () { return scanner_js_1.THRESHOLDS; } });
-var runtime_plugin_js_1 = require("./runtime-plugin.js");
-Object.defineProperty(exports, "runtimeGuardPlugin", { enumerable: true, get: function () { return __importDefault(runtime_plugin_js_1).default; } });
-var capabilities_js_1 = require("./capabilities.js");
-Object.defineProperty(exports, "CAPABILITIES", { enumerable: true, get: function () { return capabilities_js_1.CAPABILITIES; } });
-Object.defineProperty(exports, "getCapabilitySummary", { enumerable: true, get: function () { return capabilities_js_1.getCapabilitySummary; } });
-var ioc_db_js_1 = require("./ioc-db.js");
-Object.defineProperty(exports, "KNOWN_MALICIOUS", { enumerable: true, get: function () { return ioc_db_js_1.KNOWN_MALICIOUS; } });
-Object.defineProperty(exports, "SIGNATURES_DB", { enumerable: true, get: function () { return ioc_db_js_1.SIGNATURES_DB; } });
-var patterns_js_1 = require("./patterns.js");
-Object.defineProperty(exports, "PATTERNS", { enumerable: true, get: function () { return patterns_js_1.PATTERNS; } });
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __reExport = (target, mod, secondTarget) => (__copyProps(target, mod, "default"), secondTarget && __copyProps(secondTarget, mod, "default"));
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+var src_exports = {};
+__export(src_exports, {
+  CAPABILITIES: () => import_capabilities.CAPABILITIES,
+  GuardScanner: () => import_scanner.GuardScanner,
+  KNOWN_MALICIOUS: () => import_ioc_db.KNOWN_MALICIOUS,
+  PATTERNS: () => import_patterns.PATTERNS,
+  SIGNATURES_DB: () => import_ioc_db.SIGNATURES_DB,
+  THRESHOLDS: () => import_scanner.THRESHOLDS,
+  VERSION: () => import_scanner.VERSION,
+  evaluateScanDecision: () => import_audit_decision.evaluateScanDecision,
+  getCapabilitySummary: () => import_capabilities.getCapabilitySummary,
+  openClawPlugin: () => import_plugin.default,
+  runtimeGuardPlugin: () => import_runtime_plugin.default
+});
+module.exports = __toCommonJS(src_exports);
+var import_scanner = require("./scanner.js");
+var import_audit_decision = require("./audit-decision.js");
+var import_runtime_plugin = __toESM(require("./runtime-plugin.js"));
+var import_plugin = __toESM(require("./plugin.js"));
+var import_capabilities = require("./capabilities.js");
+__reExport(src_exports, require("./mcp.js"), module.exports);
+var import_ioc_db = require("./ioc-db.js");
+var import_patterns = require("./patterns.js");
+// Annotate the CommonJS export names for ESM import in node:
+0 && (module.exports = {
+  CAPABILITIES,
+  GuardScanner,
+  KNOWN_MALICIOUS,
+  PATTERNS,
+  SIGNATURES_DB,
+  THRESHOLDS,
+  VERSION,
+  evaluateScanDecision,
+  getCapabilitySummary,
+  openClawPlugin,
+  runtimeGuardPlugin,
+  ...require("./mcp.js")
+});
 //# sourceMappingURL=index.js.map

@@ -7,3 +7,4 @@ guard-scanner.sarif
 .DS_Store
 *.skill
 rust/guard-scan-core/target/
+.gitnexus

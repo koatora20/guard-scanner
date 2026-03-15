@@ -1,15 +1,12 @@
+import { l as ScanMode, j as Thresholds, i as SkillResult, e as ScanStats, f as ScannerOptions, c as Finding, J as JSONReport, S as SARIFReport } from './types-DkNB1BjH.js';
+
 /**
- * guard-scanner v3.0.0 — Core Scanner (TypeScript)
- *
- * Full TypeScript rewrite of guard-scanner v2.1.0 + hbg-scan features.
- * Adds: Compaction Persistence check, Signature hash matching, typed interfaces.
- *
- * Zero dependencies. MIT License.
+ * guard-scanner core scanner.
  */
-import type { Finding, SkillResult, ScannerOptions, ScanStats, Thresholds, JSONReport, SARIFReport, ScanMode } from './types.js';
-export declare const VERSION: string;
-export declare const THRESHOLDS: Record<string, Thresholds>;
-export declare class GuardScanner {
+
+declare const VERSION: string;
+declare const THRESHOLDS: Record<string, Thresholds>;
+declare class GuardScanner {
     readonly verbose: boolean;
     readonly selfExclude: boolean;
     readonly strict: boolean;
@@ -73,4 +70,5 @@ export declare class GuardScanner {
     toJSON(): JSONReport;
     toSARIF(scanDir: string): SARIFReport;
 }
-//# sourceMappingURL=scanner.d.ts.map
+
+export { GuardScanner, THRESHOLDS, VERSION };

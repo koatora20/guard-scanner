@@ -2,7 +2,7 @@
   "schema_version": 1,
   "product": {
     "name": "guard-scanner",
-    "version": "16.0.0",
+    "version": "17.0.0",
     "positioning": "Platform for Agent Security Evidence",
     "summary": "Static and runtime-oriented security scanner for AI agent skills, MCP workflows, and local agent repos."
   },
@@ -21,6 +21,15 @@
       "auto",
       "skills",
       "repo"
+    ],
+    "coexistence_modes": [
+      "independent",
+      "rampart_primary",
+      "scanner_primary"
+    ],
+    "sync_modes": [
+      "off",
+      "local-overlay"
     ],
     "subcommands": [
       "install-check",
@@ -50,7 +59,9 @@
           "monitor",
           "enforce",
           "strict"
-        ]
+        ],
+        "default_coexistence_mode": "rampart_primary",
+        "default_sync_mode": "local-overlay"
       }
     }
   },
