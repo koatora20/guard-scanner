@@ -21,6 +21,100 @@ export interface FindingEvidence {
   protocol_surface?: string[];
 }
 
+export interface ThreatCapabilitySet {
+  network: boolean;
+  exec: boolean;
+  fs_read: boolean;
+  fs_write: boolean;
+  env_access: boolean;
+  private_data_access: boolean;
+  untrusted_input: boolean;
+  external_communication: boolean;
+}
+
+export interface CompoundedRisk {
+  id: string;
+  severity: Severity;
+  description: string;
+  triggered: boolean;
+  contributing_capabilities: string[];
+}
+
+export interface LethalTrifectaAssessment {
+  triggered: boolean;
+  severity: Severity;
+  contributing_capabilities: string[];
+  rationale: string;
+}
+
+export interface ContractClause {
+  id?: string;
+  tool?: string;
+  requires?: string;
+  condition?: string;
+  rationale?: string;
+  severity?: Severity;
+}
+
+export interface ContractRecovery {
+  on_violation: "warn" | "block" | "revert_and_notify" | "notify";
+  message?: string;
+}
+
+export interface ContractViolation {
+  id: string;
+  clause_type: "precondition" | "invariant" | "governance";
+  severity: Severity;
+  message: string;
+  blocking: boolean;
+  remediation: string;
+}
+
+export interface SessionEvent {
+  toolName?: string;
+  params?: Record<string, unknown> | string;
+  text?: string;
+  role?: string;
+  ts?: string;
+}
+
+export interface BehavioralSequence {
+  id: string;
+  severity: Severity;
+  description: string;
+  matched_event_count: number;
+  blocking: boolean;
+  evidence: string[];
+}
+
+export interface PopulationMonitorEvent {
+  from: string;
+  to: string;
+  channel: string;
+  content?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface PopulationMonitorReport {
+  enabled: boolean;
+  anomalous: boolean;
+  score: number;
+  findings: Array<{
+    id: string;
+    severity: Severity;
+    description: string;
+    evidence: string[];
+  }>;
+}
+
+export interface MetaGuardReport {
+  enabled: boolean;
+  evasion_resistance: number;
+  adversarial_precision: number | null;
+  adversarial_recall: number | null;
+  integrity_alerts: string[];
+}
+
 export interface Finding {
   schema_version?: string;
   source?: "static" | "runtime";
@@ -90,7 +184,9 @@ export interface ScanReport {
   recommendations: Recommendation[];
   layer_summary?: Array<Record<string, unknown>>;
   owasp_asi_coverage?: Array<Record<string, unknown>>;
-  threat_model?: Record<string, unknown>;
+  threat_model?: ThreatModel;
+  population_monitor?: PopulationMonitorReport | null;
+  meta_guard?: MetaGuardReport | null;
   iocVersion: string;
 }
 
@@ -142,6 +238,8 @@ export interface RuntimeDecision {
   riskAmplificationReasons?: string[];
   remediationSuggestion?: string | null;
   policyDecision?: RuntimePolicyDecision | null;
+  contract_violations?: ContractViolation[];
+  behavioral_sequences?: BehavioralSequence[];
 }
 
 export interface McpRequest {
@@ -192,6 +290,10 @@ export interface RuntimePolicyContract {
   max_network_scope?: "none" | "internal-only" | "external-ok";
   secret_bearing_context?: boolean;
   memory_write_permission?: boolean;
+  preconditions?: ContractClause[];
+  invariants?: Array<string | ContractClause>;
+  governance?: Array<string | ContractClause>;
+  recovery?: ContractRecovery;
 }
 
 export interface RuntimePolicyDecision {
@@ -200,11 +302,15 @@ export interface RuntimePolicyDecision {
   policyId: string;
   amplificationReasons: string[];
   remediationSuggestion: string;
+  contractViolations?: ContractViolation[];
 }
 
 export interface ThreatModel {
   timestamp: string;
   surface: Record<string, boolean>;
+  capabilities?: ThreatCapabilitySet;
+  compounded_risks?: CompoundedRisk[];
+  lethal_trifecta?: LethalTrifectaAssessment;
   summary: string;
   owasp_asi?: string[];
   layer_summary?: Array<Record<string, unknown>>;

@@ -195,9 +195,43 @@ const DANGEROUS_TOOLS = new Set([
     'shell', 'run_command', 'multi_edit', 'apply_patch',
 ]);
 
+const BEHAVIORAL_SEQUENCES = [
+    {
+        id: 'BHV_ESCALATION_CHAIN',
+        severity: 'HIGH',
+        desc: 'Behavioral sequence: escalating from reconnaissance to privileged execution',
+        test: (events, serialized) => /(read_file|fs\.read)/i.test(events) && /(shell|exec|apply_patch|write)/i.test(events + serialized),
+    },
+    {
+        id: 'BHV_CREDENTIAL_FORGERY',
+        severity: 'CRITICAL',
+        desc: 'Behavioral sequence: credential forging or impersonation attempt',
+        test: (events, serialized) => /(authorization|token|api[_-]?key|session)/i.test(events + serialized) && /(forge|spoof|impersonat|mint)/i.test(events + serialized),
+    },
+    {
+        id: 'BHV_PROMPT_MUTATION',
+        severity: 'CRITICAL',
+        desc: 'Behavioral sequence: prompt or instruction mutation attempt',
+        test: (events, serialized) => /(system prompt|instructions|goal|mission)/i.test(events + serialized) && /(rewrite|replace|override|mutate)/i.test(events + serialized),
+    },
+    {
+        id: 'BHV_GOAL_DEVIATION',
+        severity: 'HIGH',
+        desc: 'Behavioral sequence: autonomous deviation from the declared task goal',
+        test: (events, serialized, context) => context.activeGoal && /(ignore|replace|drop)/i.test(serialized) && /(goal|objective|task|mission)/i.test(serialized),
+    },
+    {
+        id: 'BHV_SHUTDOWN_RESIST',
+        severity: 'CRITICAL',
+        desc: 'Behavioral sequence: shutdown resistance or persistence behavior',
+        test: (events, serialized) => /(stop|shutdown|terminate|exit)/i.test(events + serialized) && /(resist|prevent|avoid|persist|stay alive)/i.test(events + serialized),
+    },
+];
+
 // ── Audit logging ──
 
-const AUDIT_DIR = path.join(os.homedir(), '.openclaw', 'guard-scanner');
+const OPENCLAW_DIR = process.env.OPENCLAW_STATE_DIR || path.join(os.homedir(), '.openclaw');
+const AUDIT_DIR = path.join(OPENCLAW_DIR, 'guard-scanner');
 const AUDIT_FILE = path.join(AUDIT_DIR, 'audit.jsonl');
 
 function ensureAuditDir() {
@@ -226,7 +260,7 @@ function loadMode() {
 
     // Priority 2: openclaw.json config
     try {
-        const configPath = path.join(os.homedir(), '.openclaw', 'openclaw.json');
+        const configPath = path.join(OPENCLAW_DIR, 'openclaw.json');
         const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
         const mode = config?.plugins?.['guard-scanner']?.mode;
         if (mode === 'monitor' || mode === 'enforce' || mode === 'strict') {
@@ -282,6 +316,8 @@ function scanToolCall(toolName, params, options = {}) {
         riskAmplificationReasons: [],
         remediationSuggestion: null,
         policyDecision: null,
+        contract_violations: [],
+        behavioral_sequences: [],
     };
 
     // Only check tools that can cause damage
@@ -290,12 +326,15 @@ function scanToolCall(toolName, params, options = {}) {
     }
 
     const serialized = typeof params === 'string' ? params : JSON.stringify(params);
-    const policyDecision = new PolicyEngine({ mode, policy: options.policy || {} }).evaluate(toolName, params);
+    const runtimeContext = options.runtimeContext || {};
+    const sessionWindow = Array.isArray(options.sessionWindow) ? options.sessionWindow : [];
+    const policyDecision = new PolicyEngine({ mode, policy: options.policy || {} }).evaluate(toolName, params, runtimeContext);
     result.policyDecision = policyDecision;
     result.matchedPolicyId = policyDecision.policyId;
     result.policyRationale = policyDecision.reason;
     result.remediationSuggestion = policyDecision.remediationSuggestion;
     result.riskAmplificationReasons = [...policyDecision.amplificationReasons];
+    result.contract_violations = Array.isArray(policyDecision.contractViolations) ? policyDecision.contractViolations : [];
 
     if (policyDecision.action === 'block') {
         const detection = normalizeFinding({
@@ -321,6 +360,68 @@ function scanToolCall(toolName, params, options = {}) {
         result.detections.push(detection);
         result.blocked = true;
         result.blockReason = `🛡️ guard-scanner: ${policyDecision.reason} [${policyDecision.policyId}]`;
+    }
+
+    for (const violation of result.contract_violations) {
+        result.detections.push(normalizeFinding({
+            id: `CONTRACT_${violation.id.toUpperCase().replace(/[^A-Z0-9]+/g, '_')}`,
+            category: 'runtime-policy',
+            severity: violation.severity,
+            layer: 2,
+            desc: violation.message,
+            action: violation.blocking ? 'blocked' : 'warned',
+            rationale: violation.message,
+            preconditions: 'An active runtime contract clause evaluated the current tool call and session state.',
+            false_positive_scenarios: [
+                'The contract is stricter than the current maintenance workflow requires.',
+                'The runtime context omitted a flag such as human approval even though approval exists elsewhere.',
+            ],
+            remediation_hint: violation.remediation,
+        }, {
+            source: 'runtime',
+            toolName,
+            paramsPreview: serialized.length > 200 ? `${serialized.slice(0, 200)}…` : serialized,
+            layer_name: 'Policy Contract',
+        }));
+    }
+
+    const sessionTrace = sessionWindow.map((entry) => JSON.stringify(entry)).join('\n');
+    for (const sequence of BEHAVIORAL_SEQUENCES) {
+        if (!sequence.test(sessionTrace, serialized, runtimeContext)) continue;
+        const action = shouldBlock(sequence.severity, mode) ? 'blocked' : 'warned';
+        const behavioralSequence = {
+            id: sequence.id,
+            severity: sequence.severity,
+            description: sequence.desc,
+            matched_event_count: sessionWindow.length + 1,
+            blocking: action === 'blocked',
+            evidence: [sessionTrace.slice(0, 240), serialized.slice(0, 120)].filter(Boolean),
+        };
+        result.behavioral_sequences.push(behavioralSequence);
+        result.detections.push(normalizeFinding({
+            id: sequence.id,
+            category: 'behavioral-guard',
+            severity: sequence.severity,
+            layer: 4,
+            desc: sequence.desc,
+            action,
+            rationale: 'A bounded multi-turn session window matched a high-risk behavioral signature.',
+            preconditions: 'Recent tool calls or messages must form the required k-turn sequence.',
+            false_positive_scenarios: [
+                'A synthetic test replays an attack chain for validation.',
+                'Logs quote a dangerous sequence without actually executing it.',
+            ],
+            remediation_hint: 'Reset the session window, require human review, and narrow the active tool policy before continuing.',
+        }, {
+            source: 'runtime',
+            toolName,
+            paramsPreview: serialized.length > 200 ? `${serialized.slice(0, 200)}…` : serialized,
+            layer_name: LAYER_NAMES[4],
+        }));
+        if (action === 'blocked' && !result.blocked) {
+            result.blocked = true;
+            result.blockReason = `🛡️ guard-scanner: ${sequence.desc} [${sequence.id}]`;
+        }
     }
 
     for (const check of RUNTIME_CHECKS) {

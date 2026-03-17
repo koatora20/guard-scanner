@@ -107,10 +107,13 @@ function inferFalsePositiveScenarios(raw, metadata, category) {
 
 function buildEvidence(raw, options = {}) {
     const evidence = {};
+    const metadata = options.ruleMetadata || PATTERN_METADATA.get(raw.id) || {};
     const inferred = inferFindingContext({
         ...raw,
         layer: raw.layer || options.layer,
         layer_name: options.layer_name || raw.layer_name,
+        owasp_asi: raw.owasp_asi || metadata.owasp_asi,
+        protocol_surface: raw.protocol_surface || metadata.protocol_surface,
     });
 
     if (raw.file !== undefined) evidence.file = raw.file;
@@ -125,8 +128,8 @@ function buildEvidence(raw, options = {}) {
     if (raw.paramsPreview !== undefined || options.paramsPreview !== undefined) evidence.params_preview = raw.paramsPreview || options.paramsPreview;
     evidence.layer = raw.layer !== undefined ? raw.layer : inferred.layer;
     evidence.layer_name = options.layer_name !== undefined ? options.layer_name : inferred.layer_name;
-    evidence.owasp_asi = Array.isArray(raw.owasp_asi) ? raw.owasp_asi : inferred.owasp_asi;
-    evidence.protocol_surface = Array.isArray(raw.protocol_surface) ? raw.protocol_surface : inferred.protocol_surface;
+    evidence.owasp_asi = Array.isArray(raw.owasp_asi) ? raw.owasp_asi : Array.isArray(metadata.owasp_asi) ? metadata.owasp_asi : inferred.owasp_asi;
+    evidence.protocol_surface = Array.isArray(raw.protocol_surface) ? raw.protocol_surface : Array.isArray(metadata.protocol_surface) ? metadata.protocol_surface : inferred.protocol_surface;
 
     return evidence;
 }
@@ -191,8 +194,8 @@ function normalizeFinding(raw, options = {}) {
         attack_chain_id: raw.attack_chain_id || null,
         layer: raw.layer || inferred.layer,
         layer_name: raw.layer_name || options.layer_name || inferred.layer_name,
-        owasp_asi: Array.isArray(raw.owasp_asi) ? raw.owasp_asi : inferred.owasp_asi,
-        protocol_surface: Array.isArray(raw.protocol_surface) ? raw.protocol_surface : inferred.protocol_surface,
+        owasp_asi: Array.isArray(raw.owasp_asi) ? raw.owasp_asi : Array.isArray(metadata.owasp_asi) ? metadata.owasp_asi : inferred.owasp_asi,
+        protocol_surface: Array.isArray(raw.protocol_surface) ? raw.protocol_surface : Array.isArray(metadata.protocol_surface) ? metadata.protocol_surface : inferred.protocol_surface,
         evidence: buildEvidence(raw, options),
     };
 

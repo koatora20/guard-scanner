@@ -12,14 +12,14 @@
 <p align="center">
   <a href="https://www.npmjs.com/package/@guava-parity/guard-scanner"><img src="https://img.shields.io/npm/v/@guava-parity/guard-scanner?color=cb3837&label=npm" alt="npm" /></a>
   <a href="https://www.npmjs.com/package/@guava-parity/guard-scanner"><img src="https://img.shields.io/npm/dm/@guava-parity/guard-scanner?color=blue&label=downloads" alt="downloads" /></a>
-  <a href="#test-results"><img src="https://img.shields.io/badge/tests-354%20passed-brightgreen" alt="tests" /></a>
+  <a href="#test-results"><img src="https://img.shields.io/badge/tests-362%20passed-brightgreen" alt="tests" /></a>
   <a href="https://github.com/koatora20/guard-scanner/actions/workflows/codeql.yml"><img src="https://img.shields.io/badge/CodeQL-enabled-181717" alt="CodeQL" /></a>
   <a href="https://doi.org/10.5281/zenodo.18906684"><img src="https://img.shields.io/badge/DOI-Zenodo-blue" alt="DOI" /></a>
   <a href="https://github.com/koatora20/guard-scanner/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="MIT" /></a>
 </p>
 
 <p align="center">
-  <strong>358</strong> detection patterns · <strong>35</strong> threat categories · <strong>27</strong> runtime checks · <strong>1</strong> dependency (<code>ws</code>)
+  <strong>364</strong> detection patterns · <strong>35</strong> threat categories · <strong>27</strong> runtime checks · <strong>1</strong> dependency (<code>ws</code>)
 </p>
 
 ---
@@ -29,7 +29,7 @@ Traditional security tools catch malware. **guard-scanner** catches what they mi
 ```
 $ npx @guava-parity/guard-scanner ./skills/ --strict --soul-lock --compliance owasp-asi
 
-  guard-scanner v16.0.1
+  guard-scanner v16.0.2
 
   ⚠  CRITICAL  identity-hijack   SOUL_OVERWRITE_ATTEMPT
      skills/imported-tool/SKILL.md:47
@@ -219,6 +219,10 @@ When running as an MCP server, guard-scanner exposes:
 | `check_tool_call` | Runtime validation of a single tool invocation |
 | `audit_assets` | Audit npm/GitHub/ClawHub for credential exposure |
 | `get_stats` | Return scanner capabilities, 5-layer summary, and ASI coverage |
+| `experimental.run_async` | Start a long-running async scan task |
+| `experimental.task_status` | Check the status of an async task |
+| `experimental.task_result` | Retrieve the result of a completed async task |
+| `experimental.task_cancel` | Cancel a running async task |
 
 ---
 
@@ -228,7 +232,7 @@ guard-scanner ships a measured quality contract, not a vague strength claim.
 
 | Metric | Contract |
 |--------|----------|
-| Benchmark corpus | `2026-03-13.quality-v1` |
+| Benchmark corpus | `2026-03-15.quality-v17` |
 | Precision target | `>= 0.90` |
 | Recall target | `>= 0.90` |
 | False Positive Rate budget | `<= 0.10` |
@@ -247,13 +251,13 @@ Evidence artifacts:
 ## Test Results
 
 ```
-ℹ tests    354
-ℹ suites   35
-ℹ pass     354
+ℹ tests    362
+ℹ suites   38
+ℹ pass     362
 ℹ fail     0
 ```
 
-35 test files. Run `npm test` to reproduce. 100% pass rate on [benchmark corpus](docs/data/corpus-metrics.json).
+38 test files. Run `npm test` to reproduce. 100% pass rate on [benchmark corpus](docs/data/corpus-metrics.json).
 
 ---
 

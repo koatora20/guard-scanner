@@ -11,10 +11,11 @@ describe('Benchmark ledger contracts', () => {
     it('builds three benchmark layers and aggregate metrics', () => {
         const ledger = buildBenchmarkLedger(loadQualityContract());
 
-        assert.equal(ledger.layers.length, 3);
+        assert.ok(ledger.layers.length >= 5);
         assert.ok(typeof ledger.aggregate.metrics.precision === 'number');
         assert.ok(typeof ledger.aggregate.metrics.recall === 'number');
         assert.ok(typeof ledger.explainability.rate === 'number');
+        assert.ok(typeof ledger.meta_guard.evasion_resistance === 'number');
     });
 
     it('emits a false-positive ledger with stable structure', () => {

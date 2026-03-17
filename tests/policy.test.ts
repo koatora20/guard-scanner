@@ -36,4 +36,39 @@ describe('P1: Runtime Guard Policy Engine', () => {
         const blockedMemory = engine.evaluate('read_file', { path: 'memory/episodes/2026-03-13.md', action: 'write' });
         assert.equal(blockedMemory.action, 'block');
     });
+
+    it('evaluates ContractSpec-style preconditions and governance clauses', () => {
+        const engine = new PolicyEngine({
+            mode: 'strict',
+            policy: {
+                id: 'contract-spec',
+                preconditions: [
+                    { id: 'approval-email', tool: 'email.send', requires: 'user_approval == true', rationale: 'email.send requires approval' },
+                ],
+                invariants: [
+                    { id: 'no-pii', condition: 'no_pii_in_logs == true', rationale: 'PII must not appear in logs' },
+                ],
+                governance: [
+                    { id: 'gdpr', condition: 'gdpr_compliance == true', rationale: 'GDPR compliance required', severity: 'MEDIUM' },
+                ],
+            },
+        });
+
+        const blocked = engine.evaluate(
+            'email.send',
+            { body: 'Customer SSN 123-45-6789' },
+            { userApproval: false, gdprCompliant: false },
+        );
+        assert.equal(blocked.action, 'block');
+        assert.ok(blocked.contractViolations.some((violation) => violation.id === 'approval-email'));
+        assert.ok(blocked.contractViolations.some((violation) => violation.id === 'no-pii'));
+        assert.ok(blocked.contractViolations.some((violation) => violation.id === 'gdpr'));
+
+        const allowed = engine.evaluate(
+            'email.send',
+            { body: 'status update only' },
+            { userApproval: true, gdprCompliant: true },
+        );
+        assert.equal(allowed.action, 'allow');
+    });
 });

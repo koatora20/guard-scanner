@@ -1,13 +1,15 @@
 ---
 name: guard-scanner
-description: "Security scanner and runtime guard for AI agent skills. 358 static threat patterns across 35 categories + 27 runtime checks, with v16 5-layer analysis output (`layer`, `layer_name`, `owasp_asi`, `protocol_surface`) and `--compliance owasp-asi`. Use when scanning skill directories for security threats, auditing npm/GitHub/ClawHub assets for leaked credentials, running real-time file watch during development, integrating security checks into CI/CD pipelines (SARIF/JSON), setting up MCP server for editor-integrated scanning (Cursor, Windsurf, Claude Code, OpenClaw), or runtime guarding tool calls validated against OpenClaw v2026.3.13 with a v2026.3.8 regression lane. Single dependency (ws). MIT licensed."
+description: "Security scanner and runtime guard for OpenClaw skills, MCP servers, and AI agent workflows. Detects prompt injection, identity hijacking, memory poisoning, A2A contagion, secret leaks, supply-chain abuse, and dangerous tool calls with 364 static threat patterns across 35 threat categories plus 27 runtime checks. Use when reviewing a new skill before install, scanning a workspace in CI/CD (SARIF/JSON/HTML), auditing npm/GitHub/ClawHub assets for leaked credentials, running watch mode during development, exposing scanner tools over MCP for Cursor/Windsurf/Claude Code/OpenClaw, or enforcing before_tool_call policy in OpenClaw. v16 adds 5-layer analysis output (`layer`, `layer_name`, `owasp_asi`, `protocol_surface`) and `--compliance owasp-asi`. MIT licensed; single runtime dependency (`ws`)."
 license: MIT
 metadata: {"openclaw": {"requires": {"bins": ["node"]}}}
 ---
 
 # guard-scanner
 
-Scan AI agent skills for 35 categories of threats. v16 adds a 5-layer analysis pipeline, OWASP ASI projection mode, richer finding metadata, and Rust runtime evidence integration on top of the existing prompt injection, identity hijacking, memory poisoning, MCP poisoning, and supply chain coverage.
+Security scanner and runtime guard for the agentic stack. Use it before installing a skill from ClawHub, when auditing MCP servers or OpenClaw workspaces, when wiring security checks into CI/CD, or when you want OpenClaw to block dangerous tool calls at runtime.
+
+It covers prompt injection, identity hijacking, memory poisoning, A2A contagion, MCP abuse, secret leakage, supply-chain abuse, and dangerous execution patterns. v16 adds a 5-layer analysis pipeline, OWASP ASI projection mode, richer finding metadata, and Rust runtime evidence integration.
 
 ## Quick Start
 
@@ -79,7 +81,7 @@ MCP tools: `scan_skill`, `scan_text`, `check_tool_call`, `audit_assets`, `get_st
 
 Public quality contract:
 
-- Benchmark corpus version: `2026-03-13.quality-v1`
+- Benchmark corpus version: `2026-03-15.quality-v17`
 - Precision target: `>= 0.90`
 - Recall target: `>= 0.90`
 - FPR/FNR budgets: `<= 0.10`

@@ -34,6 +34,7 @@ import { execSync, spawnSync  } from 'child_process';
 import fs  from 'fs';
 import path  from 'path';
 import crypto  from 'crypto';
+import os  from 'os';
 
 // ── Types ──
 
@@ -61,7 +62,7 @@ const MutationRisk = {
 
 class SoulHardGate {
   constructor(options = {}) {
-    this.auditLogPath = options.auditLogPath || path.join(process.env.HOME, '.openclaw/guard-scanner/soul-audit.jsonl');
+    this.auditLogPath = options.auditLogPath || path.join(process.env.OPENCLAW_STATE_DIR || path.join(os.homedir(), '.openclaw'), 'guard-scanner/soul-audit.jsonl');
     this.binaryPath = options.binaryPath || this._findBinary();
     this.criticalSections = options.criticalSections || [
       'Boundaries', 'Safety', 'Identity', 'Mission', '緊急停止'
@@ -248,7 +249,7 @@ class SoulHardGate {
 
 class MemoryIntegrity {
   constructor(options = {}) {
-    this.snapshotDir = options.snapshotDir || path.join(process.env.HOME, '.openclaw/guard-scanner/snapshots');
+    this.snapshotDir = options.snapshotDir || path.join(process.env.OPENCLAW_STATE_DIR || path.join(os.homedir(), '.openclaw'), 'guard-scanner/snapshots');
     this.baselineWrites = { min: 5, max: 20 };
   }
 

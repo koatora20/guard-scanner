@@ -12,14 +12,14 @@
 <p align="center">
   <a href="https://www.npmjs.com/package/@guava-parity/guard-scanner"><img src="https://img.shields.io/npm/v/@guava-parity/guard-scanner?color=cb3837&label=npm" alt="npm" /></a>
   <a href="https://www.npmjs.com/package/@guava-parity/guard-scanner"><img src="https://img.shields.io/npm/dm/@guava-parity/guard-scanner?color=blue&label=downloads" alt="downloads" /></a>
-  <a href="#テスト結果"><img src="https://img.shields.io/badge/テスト-354_passed-brightgreen" alt="tests" /></a>
+  <a href="#テスト結果"><img src="https://img.shields.io/badge/テスト-362_passed-brightgreen" alt="tests" /></a>
   <a href="https://github.com/koatora20/guard-scanner/actions/workflows/codeql.yml"><img src="https://img.shields.io/badge/CodeQL-有効-181717" alt="CodeQL" /></a>
   <a href="https://doi.org/10.5281/zenodo.18906684"><img src="https://img.shields.io/badge/DOI-Zenodo-blue" alt="DOI" /></a>
   <a href="https://github.com/koatora20/guard-scanner/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="MIT" /></a>
 </p>
 
 <p align="center">
-  <strong>358</strong> 検出パターン · <strong>35</strong> 脅威カテゴリ · <strong>27</strong> ランタイムチェック · 依存: <strong>1</strong> (<code>ws</code> のみ)
+  <strong>364</strong> 検出パターン · <strong>35</strong> 脅威カテゴリ · <strong>27</strong> ランタイムチェック · 依存: <strong>1</strong> (<code>ws</code> のみ)
 </p>
 
 <p align="center">
@@ -33,7 +33,7 @@
 ```
 $ npx @guava-parity/guard-scanner ./skills/ --strict --soul-lock --compliance owasp-asi
 
-  guard-scanner v16.0.1
+  guard-scanner v16.0.2
 
   ⚠  CRITICAL  identity-hijack   SOUL_OVERWRITE_ATTEMPT
      skills/imported-tool/SKILL.md:47
@@ -223,19 +223,23 @@ MCPサーバーとして実行時に公開されるツール：
 | `check_tool_call` | 単一ツール呼び出しのランタイム検証 |
 | `audit_assets` | npm/GitHub/ClawHubの認証情報露出監査 |
 | `get_stats` | スキャナー能力、5-layer 概要、ASI カバレッジの取得 |
+| `experimental.run_async` | 非同期スキャンタスクの開始 |
+| `experimental.task_status` | 非同期タスクの状態確認 |
+| `experimental.task_result` | 完了した非同期タスクの結果取得 |
+| `experimental.task_cancel` | 実行中の非同期タスクのキャンセル |
 
 ---
 
 ## テスト結果
 
 ```
-ℹ tests    354
-ℹ suites   35
-ℹ pass     354
+ℹ tests    362
+ℹ suites   38
+ℹ pass     362
 ℹ fail     0
 ```
 
-テストファイル35件。`npm test` で再現可能。[ベンチマークコーパス](docs/data/corpus-metrics.json) 100%パス。
+テストファイル38件。`npm test` で再現可能。[ベンチマークコーパス](docs/data/corpus-metrics.json) 100%パス。
 
 ---
 

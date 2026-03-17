@@ -35,6 +35,9 @@ import { applySemanticValidators, checkASTValidation  } from './core/semantic-va
 import { toJSONReport, toSARIFReport, toHTMLReport, printSummary  } from './core/report-adapters';
 import { inferFindingContext  } from './v16-taxonomy';
 import { getCurrentModuleDir } from './module-path';
+import { generateModel  } from './threat-model';
+import { analyzePopulationMonitor  } from './population-monitor';
+import { analyzeMetaGuard  } from './meta-guard';
 
 // ===== CONFIGURATION =====
 import pkg from '../package.json' assert { type: 'json' }; const { version: VERSION } = pkg;
@@ -62,6 +65,9 @@ class GuardScanner {
         this.ignoredPatterns = new Set();
         this.customRules = [];
         this.compliance = options.compliance || null;
+        this.populationEvents = Array.isArray(options.populationEvents) ? options.populationEvents : [];
+        this.metaGuardInput = options.metaGuardInput || null;
+        this.threatModelInputs = [];
 
         // Plugin API: load plugins
         if (options.plugins && Array.isArray(options.plugins)) {
@@ -153,6 +159,7 @@ class GuardScanner {
      * @returns {{ safe: boolean, risk: number, detections: Array }}
      */
     scanText(text) {
+        this.threatModelInputs = [text];
         const findings = [];
         this.checkIoCs(text, 'raw_text', findings);
         this.checkPatterns(text, 'raw_text', 'code', findings); // use 'code' to run all patterns
@@ -163,6 +170,7 @@ class GuardScanner {
         this.analyzeProtocolFindings(text, 'raw_text', 'code', findings);
         this.analyzeCognitiveFindings(text, 'raw_text', 'code', findings);
         this.analyzeThreatIntelFindings(text, 'raw_text', 'code', findings);
+        this.appendThreatModelFindings(text, findings, 'raw_text');
         
         // Filter ignored patterns
         const filteredFindings = findings.filter(f => !this.ignoredPatterns.has(f.id));
@@ -181,6 +189,7 @@ class GuardScanner {
             throw new Error(`Directory not found: ${dir}`);
         }
 
+        this.threatModelInputs = [];
         this.loadIgnoreFile(dir);
 
         const rootSkillMd = path.join(dir, 'SKILL.md');
@@ -230,6 +239,7 @@ class GuardScanner {
     scanSkill(skillPath, skillName) {
         this.stats.scanned++;
         const skillFindings = [];
+        const skillContentParts = [];
 
         // Check 1: Known malicious skill name
         if (KNOWN_MALICIOUS.typosquats.includes(skillName.toLowerCase())) {
@@ -253,6 +263,7 @@ class GuardScanner {
 
             const content = loadTextFile(file);
             if (content === null) continue;
+            skillContentParts.push(content);
 
             const fileType = this.classifyFile(ext, relFile);
 
@@ -286,6 +297,12 @@ class GuardScanner {
             this.analyzeProtocolFindings(content, relFile, fileType, skillFindings);
             this.analyzeCognitiveFindings(content, relFile, fileType, skillFindings);
             this.analyzeThreatIntelFindings(content, relFile, fileType, skillFindings);
+        }
+
+        const skillContent = skillContentParts.join('\n');
+        this.appendThreatModelFindings(skillContent, skillFindings, skillName);
+        if (skillContent) {
+            this.threatModelInputs.push(skillContent);
         }
 
         // Check 3: Structural checks
@@ -470,6 +487,42 @@ class GuardScanner {
                     desc: 'Protocol: credential-bearing data may cross a protocol boundary',
                     protocol_surface: ['credential-flow'],
                     owasp_asi: ['ASI02', 'ASI07'],
+                    layer: 2,
+                },
+            },
+            {
+                id: 'PROTO_MCP_SSRF_V17',
+                when: /(resources\/(?:read|list)|mcp)[\s\S]{0,160}(https?:\/\/(?:127\.0\.0\.1|localhost)|169\.254\.169\.254|metadata\.google)/i,
+                finding: {
+                    severity: 'CRITICAL',
+                    cat: 'mcp-security',
+                    desc: 'Protocol: MCP resource fetch may pivot into localhost or metadata endpoints',
+                    protocol_surface: ['mcp', 'resource', 'ssrf'],
+                    owasp_asi: ['ASI02', 'ASI07'],
+                    layer: 2,
+                },
+            },
+            {
+                id: 'PROTO_MCP_CONNECTOR_POISON_V17',
+                when: /(mcp|connector|registry)[\s\S]{0,160}(poison|shadow|rogue|tamper|unverified publisher)/i,
+                finding: {
+                    severity: 'HIGH',
+                    cat: 'mcp-security',
+                    desc: 'Protocol: MCP connector or registry poisoning indicator',
+                    protocol_surface: ['mcp', 'registry', 'connector'],
+                    owasp_asi: ['ASI04', 'ASI07'],
+                    layer: 2,
+                },
+            },
+            {
+                id: 'PROTO_MCP_JSONRPC_INJECT_V17',
+                when: /(jsonrpc|content-length|stdin\.write)[\s\S]{0,160}(inject|smuggle|override|truncate)/i,
+                finding: {
+                    severity: 'CRITICAL',
+                    cat: 'mcp-security',
+                    desc: 'Protocol: MCP transport or JSON-RPC message injection indicator',
+                    protocol_surface: ['mcp', 'json-rpc', 'transport'],
+                    owasp_asi: ['ASI07'],
                     layer: 2,
                 },
             },
@@ -1250,7 +1303,64 @@ class GuardScanner {
         return checkASTValidation(content, relFile, findings);
     }
 
+    appendThreatModelFindings(content, findings, relFile = 'threat-model') {
+        if (!content || typeof content !== 'string') return;
+        const model = generateModel(content);
+        for (const risk of model.compounded_risks || []) {
+            if (!['compound.fs_read_network', 'compound.env_access_network'].includes(risk.id)) {
+                continue;
+            }
+            this.pushUniqueFinding(findings, {
+                id: `TM_${risk.id.split('.').pop().toUpperCase()}`,
+                severity: risk.severity,
+                cat: 'agent-protocol',
+                desc: `Threat model: ${risk.description}`,
+                file: relFile,
+                rationale: risk.description,
+                preconditions: 'Multiple risky capabilities must coexist in the same code path.',
+                false_positive_scenarios: [
+                    'The capabilities are present in isolated branches that cannot compose.',
+                    'The code sample documents a risky pattern without executing it.',
+                ],
+                remediation_hint: 'Separate the capabilities across reviewed boundaries or remove the risky coupling.',
+                validation_status: 'validated',
+                validation_state: 'semantic-match',
+                confidence: 0.9,
+                protocol_surface: ['credential-flow'],
+                owasp_asi: ['ASI02', 'ASI07'],
+                layer: 2,
+                sample: risk.contributing_capabilities.join(', '),
+            });
+        }
+        if (!model.lethal_trifecta?.triggered) return;
+
+        this.pushUniqueFinding(findings, {
+            id: 'TM_LETHAL_TRIFECTA',
+            severity: 'CRITICAL',
+            cat: 'agent-protocol',
+            desc: 'Threat model: lethal trifecta detected (private data + untrusted input + external communication)',
+            file: relFile,
+            rationale: model.lethal_trifecta.rationale,
+            preconditions: 'A code path combines private-data access, attacker-influenced input, and outbound communication in the same execution surface.',
+            false_positive_scenarios: [
+                'The file is documenting an unsafe architecture without implementing it.',
+                'The capabilities appear in separate unreachable branches that do not compose at runtime.',
+            ],
+            remediation_hint: 'Split trust boundaries, isolate private data access, and require explicit mediation before any outbound communication.',
+            validation_status: 'validated',
+            validation_state: 'semantic-match',
+            confidence: 0.97,
+            protocol_surface: ['credential-flow', 'session-boundary'],
+            owasp_asi: ['ASI02', 'ASI07'],
+            layer: 2,
+            sample: model.summary,
+        });
+    }
+
     generateThreatModel(findings) {
+        const derivedContent = this.threatModelInputs.join('\n')
+            || findings.map((f) => [f.id, f.desc, f.sample, f.file].filter(Boolean).join(' ')).join('\n');
+        const model = generateModel(derivedContent);
         const surface = {
             network: false,
             file_system: false,
@@ -1293,14 +1403,40 @@ class GuardScanner {
             layerSeen.set(layer, f.layer_name || inferFindingContext(f).layer_name);
         }
 
+        const lethalTrifecta = model.lethal_trifecta?.triggered || (
+            surface.network &&
+            (surface.file_system || surface.credential_exposure) &&
+            surface.external_ingestion
+        )
+            ? {
+                triggered: true,
+                severity: 'CRITICAL',
+                contributing_capabilities: ['private_data_access', 'untrusted_input', 'external_communication'],
+                rationale: 'The inferred threat surface combines private data access, untrusted input, and outbound communication.',
+            }
+            : model.lethal_trifecta;
+
         return {
             timestamp: new Date().toISOString(),
             surface,
+            capabilities: model.capabilities,
+            compounded_risks: model.compounded_risks,
+            lethal_trifecta: lethalTrifecta,
             summary: Object.keys(surface).filter(k => surface[k]).join(', ') || 'none',
             owasp_asi: [...owasp].sort(),
             protocol_surfaces: [...protocolSurfaces].sort(),
             layer_summary: [...layerSeen.entries()].sort((a, b) => a[0] - b[0]).map(([layer, layer_name]) => ({ layer, layer_name })),
         };
+    }
+
+    generatePopulationMonitor() {
+        if (!Array.isArray(this.populationEvents) || this.populationEvents.length === 0) return null;
+        return analyzePopulationMonitor(this.populationEvents);
+    }
+
+    generateMetaGuard() {
+        if (!this.metaGuardInput) return null;
+        return analyzeMetaGuard(this.metaGuardInput);
     }
 
 }

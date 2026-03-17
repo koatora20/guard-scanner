@@ -215,6 +215,7 @@ describe('Output Formats', () => {
         assert.ok(Array.isArray(json.layer_summary), 'Should expose layer summary');
         assert.ok(Array.isArray(json.owasp_asi_coverage), 'Should expose OWASP ASI coverage');
         assert.ok(json.threat_model, 'Should expose a threat model');
+        assert.ok(json.threat_model.capabilities, 'Threat model should expose typed capabilities');
     });
 
     it('toJSON recommendations should flag credential+exfil', () => {

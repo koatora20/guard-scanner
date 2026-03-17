@@ -1,6 +1,6 @@
 {
-  "contract_version": "2026-03-13.quality-v1",
-  "benchmark_version": "2026-03-13.quality-v1",
+  "contract_version": "2026-03-15.quality-v17",
+  "benchmark_version": "2026-03-15.quality-v17",
   "quality_targets": {
     "precision_min": 0.9,
     "recall_min": 0.9,
@@ -30,6 +30,16 @@
     {
       "id": "layer_c",
       "corpus": "tests/fixtures/corpus/ecosystem-corpus.json",
+      "scanner_options": {}
+    },
+    {
+      "id": "layer_protocol",
+      "corpus": "tests/fixtures/corpus/protocol-abuse-corpus.json",
+      "scanner_options": {}
+    },
+    {
+      "id": "layer_capability",
+      "corpus": "tests/fixtures/corpus/capability-compounding-corpus.json",
       "scanner_options": {}
     }
   ]
