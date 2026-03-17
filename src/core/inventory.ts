@@ -9,6 +9,8 @@ const DOC_EXTENSIONS = new Set(['.md', '.txt', '.rst', '.adoc']);
 const DATA_EXTENSIONS = new Set(['.json', '.yaml', '.yml', '.toml', '.xml', '.csv']);
 const BINARY_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.ico', '.woff', '.woff2', '.ttf', '.eot', '.wasm', '.wav', '.mp3', '.mp4', '.webm', '.ogg', '.pdf', '.zip', '.tar', '.gz', '.bz2', '.7z', '.exe', '.dll', '.so', '.dylib']);
 const GENERATED_REPORT_FILES = new Set(['guard-scanner-report.json', 'guard-scanner-report.html', 'guard-scanner.sarif']);
+const TRANSIENT_DIRS = new Set(['.git', 'node_modules', '__pycache__', '.pytest_cache', '.mypy_cache', '.ruff_cache', 'dist']);
+const RESOURCE_DIRS = new Set(['references', 'scripts', 'tests', 'assets']);
 
 function classifyFile(ext, relFile) {
     if (CODE_EXTENSIONS.has(ext)) return 'code';
@@ -41,7 +43,7 @@ function getFiles(dir) {
         for (const entry of entries) {
             const fullPath = path.join(dir, entry.name);
             if (entry.isDirectory()) {
-                if (entry.name === '.git' || entry.name === 'node_modules') continue;
+                if (TRANSIENT_DIRS.has(entry.name)) continue;
                 results.push(...getFiles(fullPath));
             } else {
                 const baseName = entry.name.toLowerCase();
@@ -54,10 +56,15 @@ function getFiles(dir) {
 }
 
 function listSkills(dir) {
-    return fs.readdirSync(dir).filter((file) => {
+    const entries = fs.readdirSync(dir).filter((file) => {
         const fullPath = path.join(dir, file);
-        return fs.statSync(fullPath).isDirectory();
+        return fs.statSync(fullPath).isDirectory() && !TRANSIENT_DIRS.has(file);
     });
+
+    const skillRoots = entries.filter((file) => fs.existsSync(path.join(dir, file, 'SKILL.md')));
+    if (skillRoots.length > 0) return skillRoots;
+
+    return entries.filter((file) => !RESOURCE_DIRS.has(file));
 }
 
 export { 

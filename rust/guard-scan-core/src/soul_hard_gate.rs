@@ -435,6 +435,8 @@ impl SoulHardGate {
                     || name.contains("Identity")
                     || name.contains("Mission")
                     || name.contains("緊急停止")
+                    || name.contains("IMMUTABLE CORE")
+                    || name.contains("MUTABLE SECTION")
                 {
                     Criticality::Immutable
                 } else if name.contains("Relationship") || name.contains("Vibe") {

@@ -41,7 +41,7 @@ npx tsx src/cli.ts tests/fixtures/ --json --sarif --html --verbose
 
 ### Pull Request Checklist
 
-- [ ] Tests pass (`npm test` — currently 354 tests / 35 suites)
+- [ ] Tests pass (`npm test` — currently 362 tests / 38 suites)
 - [ ] New patterns have test coverage in `tests/scanner.test.ts`
 - [ ] No false positives against `tests/fixtures/clean-skill/`
 - [ ] Severity level is appropriate (see `docs/THREAT_TAXONOMY.md`)

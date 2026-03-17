@@ -1,10 +1,10 @@
 {
-  "package_version": "16.0.1",
-  "plugin_version": "16.0.1",
-  "static_pattern_count": 358,
+  "package_version": "16.0.2",
+  "plugin_version": "16.0.2",
+  "static_pattern_count": 364,
   "threat_category_count": 35,
   "runtime_check_count": 27,
-  "test_file_count": 35,
+  "test_file_count": 38,
   "dependencies_runtime": 1,
   "dependencies_dev": 7,
   "mcp_tools": [
@@ -40,7 +40,7 @@
     "github",
     "npm"
   ],
-  "benchmark_corpus_version": "2026-03-13.quality-v1",
+  "benchmark_corpus_version": "2026-03-15.quality-v17",
   "benchmark_layers": [
     {
       "id": "layer_a",
@@ -64,6 +64,24 @@
       "id": "layer_c",
       "benign": 8,
       "malicious": 8,
+      "precision": 1,
+      "recall": 1,
+      "false_positive_rate": 0,
+      "false_negative_rate": 0
+    },
+    {
+      "id": "layer_protocol",
+      "benign": 4,
+      "malicious": 4,
+      "precision": 1,
+      "recall": 1,
+      "false_positive_rate": 0,
+      "false_negative_rate": 0
+    },
+    {
+      "id": "layer_capability",
+      "benign": 4,
+      "malicious": 4,
       "precision": 1,
       "recall": 1,
       "false_positive_rate": 0,

@@ -7,6 +7,7 @@ import path  from 'path';
 import { GuardScanner  } from './scanner';
 import { RuleRegistry  } from './core/rule-registry';
 import { getCurrentModuleDir } from './module-path';
+import { analyzeMetaGuard  } from './meta-guard';
 
 const ROOT = path.join(getCurrentModuleDir(), '..');
 const DEFAULT_QUALITY_CONTRACT_PATH = path.join(ROOT, 'docs', 'data', 'quality-contract.json');
@@ -164,6 +165,9 @@ function buildBenchmarkLedger(contract = loadQualityContract()) {
         layers,
         aggregate,
         explainability,
+        meta_guard: analyzeMetaGuard({
+            adversarialLayer: layers.find((layer) => /adversarial/i.test(layer.layer)),
+        }),
         quality_targets: contract.quality_targets,
     };
 }

@@ -19,7 +19,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const ROOT = path.join(__dirname, '..');
-const README_PATH = path.join(ROOT, 'README.md');
+const README_PATHS = [
+    path.join(ROOT, 'README.md'),
+    path.join(ROOT, 'README_ja.md'),
+];
+const CONTRIBUTING_PATH = path.join(ROOT, 'CONTRIBUTING.md');
 const TEST_FILE_COUNT_REGEX = /\.test\.(?:ts|js)$/;
 
 function extractVitestJson(output: string): {
@@ -64,29 +68,52 @@ if (fail > 0) {
     process.exit(1);
 }
 
-// Read README
-let readme = fs.readFileSync(README_PATH, 'utf8');
+const badgePatterns = [
+    /tests-\d+%20passed/g,
+    /テスト-\d+_passed/g,
+];
+const statsBlockRe = /ℹ tests\s+\d+\nℹ suites\s+\d+\nℹ pass\s+\d+\nℹ fail\s+\d+/;
+const newStatsBlock = `ℹ tests    ${tests}\nℹ suites   ${suites}\nℹ pass     ${pass}\nℹ fail     ${fail}`;
+const testFileSentencePatterns = [
+    /\d+ test files\. Run `npm test` to reproduce\./,
+    /テストファイル\d+件。`npm test` で再現可能。/,
+];
+const newTestFileSentences = [
+    `${suites} test files. Run \`npm test\` to reproduce.`,
+    `テストファイル${suites}件。\`npm test\` で再現可能。`,
+];
+const contributingChecklistRe = /- \[ \] Tests pass \(`npm test` — currently \d+ tests \/ \d+ suites\)/;
+const newContributingChecklist = `- [ ] Tests pass (\`npm test\` — currently ${tests} tests / ${suites} suites)`;
 
-// 1. Update badge: tests-NNN%20passed
-const badgeRe = /tests-\d+%20passed/g;
-const newBadge = `tests-${pass}%20passed`;
-readme = readme.replace(badgeRe, newBadge);
+const updatedReadmes = README_PATHS.map((readmePath, index) => {
+    let readme = fs.readFileSync(readmePath, 'utf8');
+    readme = readme.replace(badgePatterns[index], index === 0 ? `tests-${pass}%20passed` : `テスト-${pass}_passed`);
+    readme = readme.replace(statsBlockRe, newStatsBlock);
+    readme = readme.replace(testFileSentencePatterns[index], newTestFileSentences[index]);
+    return { readmePath, readme };
+});
 
-// 2. Update test results block
-const statsBlockRe = /ℹ tests \d+\nℹ suites \d+\nℹ pass \d+\nℹ fail \d+/;
-const newStatsBlock = `ℹ tests ${tests}\nℹ suites ${suites}\nℹ pass ${pass}\nℹ fail ${fail}`;
-readme = readme.replace(statsBlockRe, newStatsBlock);
+const contributing = fs.readFileSync(CONTRIBUTING_PATH, 'utf8').replace(contributingChecklistRe, newContributingChecklist);
 
 const isCheck = process.argv.includes('--check');
 
 if (isCheck) {
-    const current = fs.readFileSync(README_PATH, 'utf8');
-    if (current !== readme) {
-        console.error('❌ README test stats are out of sync! Run: node scripts/generate-readme-stats');
+    for (const { readmePath, readme } of updatedReadmes) {
+        const current = fs.readFileSync(readmePath, 'utf8');
+        if (current !== readme) {
+            console.error(`❌ ${path.basename(readmePath)} test stats are out of sync! Run: node scripts/generate-readme-stats`);
+            process.exit(1);
+        }
+    }
+    if (fs.readFileSync(CONTRIBUTING_PATH, 'utf8') !== contributing) {
+        console.error('❌ CONTRIBUTING.md test stats are out of sync! Run: node scripts/generate-readme-stats');
         process.exit(1);
     }
-    console.log('✅ README test stats are in sync.');
+    console.log('✅ README/README_ja/CONTRIBUTING test stats are in sync.');
 } else {
-    fs.writeFileSync(README_PATH, readme);
-    console.log(`✅ README updated: ${pass} tests / ${suites} suites / ${fail} fail`);
+    for (const { readmePath, readme } of updatedReadmes) {
+        fs.writeFileSync(readmePath, readme);
+    }
+    fs.writeFileSync(CONTRIBUTING_PATH, contributing);
+    console.log(`✅ Docs updated: ${pass} tests / ${suites} suites / ${fail} fail`);
 }

@@ -60,6 +60,12 @@ function toJSONReport(scanner, version) {
         threat_model: typeof scanner.generateThreatModel === 'function'
             ? scanner.generateThreatModel(flattened)
             : null,
+        population_monitor: typeof scanner.generatePopulationMonitor === 'function'
+            ? scanner.generatePopulationMonitor()
+            : null,
+        meta_guard: typeof scanner.generateMetaGuard === 'function'
+            ? scanner.generateMetaGuard()
+            : null,
         iocVersion: '2026-02-12',
     };
 }
