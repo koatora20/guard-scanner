@@ -16,5 +16,5 @@ describe('Rust parity harness', () => {
             encoding: 'utf8',
         });
         assert.match(output, /Rust parity: 3\/3 matched/);
-    }, 30_000);
+    });
 });
