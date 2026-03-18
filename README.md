@@ -29,7 +29,7 @@ Traditional security tools catch malware. **guard-scanner** catches what they mi
 ```
 $ npx @guava-parity/guard-scanner ./skills/ --strict --soul-lock --compliance owasp-asi
 
-  guard-scanner v16.0.2
+  guard-scanner v17.0.0
 
   ⚠  CRITICAL  identity-hijack   SOUL_OVERWRITE_ATTEMPT
      skills/imported-tool/SKILL.md:47
@@ -94,7 +94,7 @@ npx -y @guava-parity/guard-scanner serve
 guard-scanner watch ./skills/ --strict --soul-lock
 ```
 
-**v16 compliance projection** — filter findings to the OWASP Agentic Top 10 mapping:
+**v17 OWASP ASI compliance** — filter findings to the OWASP Agentic Top 10 (ASI01–ASI10) full coverage:
 
 ```bash
 guard-scanner ./skills/ --compliance owasp-asi --format json
@@ -131,9 +131,9 @@ npm exec --yes --package=@guava-parity/guard-scanner -- guard-scanner ./skills/ 
 
 ## Runtime Guard
 
-guard-scanner v16 isn't just a static scanner — it exposes a 5-layer analysis pipeline across static scan, protocol analysis, runtime evidence, cognitive heuristics, and threat-intelligence overlays. It also provides a real-time **`before_tool_call`** hook that intercepts dangerous tool invocations during agent execution.
+guard-scanner v17 isn't just a static scanner — it exposes a 5-layer analysis pipeline across static scan, protocol analysis, runtime evidence, cognitive heuristics, and threat-intelligence overlays. v17 achieves **full OWASP Agentic Top 10 (ASI01–ASI10) coverage** with `buildFullAsiCoverage`. It also provides a real-time **`before_tool_call`** hook that intercepts dangerous tool invocations during agent execution.
 
-### v16 Analysis Layers
+### v17 Analysis Layers
 
 | Layer | Purpose |
 |------|---------|
@@ -143,7 +143,7 @@ guard-scanner v16 isn't just a static scanner — it exposes a 5-layer analysis 
 | 4. Cognitive Threat Detection | Goal-drift, trust-bias, cascading handoff heuristics |
 | 5. Threat Intelligence | Registry/provenance, machine identity, budget abuse, supply chain hints |
 
-Every v16 finding can now carry `layer`, `layer_name`, `owasp_asi`, and `protocol_surface` in JSON/MCP output.
+Every v17 finding carries `layer`, `layer_name`, `owasp_asi`, and `protocol_surface` in JSON/MCP output.
 
 | Defense Layer | What It Blocks |
 |---------------|---------------|
