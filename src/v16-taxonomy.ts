@@ -45,7 +45,7 @@ const CATEGORY_LAYER = {
 
 const CATEGORY_OWASP_ASI = {
     'prompt-injection': ['ASI01'],
-    'malicious-code': ['ASI02'],
+    'malicious-code': ['ASI02', 'ASI05'],
     'suspicious-download': ['ASI02', 'ASI04'],
     'credential-handling': ['ASI02', 'ASI07'],
     'secret-detection': ['ASI02', 'ASI07'],
@@ -64,6 +64,24 @@ const CATEGORY_OWASP_ASI = {
     'trust-boundary': ['ASI01', 'ASI07'],
     'runtime-policy': ['ASI07'],
     'pii-exposure': ['ASI02', 'ASI06'],
+    // ── v17: OWASP Agentic Top 10 2026 完全カバレッジ ──
+    'autonomous-risk': ['ASI03', 'ASI08', 'ASI10'],
+    'sandbox-escape': ['ASI05'],
+    'supply-chain-v2': ['ASI04'],
+    'model-poisoning': ['ASI06'],
+    'inference-manipulation': ['ASI01', 'ASI09'],
+    'api-abuse': ['ASI02', 'ASI03'],
+    'safeguard-bypass': ['ASI01', 'ASI09'],
+    'prompt-worm': ['ASI07', 'ASI08'],
+    'leaky-skills': ['ASI02', 'ASI06'],
+    'obfuscation': ['ASI01'],
+    'advanced-exfil': ['ASI02', 'ASI06'],
+    'vdb-injection': ['ASI06'],
+    'data-exposure': ['ASI02', 'ASI06'],
+    'canvas-injection': ['ASI05'],
+    'context-crush': ['ASI08'],
+    'solana-identity-bypass': ['ASI03', 'ASI10'],
+    'cve-patterns': ['ASI04', 'ASI05'],
 };
 
 function unique(values) {
@@ -141,6 +159,30 @@ function buildAsiCoverage(normalizedFindings) {
         .sort((a, b) => a.id.localeCompare(b.id));
 }
 
+/**
+ * Build ASI coverage from CATEGORY_OWASP_ASI definition + actual pattern counts.
+ * Unlike buildAsiCoverage (findings-based), this reflects the FULL taxonomy capability.
+ */
+function buildFullAsiCoverage(patternCategories: string[]) {
+    const catCounts: Record<string, number> = {};
+    for (const cat of patternCategories) {
+        catCounts[cat] = (catCounts[cat] || 0) + 1;
+    }
+    const coverage: Record<string, { id: string; count: number; categories: string[] }> = {};
+    for (const [cat, asiIds] of Object.entries(CATEGORY_OWASP_ASI)) {
+        const count = catCounts[cat] || 0;
+        if (count === 0) continue;
+        for (const asi of asiIds) {
+            if (!coverage[asi]) coverage[asi] = { id: asi, count: 0, categories: [] };
+            coverage[asi].count += count;
+            coverage[asi].categories.push(cat);
+        }
+    }
+    return Object.values(coverage)
+        .map((entry) => ({ ...entry, categories: unique(entry.categories).sort() }))
+        .sort((a, b) => a.id.localeCompare(b.id));
+}
+
 function filterFindingsForCompliance(findings, complianceMode) {
     if (complianceMode !== 'owasp-asi') return findings;
     return findings
@@ -153,8 +195,10 @@ function filterFindingsForCompliance(findings, complianceMode) {
 
 export { 
     V16_LAYER_NAMES,
+    CATEGORY_OWASP_ASI,
     inferFindingContext,
     buildLayerSummary,
     buildAsiCoverage,
+    buildFullAsiCoverage,
     filterFindingsForCompliance,
  };

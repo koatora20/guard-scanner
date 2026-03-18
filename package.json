@@ -1,12 +1,12 @@
 {
   "name": "@guava-parity/guard-scanner",
-  "version": "16.0.2",
+  "version": "17.0.0",
   "type": "module",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
   },
-  "description": "Agent Skill Security Scanner - ASI Sanctuary Enforcer (v16)",
+  "description": "Agent Skill Security Scanner - ASI Sanctuary Enforcer (v17 — OWASP Agentic Top 10 2026 Full Coverage)",
   "openclaw": {
     "extensions": [
       "./dist/openclaw-plugin.mjs"
@@ -81,6 +81,7 @@
     "compaction-persistence",
     "threat-signatures",
     "owasp",
+    "owasp-agentic-top-10",
     "discovery",
     "daemon",
     "typescript"

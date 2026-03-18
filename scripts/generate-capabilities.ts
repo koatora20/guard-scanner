@@ -10,7 +10,7 @@ import { RUNTIME_CHECKS }  from '../src/runtime-guard';
 import { TOOLS }  from '../src/mcp-server';
 import { computeExplainabilityCompletenessRate }  from '../src/benchmark-runner';
 import { normalizeFinding }  from '../src/finding-schema';
-import { V16_LAYER_NAMES, buildAsiCoverage }  from '../src/v16-taxonomy';
+import { V16_LAYER_NAMES, buildAsiCoverage, buildFullAsiCoverage }  from '../src/v16-taxonomy';
 import packageJson  from '../package.json';
 import pluginJson  from '../openclaw.plugin.json';
 
@@ -60,7 +60,7 @@ const spec = {
         false_negative_rate: layer.metrics.false_negative_rate,
     })) : [],
     analysis_layers: Object.entries(V16_LAYER_NAMES).map(([layer, name]) => ({ layer: Number(layer), name })),
-    owasp_asi_coverage: buildAsiCoverage(normalizedSample),
+    owasp_asi_coverage: buildFullAsiCoverage(PATTERNS.map(p => p.cat)),
     capability_flags: {
         protocol_analysis: true,
         runtime_evidence: true,

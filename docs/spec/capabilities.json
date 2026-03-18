@@ -1,6 +1,6 @@
 {
-  "package_version": "16.0.2",
-  "plugin_version": "16.0.2",
+  "package_version": "17.0.0",
+  "plugin_version": "17.0.0",
   "static_pattern_count": 364,
   "threat_category_count": 35,
   "runtime_check_count": 27,
@@ -113,17 +113,25 @@
   "owasp_asi_coverage": [
     {
       "id": "ASI01",
-      "count": 11,
+      "count": 46,
       "categories": [
-        "prompt-injection"
+        "inference-manipulation",
+        "obfuscation",
+        "prompt-injection",
+        "safeguard-bypass",
+        "trust-boundary"
       ]
     },
     {
       "id": "ASI02",
-      "count": 28,
+      "count": 85,
       "categories": [
+        "advanced-exfil",
+        "api-abuse",
         "credential-handling",
+        "data-exposure",
         "exfiltration",
+        "leaky-skills",
         "malicious-code",
         "pii-exposure",
         "secret-detection",
@@ -131,35 +139,89 @@
       ]
     },
     {
-      "id": "ASI04",
-      "count": 8,
+      "id": "ASI03",
+      "count": 21,
       "categories": [
+        "api-abuse",
+        "autonomous-risk",
+        "solana-identity-bypass"
+      ]
+    },
+    {
+      "id": "ASI04",
+      "count": 69,
+      "categories": [
+        "cve-patterns",
+        "supply-chain-v2",
         "suspicious-download",
         "unverifiable-deps"
       ]
     },
     {
       "id": "ASI05",
-      "count": 2,
+      "count": 78,
       "categories": [
-        "financial-access"
+        "canvas-injection",
+        "cve-patterns",
+        "financial-access",
+        "malicious-code",
+        "sandbox-escape"
       ]
     },
     {
       "id": "ASI06",
-      "count": 10,
+      "count": 65,
       "categories": [
+        "advanced-exfil",
+        "data-exposure",
         "exfiltration",
+        "leaky-skills",
         "memory-poisoning",
-        "pii-exposure"
+        "model-poisoning",
+        "pii-exposure",
+        "vdb-injection"
       ]
     },
     {
       "id": "ASI07",
-      "count": 9,
+      "count": 76,
       "categories": [
+        "a2a-contagion",
+        "agent-protocol",
         "credential-handling",
-        "secret-detection"
+        "mcp-security",
+        "prompt-worm",
+        "secret-detection",
+        "trust-boundary"
+      ]
+    },
+    {
+      "id": "ASI08",
+      "count": 31,
+      "categories": [
+        "autonomous-risk",
+        "context-crush",
+        "persistence",
+        "prompt-worm"
+      ]
+    },
+    {
+      "id": "ASI09",
+      "count": 23,
+      "categories": [
+        "inference-manipulation",
+        "safeguard-bypass",
+        "trust-exploitation"
+      ]
+    },
+    {
+      "id": "ASI10",
+      "count": 46,
+      "categories": [
+        "autonomous-risk",
+        "config-impact",
+        "identity-hijack",
+        "solana-identity-bypass"
       ]
     }
   ],
