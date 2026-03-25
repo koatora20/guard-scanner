@@ -110,7 +110,7 @@
     "LICENSE"
   ],
   "devDependencies": {
-    "@types/node": "^22.0.0",
+    "@types/node": "^25.5.0",
     "@vitest/coverage-v8": "^4.1.0",
     "openclaw": "2026.3.13",
     "tsup": "^8.5.0",
